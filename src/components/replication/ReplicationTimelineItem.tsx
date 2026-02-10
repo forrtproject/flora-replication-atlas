@@ -1,5 +1,6 @@
 import type { Author, ReplicationStats } from "../../@types";
 import { badgeBgs } from "../../configs";
+import { ScrollIcon } from "../icons/scroll";
 
 type ReplicationTimelineItemProps = {
     doi?: string;
@@ -28,13 +29,16 @@ export const ReplicationTimelineItem = (props: ReplicationTimelineItemProps) => 
     const replicationCount = props.stats?.n_replications_total ?? 0;
     return (
         <div class="collapse collapse-arrow bg-base-100 border border-base-200">
-            <input type="radio" {...defaultProps} name="fort-accordion" />
+            <input type="checkbox" {...defaultProps} name="fort-accordion" />
             <div class="collapse-title px-4 py-3">
                 <div class="flex flex-col gap-2">
                     <div class="flex items-start gap-3">
                         <div class={`mt-2 h-2 w-2 min-w-2 rounded-full ${badgeBgs[props.status || "blank"]}`}></div>
                         <div class="flex-1">
                             <div class="flex flex-wrap items-center gap-2">
+                                <div class="w-10 rounded">
+                                    <ScrollIcon color="#000" />
+                                </div>
                                 {props.title ? (
                                     <a class="link link-hover font-semibold" href={props.doi ? `https://doi.org/${props.doi}` : undefined} target="_blank" rel="noreferrer">
                                         {props.title}

@@ -76,6 +76,10 @@ em {
   font-weight: 600;
 }
 
+.collapse input:is([type="checkbox"], [type="radio"]):checked ~ .collapse-title  {
+  background-color: var(--color-neutral-200);
+}
+
 .collapse input:is([type="checkbox"], [type="radio"]):checked ~ .collapse-title .collapse-closed {
   display: none;
 }

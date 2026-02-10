@@ -4,10 +4,10 @@ import { ReplicationActionsPanel } from "./ReplicationActionsPanel";
 import { ReplicationStatusbar } from "./ReplicationStatusbar";
 import { ReplicationActionSuccessRate } from "./ReplicationSuccessRate";
 import { ReplicationTimelineItem } from "./ReplicationTimelineItem";
-import { ReplicationToolbar } from "./ReplicationTollbar";
 import { ResearchNotFound } from "./ResearchNotFount";
 import { MarkdownToHtml } from "../../utils/markdown";
 import { ReplicationSection } from "./ReplicationSection";
+import { EyeOpenIcon } from "../icons/eye-open";
 
 type ReplicationSummaryProps = {
     data?: OriginalPaper;
@@ -55,7 +55,6 @@ export const ReplicationSummary = ({ data, defaultOpen, q }: ReplicationSummaryP
                 data?.record ? (
                     <section class="p-4 rounded-md flex justify-center">
                         <div class="card max-w-full bg-base-100">
-                            <ReplicationToolbar title={rep.title} doi={rep.doi} />
                             <div class="card-body">
                                 <SummaryHeader rep={rep} stats={stats} />
                                 <ReplicationStatusbar outcomes={rep.outcomes} />
@@ -87,7 +86,19 @@ export const ReplicationSummary = ({ data, defaultOpen, q }: ReplicationSummaryP
 const SummaryHeader = (props: { rep: FormattedDOIResult; stats?: FormattedDOIResult["stats"] }) => (
     <div class="grid gap-4 lg:grid-cols-[2fr,1fr]">
         <div class="rounded-md border border-base-200 p-4">
-            <h3 class="text-sm font-semibold text-neutral/80">Original study</h3>
+            <div class="flex items-start justify-between">
+                <h3 class="text-sm font-semibold text-neutral/80">Original study</h3>
+                {
+                    props.rep.doi ? (
+                        <div class="flex justify-end">
+                            <a class="btn btn-sm" href={`https://doi.org/${props.rep.doi}`} target="__blank">
+                                <span class="mr-2"><EyeOpenIcon /></span>
+                                <span>View Research</span>
+                            </a>
+                        </div>
+                    ) : null
+                }
+            </div>
             <div class="mt-2 text-lg font-semibold">{props.rep.title}</div>
             <div class="mt-2 text-sm text-neutral/70 flex flex-wrap gap-2">
                 {props.rep.journal ? <span>{props.rep.journal}</span> : null}
