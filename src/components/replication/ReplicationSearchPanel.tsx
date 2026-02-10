@@ -69,7 +69,7 @@ export const ReplicationSearchPanel = (props: ReplicationSearchPanelProps) => {
                 ))}
             </Show>
             <Show when={emptyResults() && searchTerm().trim() !== '' && !isLoading()}>
-                <ResearchNotFound />
+                <ResearchNotFound doi={searchTerm().trim()} />
             </Show>
         </div>
     );
