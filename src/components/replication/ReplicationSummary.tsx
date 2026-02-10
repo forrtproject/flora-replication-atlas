@@ -8,6 +8,7 @@ import { ResearchNotFound } from "./ResearchNotFount";
 import { MarkdownToHtml } from "../../utils/markdown";
 import { ReplicationSection } from "./ReplicationSection";
 import { EyeOpenIcon } from "../icons/eye-open";
+import { downloadElementAsPdf } from "../../utils/pdf";
 
 type ReplicationSummaryProps = {
     data?: OriginalPaper;
@@ -40,6 +41,12 @@ export const ReplicationSummary = ({ data, defaultOpen, q }: ReplicationSummaryP
     const rep = formatReplicationResponse(data);
     const status = resolveOutcomeStatus(rep.outcomes);
     const stats = rep.stats;
+    let paperRef: HTMLDivElement | undefined;
+    const handleDownloadPdf = () => {
+        if (!paperRef) return;
+        const title = rep.title || rep.doi || "replication-summary";
+        downloadElementAsPdf(paperRef, { title });
+    };
     return (
         <ReplicationTimelineItem
             doi={rep.doi ?? q}
@@ -54,11 +61,11 @@ export const ReplicationSummary = ({ data, defaultOpen, q }: ReplicationSummaryP
             {
                 data?.record ? (
                     <section class="p-4 rounded-md flex justify-center">
-                        <div class="card max-w-full bg-base-100">
+                        <div class="card max-w-full bg-base-100" ref={paperRef}>
                             <div class="card-body">
                                 <SummaryHeader rep={rep} stats={stats} />
                                 <ReplicationStatusbar outcomes={rep.outcomes} />
-                                <ReplicationActionsPanel data={rep} />
+                                <ReplicationActionsPanel data={rep} onDownloadPdf={handleDownloadPdf} />
                                 <div class="divider"></div>
                                 <ReplicationActionSuccessRate outcomes={rep.outcomes} />
                                 <ReplicationSection
@@ -77,7 +84,7 @@ export const ReplicationSummary = ({ data, defaultOpen, q }: ReplicationSummaryP
                             </div>
                         </div>
                     </section>
-                ) : <ResearchNotFound />
+                ) : <ResearchNotFound doi={rep.doi || q} />
             }
         </ReplicationTimelineItem>
     );
@@ -90,7 +97,7 @@ const SummaryHeader = (props: { rep: FormattedDOIResult; stats?: FormattedDOIRes
                 <h3 class="text-sm font-semibold text-neutral/80">Original study</h3>
                 {
                     props.rep.doi ? (
-                        <div class="flex justify-end">
+                        <div class="flex justify-end no-print">
                             <a class="btn btn-sm" href={`https://doi.org/${props.rep.doi}`} target="__blank">
                                 <span class="mr-2"><EyeOpenIcon /></span>
                                 <span>View Research</span>
