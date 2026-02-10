@@ -40,12 +40,12 @@ export const ReplicationActionsPanel = (props: ReplicationActionsPanelProps) => 
         <div class="mt-8 border border-gray-200 no-print">
             <div class="navbar min-h-0 flex-wrap">
                 <div class="navbar-start p-0 w-auto flex-1 flex-wrap">
-                    <button class="btn btn-sm btn-ghost mr-2">
+                    <button tabIndex={-1} class="btn btn-sm btn-ghost mr-2 pointer-events-none">
                         <UserGroupIcon className="w-5 h-5" />
                         <span>{props.data.authors?.length || 0}</span>
                         <span>{`Author${(props.data.authors?.length || 0) > 1 ? 's' : ''}`}</span>
                     </button>
-                    <button class="btn btn-sm btn-ghost mr-2">
+                    <button tabIndex={-1} class="btn btn-sm btn-ghost mr-2 pointer-events-none">
                         <DNAIcon className="w-5 h-5" />
                         <span>{props.data.replications?.length || 0}</span>
                         <span>{`Replication${(props.data.replications?.length || 0) > 1 ? 's' : ''}`}</span>
