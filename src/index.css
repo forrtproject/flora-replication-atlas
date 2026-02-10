@@ -75,3 +75,19 @@ em {
 .academic-text strong {
   font-weight: 600;
 }
+
+.collapse input:is([type="checkbox"], [type="radio"]):checked ~ .collapse-title .collapse-closed {
+  display: none;
+}
+
+.collapse input:is([type="checkbox"], [type="radio"]):checked ~ .collapse-title .collapse-open {
+  display: block;
+}
+
+.collapse input:is([type="checkbox"], [type="radio"]):not(:checked) ~ .collapse-title .collapse-closed {
+  display: block;
+}
+
+.collapse input:is([type="checkbox"], [type="radio"]):not(:checked) ~ .collapse-title .collapse-open {
+  display: none;
+}

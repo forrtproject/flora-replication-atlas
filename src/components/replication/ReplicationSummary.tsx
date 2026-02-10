@@ -1,42 +1,109 @@
-import type { DOIResult } from "../../@types";
+import type { OriginalPaper, FormattedDOIResult } from "../../@types";
 import { formatReplicationResponse } from "../../api/formatter";
-import { Replication } from "./Replication";
 import { ReplicationActionsPanel } from "./ReplicationActionsPanel";
 import { ReplicationStatusbar } from "./ReplicationStatusbar";
 import { ReplicationActionSuccessRate } from "./ReplicationSuccessRate";
+import { ReplicationTimelineItem } from "./ReplicationTimelineItem";
 import { ReplicationToolbar } from "./ReplicationTollbar";
+import { ResearchNotFound } from "./ResearchNotFount";
+import { MarkdownToHtml } from "../../utils/markdown";
+import { ReplicationSection } from "./ReplicationSection";
 
 type ReplicationSummaryProps = {
-    data?: DOIResult;
+    data?: OriginalPaper;
+    defaultOpen?: boolean;
+    q?: string;
 };
-export const ReplicationSummary = ({ data }: ReplicationSummaryProps) => {
+
+type OutcomeStatus = "failed" | "mixed" | "partial" | "successful" | "uninformative" | "blank";
+
+const resolveOutcomeStatus = (outcomes?: { success?: number; failed?: number; mixed?: number; partial?: number; total?: number }): OutcomeStatus => {
+    if (!outcomes?.total) {
+        return "blank";
+    }
+
+    const values = [
+        { outcome: "successful" as OutcomeStatus, count: outcomes.success || 0 },
+        { outcome: "failed" as OutcomeStatus, count: outcomes.failed || 0 },
+        { outcome: "mixed" as OutcomeStatus, count: outcomes.mixed || 0 },
+        { outcome: "partial" as OutcomeStatus, count: outcomes.partial || 0 },
+    ].filter(item => item.count > 0);
+
+    if (values.length === 1 && values[0].count === outcomes.total) {
+        return values[0].outcome;
+    }
+
+    return "mixed";
+};
+
+export const ReplicationSummary = ({ data, defaultOpen, q }: ReplicationSummaryProps) => {
     const rep = formatReplicationResponse(data);
-    return data?.candidate ? (
-        <section class="p-4 rounded-md flex justify-center">
-            <div class="card max-w-full bg-base-100">
-                <ReplicationToolbar title={rep.original?.title_o} doi={rep.original?.doi_o} />
-                <div class="card-body">
-                    <ReplicationStatusbar outcomes={rep.outcomes} />
-                    <ReplicationActionsPanel data={rep} />
-                    <div class="divider"></div>
-                    <ReplicationActionSuccessRate outcomes={rep.outcomes} />
-                    <div class="card border border-dashed rounded-sm border-gray-300 mt-4">
-                        <div class="card-body flex flex-col gap-4">
-                            {
-                                rep.replications?.map((r) => (
-                                    <Replication
-                                        outcome={r.outcome || 'blank'}
-                                        authors={r.author_r || undefined}
-                                        title={r.title_r || ''}
-                                        appaRef={r.apa_ref_r || ''}
-                                        doi={r.doi_r}
-                                    />
-                                ))
-                            }
+    const status = resolveOutcomeStatus(rep.outcomes);
+    const stats = rep.stats;
+    return (
+        <ReplicationTimelineItem
+            doi={rep.doi ?? q}
+            title={rep.title}
+            authors={rep.authors}
+            journal={rep.journal}
+            year={rep.year}
+            stats={rep.stats}
+            status={status}
+            defaultOpen={defaultOpen}
+        >
+            {
+                data?.record ? (
+                    <section class="p-4 rounded-md flex justify-center">
+                        <div class="card max-w-full bg-base-100">
+                            <ReplicationToolbar title={rep.title} doi={rep.doi} />
+                            <div class="card-body">
+                                <SummaryHeader rep={rep} stats={stats} />
+                                <ReplicationStatusbar outcomes={rep.outcomes} />
+                                <ReplicationActionsPanel data={rep} />
+                                <div class="divider"></div>
+                                <ReplicationActionSuccessRate outcomes={rep.outcomes} />
+                                <ReplicationSection
+                                    title="Replications"
+                                    emptyMessage="No replications available yet."
+                                    items={rep.replications || []}
+                                />
+                                <ReplicationSection
+                                    title="Reproductions"
+                                    items={rep.reproductions || []}
+                                />
+                                <ReplicationSection
+                                    title="Related originals"
+                                    items={rep.originals || []}
+                                />
+                            </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    ) : null;
+                    </section>
+                ) : <ResearchNotFound />
+            }
+        </ReplicationTimelineItem>
+    );
 };
+
+const SummaryHeader = (props: { rep: FormattedDOIResult; stats?: FormattedDOIResult["stats"] }) => (
+    <div class="grid gap-4 lg:grid-cols-[2fr,1fr]">
+        <div class="rounded-md border border-base-200 p-4">
+            <h3 class="text-sm font-semibold text-neutral/80">Original study</h3>
+            <div class="mt-2 text-lg font-semibold">{props.rep.title}</div>
+            <div class="mt-2 text-sm text-neutral/70 flex flex-wrap gap-2">
+                {props.rep.journal ? <span>{props.rep.journal}</span> : null}
+                {props.rep.year ? <span>{props.rep.year}</span> : null}
+                {props.rep.doi ? (
+                    <a class="link" href={`https://doi.org/${props.rep.doi}`} target="_blank" rel="noreferrer">{props.rep.doi}</a>
+                ) : null}
+            </div>
+            {props.rep.apaRef ? (
+                <div class="mt-4">
+                    <div class="text-xs font-semibold text-neutral/70">APA reference</div>
+                    <p class="mt-2 text-sm academic-text reference">
+                        <MarkdownToHtml text={props.rep.apaRef} />
+                    </p>
+                </div>
+            ) : null}
+        </div>
+    </div>
+);

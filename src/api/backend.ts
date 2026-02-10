@@ -1,12 +1,19 @@
-import type { DOIAPIResponse } from "../@types";
+import type { DOIResults } from "../@types";
 import { createHttp } from "../utils/http";
+import { replicationResponseHasNoData } from "./formatter";
 
 const backend = createHttp({
   baseURL: import.meta.env.VITE_BACKEND_URL || "https://5waa6mryb6.execute-api.eu-central-1.amazonaws.com/v1",
 });
 
 export const fetchDOIInfo = async (doi: string) => {
-  const response = await backend.get<DOIAPIResponse>('/original-lookup', { params: { doi } });
+  const response = await backend.get<DOIResults>('/original-lookup', { params: { doi } });
 
   return response.data;
 };
+
+export const fetchMultipleDOIInfo = async (dois: string[]) => {
+  const response = await backend.get<DOIResults>('/original-lookup', { params: { dois } });
+  response.data.isEmpty = replicationResponseHasNoData(response.data);
+  return response.data;
+}

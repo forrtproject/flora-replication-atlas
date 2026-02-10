@@ -3,10 +3,10 @@ import { Footer } from './components/Footer'
 import forrt from './assets/FORRT.svg'
 import { ReplicationSearchPanel } from './components/replication/ReplicationSearchPanel'
 import { createSignal } from 'solid-js';
-import type { DOIAPIResponse } from './@types';
+import type { DOIResults } from './@types';
 
 function App() {
-  const [doi, setDoi] = createSignal<DOIAPIResponse[] | null>(null);
+  const [doi, setDoi] = createSignal<DOIResults | null>(null);
   return (
     <div class="bg-neutral min-h-screen">
       <div class="navbar bg-neutral text-neutral-content shadow-sm">
