@@ -33,5 +33,5 @@ export const markdownToHtml = (text: string): string => {
  * Component-friendly version that returns JSX-compatible HTML
  */
 export const MarkdownToHtml = (props: { text: string }) => {
-  return <span innerHTML={markdownToHtml(props.text)} />;
+  return <span class="md-to-html" innerHTML={markdownToHtml(props.text)} />;
 };

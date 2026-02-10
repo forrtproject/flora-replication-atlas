@@ -46,14 +46,19 @@
 }
 
 /* Academic reference styling */
+.reference {
+  font-family: var(--font-family-academic);
+  line-height: 1.5;
+  font-weight: 100;
+  font-size: small;
+  font-style: italic;
+}
 .reference em {
   font-style: italic;
-  font-weight: normal;
 }
 
 .reference strong {
-  font-weight: 600;
-  font-style: normal;
+  font-weight: bold;
 }
 
 /* Journal names should be italic, not bold */
@@ -67,6 +72,8 @@ em {
   font-family: var(--font-family-academic);
   line-height: 1.6;
 }
+
+
 
 .academic-text em {
   font-style: italic;
@@ -94,4 +101,8 @@ em {
 
 .collapse input:is([type="checkbox"], [type="radio"]):not(:checked) ~ .collapse-title .collapse-open {
   display: none;
+}
+
+.md-to-html {
+  font-style: inherit;
 }
