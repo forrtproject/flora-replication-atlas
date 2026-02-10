@@ -1,5 +1,5 @@
 import type { Author, ReplicationStats } from "../../@types";
-import { badgeBgs } from "../../configs";
+import { badgeBgs,  TextColor } from "../../configs";
 import { formatAuthors } from "../../utils/formatter";
 import { ScrollIcon } from "../icons/scroll";
 
@@ -30,13 +30,14 @@ export const ReplicationTimelineItem = (props: ReplicationTimelineItemProps) => 
                                 <div class="w-10 rounded">
                                     <ScrollIcon color="#000" />
                                 </div>
-                                {props.title ? (
-                                    <a class="link link-hover font-semibold" href={props.doi ? `https://doi.org/${props.doi}` : undefined} target="_blank" rel="noreferrer">
-                                        {props.title}
-                                    </a>
-                                ) : (
-                                    <span class="font-semibold">{props.doi}</span>
-                                )}
+                                <div class="flex flex-col">
+                                    <span class={`badge badge-sm ${badgeBgs[props.status || "blank"]} ${TextColor[props.status || "blank"]}`}>{props.doi}</span>
+                                    {props.title ? (
+                                            <a class="link link-hover font-semibold" href={props.doi ? `https://doi.org/${props.doi}` : undefined} target="_blank" rel="noreferrer">
+                                                {props.title}
+                                            </a>
+                                        ) : null }
+                                </div>
                             </div>
                             <div class="text-xs text-neutral/70 mt-1">
                                 {formatAuthors(props.authors)}
