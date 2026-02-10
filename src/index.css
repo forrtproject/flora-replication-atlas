@@ -106,3 +106,7 @@ em {
 .md-to-html {
   font-style: inherit;
 }
+
+a[target="_blank"] {
+  text-decoration: underline;
+}
