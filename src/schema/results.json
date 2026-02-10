@@ -1,0 +1,264 @@
+{
+  "results": {
+    "10.1002/ejsp.2420170402": {
+      "doi": "10.1002/ejsp.2420170402",
+      "doi_hash": "c9c",
+      "title": "Affective consequences of mere ownership: The name letter effect in twelve European languages",
+      "authors": [
+        { "given": "Jozef M.", "family": "Nuttin", "sequence": "first" }
+      ],
+      "journal": "European Journal of Social Psychology",
+      "year": 1987,
+      "volume": "17",
+      "issue": "4",
+      "pages": "381-402",
+      "apa_ref": "Nuttin, J. M. (1987). Affective consequences of mere ownership: The name letter effect in twelve European languages. European Journal of Social Psychology, 17(4), 381–402. Portico. https://doi.org/10.1002/ejsp.2420170402",
+      "bibtex_ref": "@article{Nuttin_1987, title={Affective consequences of mere ownership: The name letter effect in twelve European languages}, volume={17}, ISSN={1099-0992}, url={http://dx.doi.org/10.1002/ejsp.2420170402}, DOI={10.1002/ejsp.2420170402}, number={4}, journal={European Journal of Social Psychology}, publisher={Wiley}, author={Nuttin, Jozef M.}, year={1987}, month=oct, pages={381–402} }",
+      "url": null,
+      "record": {
+        "stats": {
+          "n_replications_total": 1,
+          "n_replications_with_doi": 1,
+          "n_replications_only": 0,
+          "n_unique_replication_dois": 1,
+          "n_reproductions_total": 0,
+          "n_reproductions_with_doi": 0,
+          "n_reproductions_only": 0,
+          "n_originals_total": 0,
+          "n_unique_original_dois": 0
+        },
+        "replications": [
+          {
+            "doi": "10.1016/j.jesp.2020.103972",
+            "doi_hash": "73d",
+            "type": "replication",
+            "title": "Impact of ownership on liking and value: Replications and extensions of three ownership effect experiments",
+            "authors": [
+              { "given": "Ignazio", "family": "Ziano", "sequence": "first" },
+              {
+                "given": "Jing Dan",
+                "family": "Yao",
+                "sequence": "additional"
+              },
+              { "given": "Yajing", "family": "Gao", "sequence": "additional" },
+              {
+                "given": "Gilad",
+                "family": "Feldman",
+                "sequence": "additional"
+              }
+            ],
+            "journal": "Journal of Experimental Social Psychology",
+            "year": 2020,
+            "volume": "89.0",
+            "issue": null,
+            "pages": "103972",
+            "apa_ref": "Ziano, I., Yao, J. D., Gao, Y., & Feldman, G. (2020). Impact of ownership on liking and value: Replications and extensions of three ownership effect experiments. Journal of Experimental Social Psychology, 89, 103972. https://doi.org/10.1016/j.jesp.2020.103972",
+            "bibtex_ref": "@article{Ziano_2020, title={Impact of ownership on liking and value: Replications and extensions of three ownership effect experiments}, volume={89}, ISSN={0022-1031}, url={http://dx.doi.org/10.1016/j.jesp.2020.103972}, DOI={10.1016/j.jesp.2020.103972}, journal={Journal of Experimental Social Psychology}, publisher={Elsevier BV}, author={Ziano, Ignazio and Yao, Jing Dan and Gao, Yajing and Feldman, Gilad}, year={2020}, month=jul, pages={103972} }",
+            "url": null,
+            "outcome": "successful",
+            "outcome_quote": "We successfully replicated Nuttin's (1987) name-\nletter effect with participants rating a higher liking for letters of the alphabet included in their first names (vs.\n\nletters not included) (Study 1: d = 1.08 to 1.42). || We successfully replicated Nuttin's (1987) name-letter effect",
+            "outcome_quote_source": "abstract"
+          }
+        ],
+        "originals": [],
+        "reproductions": []
+      }
+    },
+    "10.1002/jcpy.1028": {
+      "doi": "10.1002/jcpy.1028",
+      "doi_hash": "b27",
+      "title": "Did They Earn It? Observing Unearned Luxury Consumption Decreases Brand Attitude When Observers Value Fairness",
+      "authors": [
+        {
+          "given": "Saerom",
+          "family": "Lee",
+          "sequence": "first",
+          "ORCID": "https://orcid.org/0000-0003-1248-8544"
+        },
+        { "given": "Hans", "family": "Baumgartner", "sequence": "additional" },
+        {
+          "given": "Karen Page",
+          "family": "Winterich",
+          "sequence": "additional",
+          "ORCID": "https://orcid.org/0000-0002-4190-4036"
+        }
+      ],
+      "journal": "Journal of Consumer Psychology",
+      "year": 2018,
+      "volume": "28",
+      "issue": "3",
+      "pages": "412-436",
+      "apa_ref": "Lee, S., Baumgartner, H., & Winterich, K. P. (2018). Did They Earn It? Observing Unearned Luxury Consumption Decreases Brand Attitude When Observers Value Fairness. Journal of Consumer Psychology, 28(3), 412–436. Portico. https://doi.org/10.1002/jcpy.1028",
+      "bibtex_ref": "@article{Lee_2018, title={Did They Earn It? Observing Unearned Luxury Consumption Decreases Brand Attitude When Observers Value Fairness}, volume={28}, ISSN={1532-7663}, url={http://dx.doi.org/10.1002/jcpy.1028}, DOI={10.1002/jcpy.1028}, number={3}, journal={Journal of Consumer Psychology}, publisher={Wiley}, author={Lee, Saerom and Baumgartner, Hans and Winterich, Karen Page}, editor={Campbell, Margaret C. and Cotte, June}, year={2018}, month=jan, pages={412–436} }",
+      "url": null,
+      "record": {
+        "stats": {
+          "n_replications_total": 1,
+          "n_replications_with_doi": 1,
+          "n_replications_only": 0,
+          "n_unique_replication_dois": 1,
+          "n_reproductions_total": 0,
+          "n_reproductions_with_doi": 0,
+          "n_reproductions_only": 0,
+          "n_originals_total": 0,
+          "n_unique_original_dois": 0
+        },
+        "replications": [
+          {
+            "doi": "10.1073/pnas.2103313118",
+            "doi_hash": "53b",
+            "type": "replication",
+            "title": "Empirical audit and review and an assessment of evidentiary value in research on the psychological consequences of scarcity",
+            "authors": [
+              {
+                "given": "Michael",
+                "family": "O'Donnell",
+                "sequence": "first",
+                "ORCID": "https://orcid.org/0000-0002-8953-3609"
+              },
+              {
+                "given": "Amelia S.",
+                "family": "Dev",
+                "sequence": "additional",
+                "ORCID": "https://orcid.org/0000-0003-0989-5421"
+              },
+              {
+                "given": "Stephen",
+                "family": "Antonoplis",
+                "sequence": "additional",
+                "ORCID": "https://orcid.org/0000-0002-2789-5516"
+              },
+              {
+                "given": "Stephen M.",
+                "family": "Baum",
+                "sequence": "additional"
+              },
+              {
+                "given": "Arianna H.",
+                "family": "Benedetti",
+                "sequence": "additional"
+              },
+              {
+                "given": "N. Derek",
+                "family": "Brown",
+                "sequence": "additional",
+                "ORCID": "https://orcid.org/0000-0002-2492-9768"
+              },
+              {
+                "given": "Belinda",
+                "family": "Carrillo",
+                "sequence": "additional",
+                "ORCID": "https://orcid.org/0000-0002-6620-0000"
+              },
+              {
+                "given": "Andrew L.",
+                "family": "Choi",
+                "sequence": "additional",
+                "ORCID": "https://orcid.org/0000-0002-5726-9145"
+              },
+              { "given": "Paul", "family": "Connor", "sequence": "additional" },
+              {
+                "given": "Kristin",
+                "family": "Donnelly",
+                "sequence": "additional"
+              },
+              {
+                "given": "Monica E.",
+                "family": "Ellwood-Lowe",
+                "sequence": "additional",
+                "ORCID": "https://orcid.org/0000-0002-9151-2911"
+              },
+              {
+                "given": "Ruthe",
+                "family": "Foushee",
+                "sequence": "additional",
+                "ORCID": "https://orcid.org/0000-0002-8361-1725"
+              },
+              {
+                "given": "Rachel",
+                "family": "Jansen",
+                "sequence": "additional"
+              },
+              {
+                "given": "Shoshana N.",
+                "family": "Jarvis",
+                "sequence": "additional",
+                "ORCID": "https://orcid.org/0000-0001-6980-3555"
+              },
+              {
+                "given": "Ryan",
+                "family": "Lundell-Creagh",
+                "sequence": "additional"
+              },
+              {
+                "given": "Joseph M.",
+                "family": "Ocampo",
+                "sequence": "additional",
+                "ORCID": "https://orcid.org/0000-0003-0187-4052"
+              },
+              {
+                "given": "Gold N.",
+                "family": "Okafor",
+                "sequence": "additional",
+                "ORCID": "https://orcid.org/0000-0001-9460-3598"
+              },
+              {
+                "given": "Zahra Rahmani",
+                "family": "Azad",
+                "sequence": "additional",
+                "ORCID": "https://orcid.org/0000-0003-1072-972X"
+              },
+              {
+                "given": "Michael",
+                "family": "Rosenblum",
+                "sequence": "additional",
+                "ORCID": "https://orcid.org/0000-0002-7724-7058"
+              },
+              {
+                "given": "Derek",
+                "family": "Schatz",
+                "sequence": "additional"
+              },
+              {
+                "given": "Daniel H.",
+                "family": "Stein",
+                "sequence": "additional",
+                "ORCID": "https://orcid.org/0000-0002-7638-5643"
+              },
+              {
+                "given": "Yilu",
+                "family": "Wang",
+                "sequence": "additional",
+                "ORCID": "https://orcid.org/0000-0001-5266-3330"
+              },
+              {
+                "given": "Don A.",
+                "family": "Moore",
+                "sequence": "additional"
+              },
+              {
+                "given": "Leif D.",
+                "family": "Nelson",
+                "sequence": "additional",
+                "ORCID": "https://orcid.org/0000-0003-1148-4461"
+              }
+            ],
+            "journal": "Proceedings of the National Academy of Sciences",
+            "year": 2021,
+            "volume": "118.0",
+            "issue": "44",
+            "pages": null,
+            "apa_ref": "O'Donnell, M., Dev, A. S., Antonoplis, S., Baum, S. M., Benedetti, A. H., Brown, N. D., Carrillo, B., Choi, A. L., Connor, P., Donnelly, K., Ellwood-Lowe, M. E., Foushee, R., Jansen, R., Jarvis, S. N., Lundell-Creagh, R., Ocampo, J. M., Okafor, G. N., Azad, Z. R., Rosenblum, M., … Nelson, L. D. (2021). Empirical audit and review and an assessment of evidentiary value in research on the psychological consequences of scarcity. Proceedings of the National Academy of Sciences, 118(44). https://doi.org/10.1073/pnas.2103313118",
+            "bibtex_ref": "@article{O_Donnell_2021, title={Empirical audit and review and an assessment of evidentiary value in research on the psychological consequences of scarcity}, volume={118}, ISSN={1091-6490}, url={http://dx.doi.org/10.1073/pnas.2103313118}, DOI={10.1073/pnas.2103313118}, number={44}, journal={Proceedings of the National Academy of Sciences}, publisher={Proceedings of the National Academy of Sciences}, author={O'Donnell, Michael and Dev, Amelia S. and Antonoplis, Stephen and Baum, Stephen M. and Benedetti, Arianna H. and Brown, N. Derek and Carrillo, Belinda and Choi, Andrew L. and Connor, Paul and Donnelly, Kristin and Ellwood-Lowe, Monica E. and Foushee, Ruthe and Jansen, Rachel and Jarvis, Shoshana N. and Lundell-Creagh, Ryan and Ocampo, Joseph M. and Okafor, Gold N. and Azad, Zahra Rahmani and Rosenblum, Michael and Schatz, Derek and Stein, Daniel H. and Wang, Yilu and Moore, Don A. and Nelson, Leif D.}, year={2021}, month=oct }",
+            "url": null,
+            "outcome": "mixed",
+            "outcome_quote": "Only the effect of\nconsumption resources was significant, F(2, 598) = 4.28, p = .014, ηp2 = .014, η2 = .014;\nits interaction with fairness was NS, F(2, 598) = 1.05, p = .351, ηp2 = .003, η2 = .003; the effect of fairness was NS, F(1, 598) = 1.01, p = .315, ηp2 = .002, η2 = .002. The two-\nway interaction remained NS when each background measure (e.g., familiarity with the\nbrands) was included as a control variable. || [Figure 1]",
+            "outcome_quote_source": "Appendix p. 48 || pg. 2"
+          }
+        ],
+        "originals": [],
+        "reproductions": []
+      }
+    }
+  }
+}

@@ -1,20 +1,21 @@
 import { createEffect, createSignal, Show  } from "solid-js";
 import { Search } from "../Search";
 import { fetchMultipleDOIInfo } from "../../api/backend";
-import type { DOIAPIResponse } from "../../@types";
+import type { DOIResults } from "../../@types";
 import { ReplicationSummary } from "./ReplicationSummary";
 import { Skeleton } from "../Skeleton";
 import { query } from "../../utils/http";
 import { ResearchNotFound } from "./ResearchNotFount";
 
 type ReplicationSearchPanelProps = {
-    onSuccess?: (data: DOIAPIResponse[]) => void;
+    onSuccess?: (data: DOIResults) => void;
 };
 export const ReplicationSearchPanel = (props: ReplicationSearchPanelProps) => {
-    const [searchTerm, setSearch] = createSignal(query.get('doi') || '');
-    const [dois, setDois] = createSignal<DOIAPIResponse[] | null>(null);
+    const [searchTerm, setSearch] = createSignal(query.get('doi') || query.get('dois') || '');
+    const [dois, setDois] = createSignal<DOIResults | null>(null);
     const [isLoading, setIsLoading] = createSignal(false);
     const [emptyResults, setEmptyResults] = createSignal(false);
+    const resultEntries = () => Object.entries(dois()?.results || {});
     
     createEffect(() => {
         const q = searchTerm();
@@ -32,24 +33,22 @@ export const ReplicationSearchPanel = (props: ReplicationSearchPanelProps) => {
         // Debounce the API call by 1 second
         const timeoutId = setTimeout(() => {
             setEmptyResults(false);
-            fetchMultipleDOIInfo(params).then(res => {
-                if (res.length === 0) {
+            fetchMultipleDOIInfo(params)
+                .then(res => {
+                    if (res.isEmpty) {
+                        setEmptyResults(true);
+                        setDois(null);
+                    } else {
+                        setDois(res);
+                        props.onSuccess?.(res);
+                    }
+                    setIsLoading(false);
+                })
+                .catch(error => {
+                    console.error('Error fetching DOI info:', error);
+                    setIsLoading(false);
                     setEmptyResults(true);
-                } else {
-                    res.forEach(r => {
-                        r.data.then(data => {
-                            console.log(data);
-                            setDois(prev => [...(prev || []), data]);
-                            props.onSuccess?.([data]);
-                            setIsLoading(false);
-                        });
-                    });
-                }
-            }).catch(error => {
-                console.error('Error fetching DOI info:', error);
-                setIsLoading(false);
-                setEmptyResults(true);
-            });
+                });
         }, 300);
 
         // Cleanup function to clear timeout if searchTerm changes before timeout completes
@@ -65,13 +64,9 @@ export const ReplicationSearchPanel = (props: ReplicationSearchPanelProps) => {
                 </section>
             </Show>
             <Show when={dois() !== null && !isLoading()}>
-                {
-                    dois()?.map((d, i, arr) => (
-                        Object.entries(d.results).map(([key, res]) => (
-                            <ReplicationSummary q={key} defaultOpen={i === (arr.length - 1)} data={res} />
-                        ))
-                    ))
-                }
+                {resultEntries().map(([key, res]) => (
+                    <ReplicationSummary q={key} data={res} />
+                ))}
             </Show>
             <Show when={emptyResults() && searchTerm().trim() !== '' && !isLoading()}>
                 <ResearchNotFound />

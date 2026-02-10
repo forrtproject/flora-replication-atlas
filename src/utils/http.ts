@@ -178,4 +178,4 @@ export const http = new Http();
 // Convenience function to create new instances
 export const createHttp = (config?: HttpConfig): Http => new Http(config);
 
-export const query = new URLSearchParams(window.location.search);
+export const query = new URLSearchParams(globalThis.location.search);
