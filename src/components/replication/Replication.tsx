@@ -1,6 +1,7 @@
 import type { Author } from "../../@types";
 import { badgeBgs, bgs } from "../../configs";
 import { MarkdownToHtml } from "../../utils/markdown";
+import { BibtexToHtml } from "../../utils/bibtex";
 
 type ReplicationProps = {
     title?: string | null;
@@ -49,7 +50,9 @@ const DetailsPanel = (props: ReplicationProps) => (
                 {props.bibtexRef ? (
                     <div>
                         <div class="font-semibold text-xs text-neutral/80">BibTeX</div>
-                        <pre class="mt-2 text-[11px] whitespace-pre-wrap">{props.bibtexRef}</pre>
+                        <div class="mt-2">
+                            <BibtexToHtml text={props.bibtexRef} />
+                        </div>
                     </div>
                 ) : null}
             </div>
@@ -66,9 +69,6 @@ export const Replication = (props: ReplicationProps) => {
                     <div class="flex flex-col gap-2 flex-1">
                         <div class="flex flex-wrap items-center gap-2">
                             <h2 class="text-sm font-bold">{props.title}</h2>
-                            {props.kind ? (
-                                <span class="badge badge-outline text-xs uppercase">{props.kind}</span>
-                            ) : null}
                         </div>
                         <MetadataRow {...props} />
                         <p class="text-sm academic-text reference"><MarkdownToHtml text={props.appaRef || ''} /></p>
