@@ -1,4 +1,4 @@
-import { createSignal, onCleanup } from "solid-js";
+import { createSignal, onCleanup, onMount } from "solid-js";
 import type {FormattedDOIResult } from "../../@types";
 import { CopyIcon } from "../icons/copy";
 import { DNAIcon } from "../icons/dna";
@@ -6,9 +6,9 @@ import { DownloadIcon } from "../icons/download";
 import { FlagIcon } from "../icons/flag";
 import { ShareIcon } from "../icons/share";
 import { UserGroupIcon } from "../icons/user-group";
+import { fetchPdfUrl } from "../../api/unpaywall";
 type ReplicationActionsPanelProps = {
     data: FormattedDOIResult;
-    onDownloadPdf?: () => void;
 };
 import { formatAuthors } from "../../utils/formatter";
 import { CopyLinkIcon } from "../icons/link-copy";
@@ -16,7 +16,23 @@ import { CopyLinkIcon } from "../icons/link-copy";
 export const ReplicationActionsPanel = (props: ReplicationActionsPanelProps) => {
     const [showToast, setShowToast] = createSignal(false);
     const [showLinkCopyToast, setShowLinkCopyToast] = createSignal(false);
+    const [pdfUrl, setPdfUrl] = createSignal<string | null>(null);
+    const [pdfLoading, setPdfLoading] = createSignal(false);
     let toastTimer: number | undefined;
+
+    onMount(async () => {
+        const doi = props.data.doi;
+        if (!doi) return;
+
+        try {
+            const result = await fetchPdfUrl(doi);
+            if (result.pdfUrl) {
+                setPdfUrl(result.pdfUrl);
+            }
+        } catch {
+            // No PDF available — button stays hidden
+        }
+    });
 
     const handleTextCopy = async () => {
         const text = [
@@ -39,6 +55,37 @@ export const ReplicationActionsPanel = (props: ReplicationActionsPanelProps) => 
             callback?.(true);
             if (toastTimer) window.clearTimeout(toastTimer);
             toastTimer = window.setTimeout(() => callback?.(false), 2000);
+        }
+    };
+
+    const handleDownloadPdf = async () => {
+        const url = pdfUrl();
+        if (!url) return;
+
+        setPdfLoading(true);
+        try {
+            const response = await fetch(url);
+            const contentType = response.headers.get("content-type") || "";
+
+            if (response.ok && contentType.includes("application/pdf")) {
+                const blob = await response.blob();
+                const blobUrl = URL.createObjectURL(blob);
+                const anchor = document.createElement("a");
+                anchor.href = blobUrl;
+                anchor.download = `${props.data.title || props.data.doi || "paper"}.pdf`;
+                document.body.appendChild(anchor);
+                anchor.click();
+                document.body.removeChild(anchor);
+                URL.revokeObjectURL(blobUrl);
+            } else {
+                // Response isn't a PDF (redirect/landing page) — open directly
+                window.open(url, "_blank");
+            }
+        } catch {
+            // CORS or network error — open directly as fallback
+            window.open(url, "_blank");
+        } finally {
+            setPdfLoading(false);
         }
     };
 
@@ -85,9 +132,11 @@ export const ReplicationActionsPanel = (props: ReplicationActionsPanelProps) => 
                     <a class="btn btn-sm" href={`https://pubpeer.com/search?q=${props.data.doi}`} target="_blank">
                         <ShareIcon className="w-5 h-5" /> PubPeer
                     </a>
-                    <button class="btn btn-sm" onClick={props.onDownloadPdf} disabled={!props.onDownloadPdf}>
-                        <DownloadIcon className="w-5 h-5" /> Download PDF
-                    </button>
+                    {pdfUrl() ? (
+                        <button class="btn btn-sm" onClick={handleDownloadPdf} disabled={pdfLoading()}>
+                            <DownloadIcon className="w-5 h-5" /> {pdfLoading() ? "Downloading..." : "Download PDF"}
+                        </button>
+                    ) : null}
                     <a class="btn btn-sm" href={`mailto:fred@forrt.org?subject=[Replication Flag] ${props.data.doi}&body=I would like to flag a potential issue in the replication record for:%0AOriginal DOI: ${props.data.doi}%0AReplication DOI: ${props.data.doi}%0AIssue details: [your comment here]`}>
                         <FlagIcon className="w-5 h-5" /> Flag Errors
                     </a>

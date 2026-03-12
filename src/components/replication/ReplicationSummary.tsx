@@ -8,7 +8,6 @@ import { ResearchNotFound } from "./ResearchNotFount";
 import { MarkdownToHtml } from "../../utils/markdown";
 import { ReplicationSection } from "./ReplicationSection";
 import { EyeOpenIcon } from "../icons/eye-open";
-import { downloadElementAsPdf } from "../../utils/pdf";
 
 type ReplicationSummaryProps = {
     data?: OriginalPaper;
@@ -41,12 +40,6 @@ export const ReplicationSummary = ({ data, defaultOpen, q }: ReplicationSummaryP
     const rep = formatReplicationResponse(data);
     const status = resolveOutcomeStatus(rep.outcomes);
     const stats = rep.stats;
-    let paperRef: HTMLDivElement | undefined;
-    const handleDownloadPdf = () => {
-        if (!paperRef) return;
-        const title = rep.title || rep.doi || "replication-summary";
-        downloadElementAsPdf(paperRef, { title });
-    };
     return (
         <ReplicationTimelineItem
             doi={rep.doi ?? q}
@@ -61,11 +54,11 @@ export const ReplicationSummary = ({ data, defaultOpen, q }: ReplicationSummaryP
             {
                 data?.record ? (
                     <section class="p-4 rounded-md flex justify-center">
-                        <div class="card max-w-full bg-base-100" ref={paperRef}>
+                        <div class="card max-w-full bg-base-100">
                             <div class="card-body">
                                 <SummaryHeader rep={rep} stats={stats} />
                                 <ReplicationStatusbar outcomes={rep.outcomes} />
-                                <ReplicationActionsPanel data={rep} onDownloadPdf={handleDownloadPdf} />
+                                <ReplicationActionsPanel data={rep} />
                                 <div class="divider"></div>
                                 <ReplicationActionSuccessRate outcomes={rep.outcomes} />
                                 <ReplicationSection
