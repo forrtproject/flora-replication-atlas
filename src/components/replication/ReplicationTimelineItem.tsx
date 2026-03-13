@@ -33,7 +33,7 @@ export const ReplicationTimelineItem = (props: ReplicationTimelineItemProps) => 
                                 <div class="flex flex-col">
                                     <span class={`badge badge-sm ${badgeBgs[props.status || "blank"]} ${TextColor[props.status || "blank"]}`}>{props.doi}</span>
                                     {props.title ? (
-                                            <a class="link link-hover font-semibold" href={props.doi ? `https://doi.org/${props.doi}` : undefined} target="_blank" rel="noreferrer">
+                                            <a class="link link-hover font-semibold" href={props.doi ? `https://doi.org/${props.doi}` : undefined} rel="noreferrer">
                                                 {props.title}
                                             </a>
                                         ) : null }
