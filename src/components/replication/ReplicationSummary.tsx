@@ -1,8 +1,6 @@
 import type { OriginalPaper, FormattedDOIResult } from "../../@types";
 import { formatReplicationResponse } from "../../api/formatter";
 import { ReplicationActionsPanel } from "./ReplicationActionsPanel";
-import { ReplicationStatusbar } from "./ReplicationStatusbar";
-import { ReplicationActionSuccessRate } from "./ReplicationSuccessRate";
 import { ReplicationTimelineItem } from "./ReplicationTimelineItem";
 import { ResearchNotFound } from "./ResearchNotFount";
 import { MarkdownToHtml } from "../../utils/markdown";
@@ -57,10 +55,8 @@ export const ReplicationSummary = ({ data, defaultOpen, q }: ReplicationSummaryP
                         <div class="card max-w-full bg-base-100">
                             <div class="card-body">
                                 <SummaryHeader rep={rep} stats={stats} />
-                                <ReplicationStatusbar outcomes={rep.outcomes} />
                                 <ReplicationActionsPanel data={rep} />
                                 <div class="divider"></div>
-                                <ReplicationActionSuccessRate outcomes={rep.outcomes} />
                                 <ReplicationSection
                                     title="Replications"
                                     emptyMessage="No replications available yet."
