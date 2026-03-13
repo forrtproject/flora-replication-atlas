@@ -62,12 +62,7 @@ export const ReplicationSummary = ({ data, defaultOpen, q }: ReplicationSummaryP
                         <div class="card max-w-full bg-base-100" ref={paperRef}>
                             <div class="card-body">
                                 <SummaryHeader rep={rep} stats={stats} />
-<<<<<<< Updated upstream
-                                <ReplicationStatusbar outcomes={rep.outcomes} />
                                 <ReplicationActionsPanel data={rep} onDownloadPdf={handleDownloadPdf} />
-=======
-                                <ReplicationActionsPanel data={rep} />
->>>>>>> Stashed changes
                                 <div class="divider"></div>
                                 <ReplicationSection
                                     title="Replications"
