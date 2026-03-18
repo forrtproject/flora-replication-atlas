@@ -107,6 +107,6 @@ em {
   font-style: inherit;
 }
 
-a[target="_blank"] {
+a[target="_blank"]:not(.btn) {
   text-decoration: underline;
 }

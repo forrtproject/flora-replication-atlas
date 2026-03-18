@@ -58,16 +58,16 @@ export const ReplicationSummary = ({ data, defaultOpen, q }: ReplicationSummaryP
                                 <ReplicationActionsPanel data={rep} />
                                 <div class="divider"></div>
                                 <ReplicationSection
-                                    title="Replications"
+                                    title={`Replication${rep.replications && rep.replications.length > 1 ? 's' : ''}`}
                                     emptyMessage="No replications available yet."
                                     items={rep.replications || []}
                                 />
                                 <ReplicationSection
-                                    title="Reproductions"
+                                    title={`Reproductions${rep.reproductions && rep.reproductions.length > 1 ? 's' : ''}`}
                                     items={rep.reproductions || []}
                                 />
                                 <ReplicationSection
-                                    title="Related originals"
+                                    title={`Related original${rep.originals && rep.originals.length > 1 ? 's' : ''}`}
                                     items={rep.originals || []}
                                 />
                             </div>
@@ -83,7 +83,7 @@ const SummaryHeader = (props: { rep: FormattedDOIResult; stats?: FormattedDOIRes
     <div class="grid gap-4 lg:grid-cols-[2fr,1fr]">
         <div class="rounded-md border border-base-200 p-4">
             <div class="flex items-start justify-between">
-                <h3 class="text-sm font-semibold text-neutral/80">Original study</h3>
+                <h3 class="text-sm font-semibold text-neutral/80">Replication Study</h3>
                 {
                     props.rep.doi ? (
                         <div class="flex justify-end no-print">
