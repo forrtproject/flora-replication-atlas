@@ -31,7 +31,7 @@ function App() {
             </div>
             <ul
               tabindex="-1"
-              class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow"
+              class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow text-gray-800"
             >
               <li>
                 <a href="./">Home</a>
@@ -56,8 +56,8 @@ function App() {
               <div class="w-10 rounded">
                 <img src={forrt} alt="FORRT Logo" />
               </div>
-              <div class="ml-2 font-bold flex flex-col max-h-10 w-34">
-                <span class="text-sm">FReD</span>
+              <div class="ml-2 font-bold flex flex-col max-h-11 w-34">
+                <span class="text-m">FReD</span>
                 <span class="text-xs">Replication Hub</span>
               </div>
             </div>
@@ -73,7 +73,7 @@ function App() {
                 <a
                   href="https://forrt.org/about/us/"
                   target="_blank"
-                  class="!no-underline"
+                  class="no-underline!"
                 >
                   About
                 </a>
@@ -88,31 +88,31 @@ function App() {
           {/* <a class="btn btn-secondary">Contact Us</a> */}
         </div>
       </div>
-      {doi() == null ? (
-        <div class="hero bg-base-200 ">
-          <div class="hero-content flex-col lg:flex-row">
-            <div>
-              <div class="flex w-64 shadow-sm">
-                <img
-                  src={repResearch}
-                  alt="Replication Research"
-                  class="rounded-lg"
-                />
+      <div class="bg-base-200 ">
+          <div class="flex-col px-8 lg:px-16">
+            {doi() == null ? (
+              <div class="px-4">
+                <div class="flex w-64 shadow-sm">
+                  <img
+                    src={repResearch}
+                    alt="Replication Research"
+                    class="rounded-lg"
+                  />
+                </div>
+                <h1 class="text-5xl font-bold">Replication Summary</h1>
+                <p class="py-6">
+                  Replication is essential to scientific progress. Use this tool
+                  to check whether a study has been replicated, explore the
+                  outcomes, and contribute to the growing ecosystem of
+                  reproducible research. If you spot missing data or want to
+                  suggest a new replication, we welcome your input!
+                </p>
               </div>
-              <h1 class="text-5xl font-bold">Replication Summary</h1>
-              <p class="py-6">
-                Replication is essential to scientific progress. Use this tool
-                to check whether a study has been replicated, explore the
-                outcomes, and contribute to the growing ecosystem of
-                reproducible research. If you spot missing data or want to
-                suggest a new replication, we welcome your input!
-              </p>
+            ) : null}
+            <div class="bg-base-200 min-h-[40vh] pb-8">
+              <ReplicationSearchPanel onSuccess={(dois) => setDoi(dois)} />
             </div>
           </div>
-        </div>
-      ) : null}
-      <div class="bg-base-200 min-h-[40vh] pb-8">
-        <ReplicationSearchPanel onSuccess={(dois) => setDoi(dois)} />
       </div>
       <Footer />
     </div>
