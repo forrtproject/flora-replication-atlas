@@ -18,7 +18,7 @@
       }
 
       :root {
-        --primary: #004055;
+        --primary: #3e3e3e;
         --primary-light: #006080;
         --primary-dark: #002e3d;
         --primary-faint: #edf5f8;
@@ -926,84 +926,35 @@
       }
       .ri-actions {
         display: flex;
-        gap: 0.2rem;
+        gap: 0.3rem;
         flex-shrink: 0;
+        flex-wrap: wrap;
       }
       .ri-action {
-        width: 28px;
-        height: 28px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.25rem 0.55rem;
         border: 1px solid var(--border-light);
         border-radius: 5px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
         cursor: pointer;
-        color: var(--text-faint);
+        color: var(--text-muted);
         transition: all var(--transition-fast);
         background: transparent;
+        font-size: 11px;
+        font-weight: 600;
+        font-family: var(--font-body);
+        white-space: nowrap;
       }
       .ri-action:hover {
         border-color: var(--primary);
         color: var(--primary);
         background: var(--primary-faint);
       }
+      .ri-action svg {
+        flex-shrink: 0;
+      }
 
-      /* Expandable quote */
-      .ri-expand {
-        border-top: 1px solid var(--border-light);
-        background: #fcfbf8;
-      }
-      .ri-expand-toggle {
-        width: 100%;
-        padding: 0.45rem 1rem;
-        font-size: 11.5px;
-        font-weight: 600;
-        color: var(--primary);
-        background: none;
-        border: none;
-        cursor: pointer;
-        text-align: left;
-        font-family: var(--font-body);
-        display: flex;
-        align-items: center;
-        gap: 0.3rem;
-        transition: color var(--transition-fast);
-      }
-      .ri-expand-toggle:hover {
-        color: var(--primary-light);
-      }
-      .ri-expand-toggle .arrow {
-        transition: transform var(--transition);
-        font-size: 10px;
-        display: inline-block;
-      }
-      .ri-expand-toggle[aria-expanded="true"] .arrow {
-        transform: rotate(90deg);
-      }
-      .ri-quote {
-        padding: 0 1rem 0.75rem;
-        display: none;
-      }
-      .ri-quote.open {
-        display: block;
-      }
-      .ri-quote-text {
-        font-family: var(--font-display);
-        font-size: 12.5px;
-        line-height: 1.6;
-        color: var(--text-secondary);
-        font-style: italic;
-        padding: 0.6rem 0.85rem;
-        background: var(--white);
-        border-left: 3px solid var(--border);
-        border-radius: 0 var(--radius) var(--radius) 0;
-      }
-      .ri-quote-source {
-        font-size: 11px;
-        color: var(--text-muted);
-        margin-top: 0.35rem;
-        font-style: normal;
-      }
 
       /* ═══════════════════════════════
      CONTRIBUTE CTA
@@ -1474,37 +1425,24 @@
               </div>
               <div class="ab-sep"></div>
               <div class="ab-group">
-                <button class="ab-btn">
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
+                <button class="ab-btn" title="Copy APA reference">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="9" y="9" width="13" height="13" rx="2" />
-                    <path
-                      d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"
-                    />
+                    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
                   </svg>
-                  Copy Citation
+                  Copy APA
+                </button>
+                <button class="ab-btn" title="Copy BibTeX citation">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" />
+                    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                  </svg>
+                  Copy BibTeX
                 </button>
                 <button class="ab-btn">
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path
-                      d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"
-                    />
-                    <path
-                      d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"
-                    />
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
+                    <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
                   </svg>
                   Share Link
                 </button>
@@ -1588,64 +1526,28 @@
                     <a class="ri-doi" href="#">10.1177/2515245918810225</a>
                   </div>
                   <div class="ri-actions">
-                    <button class="ri-action" title="Copy citation">
-                      <svg
-                        width="13"
-                        height="13"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                      >
+                    <button class="ri-action" title="Copy APA reference">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="9" y="9" width="13" height="13" rx="2" />
-                        <path
-                          d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"
-                        />
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
                       </svg>
+                      APA
+                    </button>
+                    <button class="ri-action" title="Copy BibTeX citation">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" />
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                      </svg>
+                      BibTeX
                     </button>
                     <button class="ri-action" title="View paper">
-                      <svg
-                        width="13"
-                        height="13"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                      >
-                        <path
-                          d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"
-                        />
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
                         <polyline points="15,3 21,3 21,9" />
                         <line x1="10" y1="14" x2="21" y2="3" />
                       </svg>
+                      View
                     </button>
-                  </div>
-                </div>
-                <div class="ri-expand">
-                  <button
-                    class="ri-expand-toggle"
-                    aria-expanded="true"
-                    onclick="
-                      this.setAttribute(
-                        'aria-expanded',
-                        this.getAttribute('aria-expanded') === 'true'
-                          ? 'false'
-                          : 'true',
-                      );
-                      this.nextElementSibling.classList.toggle('open');
-                    "
-                  >
-                    <span class="arrow">&#9654;</span> Outcome quote
-                  </button>
-                  <div class="ri-quote open">
-                    <div class="ri-quote-text">
-                      "The original finding was successfully replicated across
-                      all 36 labs, with a pooled effect size of d = 0.37 (95% CI
-                      [0.31, 0.43]), closely matching the original d = 0.42."
-                    </div>
-                    <div class="ri-quote-source">
-                      Source: original paper, p. 12
-                    </div>
                   </div>
                 </div>
               </div>
@@ -1665,63 +1567,28 @@
                     <a class="ri-doi" href="#">10.1038/s41562-018-0399-z</a>
                   </div>
                   <div class="ri-actions">
-                    <button class="ri-action" title="Copy citation">
-                      <svg
-                        width="13"
-                        height="13"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                      >
+                    <button class="ri-action" title="Copy APA reference">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="9" y="9" width="13" height="13" rx="2" />
-                        <path
-                          d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"
-                        />
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
                       </svg>
+                      APA
+                    </button>
+                    <button class="ri-action" title="Copy BibTeX citation">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" />
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                      </svg>
+                      BibTeX
                     </button>
                     <button class="ri-action" title="View paper">
-                      <svg
-                        width="13"
-                        height="13"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                      >
-                        <path
-                          d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"
-                        />
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
                         <polyline points="15,3 21,3 21,9" />
                         <line x1="10" y1="14" x2="21" y2="3" />
                       </svg>
+                      View
                     </button>
-                  </div>
-                </div>
-                <div class="ri-expand">
-                  <button
-                    class="ri-expand-toggle"
-                    aria-expanded="false"
-                    onclick="
-                      this.setAttribute(
-                        'aria-expanded',
-                        this.getAttribute('aria-expanded') === 'true'
-                          ? 'false'
-                          : 'true',
-                      );
-                      this.nextElementSibling.classList.toggle('open');
-                    "
-                  >
-                    <span class="arrow">&#9654;</span> Outcome quote
-                  </button>
-                  <div class="ri-quote">
-                    <div class="ri-quote-text">
-                      "Of 21 studies replicated, 13 (62%) produced statistically
-                      significant results in the same direction as the original.
-                      However, effect sizes were on average 50% smaller than
-                      originally reported."
-                    </div>
-                    <div class="ri-quote-source">Source: abstract</div>
                   </div>
                 </div>
               </div>
@@ -1740,61 +1607,28 @@
                     <a class="ri-doi" href="#">10.1126/science.aaf0918</a>
                   </div>
                   <div class="ri-actions">
-                    <button class="ri-action" title="Copy citation">
-                      <svg
-                        width="13"
-                        height="13"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                      >
+                    <button class="ri-action" title="Copy APA reference">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="9" y="9" width="13" height="13" rx="2" />
-                        <path
-                          d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"
-                        />
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
                       </svg>
+                      APA
+                    </button>
+                    <button class="ri-action" title="Copy BibTeX citation">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" />
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                      </svg>
+                      BibTeX
                     </button>
                     <button class="ri-action" title="View paper">
-                      <svg
-                        width="13"
-                        height="13"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                      >
-                        <path
-                          d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"
-                        />
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
                         <polyline points="15,3 21,3 21,9" />
                         <line x1="10" y1="14" x2="21" y2="3" />
                       </svg>
+                      View
                     </button>
-                  </div>
-                </div>
-                <div class="ri-expand">
-                  <button
-                    class="ri-expand-toggle"
-                    aria-expanded="false"
-                    onclick="
-                      this.setAttribute(
-                        'aria-expanded',
-                        this.getAttribute('aria-expanded') === 'true'
-                          ? 'false'
-                          : 'true',
-                      );
-                      this.nextElementSibling.classList.toggle('open');
-                    "
-                  >
-                    <span class="arrow">&#9654;</span> Outcome quote
-                  </button>
-                  <div class="ri-quote">
-                    <div class="ri-quote-text">
-                      "11 of 18 (61%) studies replicated, with replication
-                      effect sizes averaging 66% of the original."
-                    </div>
-                    <div class="ri-quote-source">Source: abstract</div>
                   </div>
                 </div>
               </div>
@@ -1813,62 +1647,28 @@
                     <a class="ri-doi" href="#">10.1371/journal.pone.0218881</a>
                   </div>
                   <div class="ri-actions">
-                    <button class="ri-action" title="Copy citation">
-                      <svg
-                        width="13"
-                        height="13"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                      >
+                    <button class="ri-action" title="Copy APA reference">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="9" y="9" width="13" height="13" rx="2" />
-                        <path
-                          d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012-2h9a2 2 0 012 2v1"
-                        />
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
                       </svg>
+                      APA
+                    </button>
+                    <button class="ri-action" title="Copy BibTeX citation">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" />
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                      </svg>
+                      BibTeX
                     </button>
                     <button class="ri-action" title="View paper">
-                      <svg
-                        width="13"
-                        height="13"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                      >
-                        <path
-                          d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"
-                        />
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
                         <polyline points="15,3 21,3 21,9" />
                         <line x1="10" y1="14" x2="21" y2="3" />
                       </svg>
+                      View
                     </button>
-                  </div>
-                </div>
-                <div class="ri-expand">
-                  <button
-                    class="ri-expand-toggle"
-                    aria-expanded="false"
-                    onclick="
-                      this.setAttribute(
-                        'aria-expanded',
-                        this.getAttribute('aria-expanded') === 'true'
-                          ? 'false'
-                          : 'true',
-                      );
-                      this.nextElementSibling.classList.toggle('open');
-                    "
-                  >
-                    <span class="arrow">&#9654;</span> Outcome quote
-                  </button>
-                  <div class="ri-quote">
-                    <div class="ri-quote-text">
-                      "We found no statistically significant effect in the
-                      hypothesized direction (p = .34, d = 0.05), failing to
-                      replicate the original finding."
-                    </div>
-                    <div class="ri-quote-source">Source: results section</div>
                   </div>
                 </div>
               </div>
