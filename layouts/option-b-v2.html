@@ -63,6 +63,7 @@
         line-height: 1.6;
         -webkit-font-smoothing: antialiased;
         height: 100vh;
+        height: 100dvh;
         display: flex;
         flex-direction: column;
         overflow: hidden;
@@ -515,7 +516,6 @@
         border-radius: var(--radius-lg);
         border: 1px solid var(--border-light);
         overflow: hidden;
-        max-width: 900px;
         box-shadow: var(--shadow-sm);
         animation: slideUp 0.3s ease-out;
       }
@@ -881,6 +881,8 @@
         letter-spacing: 0.4px;
         margin-top: 0.15rem;
         white-space: nowrap;
+        min-width: 56px;
+        text-align: center;
       }
       .ri-badge.successful {
         background: var(--success-bg);
@@ -1087,16 +1089,26 @@
      RESPONSIVE
   ═══════════════════════════════ */
       @media (max-width: 960px) {
+        body {
+          overflow: auto;
+        }
         .main-layout {
           grid-template-columns: 1fr;
+          overflow: visible;
         }
         .left-panel {
           max-height: 260px;
           border-right: none;
           border-bottom: 1px solid var(--border-light);
         }
+        .right-panel {
+          overflow: visible;
+        }
         .topbar-search {
           max-width: 40vw;
+          width: 340px;
+        }
+        .topbar-search:focus-within {
           width: 340px;
         }
         .stats-row {
@@ -1107,10 +1119,29 @@
           border-top: 1px solid var(--border-light);
           padding: 1rem;
         }
+        .contribute-bar {
+          margin: 0.5rem 1.25rem 1.25rem;
+        }
       }
       @media (max-width: 640px) {
+        .topbar {
+          padding: 0 0.75rem;
+        }
         .topbar-search {
           display: none;
+        }
+        .topbar-right {
+          gap: 0;
+        }
+        .topbar-link {
+          font-size: 12px;
+          padding: 0.3rem 0.5rem;
+        }
+        .left-panel {
+          max-height: 200px;
+        }
+        .lp-filters {
+          padding: 0.4rem 0.75rem;
         }
         .detail-wrap {
           padding: 0.75rem;
@@ -1118,17 +1149,129 @@
         .dh {
           padding: 1.25rem;
         }
+        .dh-top {
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+        .dh-title {
+          font-size: 1rem;
+        }
+        .dh-authors {
+          font-size: 13px;
+        }
         .action-bar {
-          padding: 0.5rem 1.25rem;
+          padding: 0.5rem 1rem;
+          gap: 0.3rem;
+        }
+        .ab-btn {
+          font-size: 11px;
+          padding: 0.25rem 0.5rem;
         }
         .tabs-bar {
-          padding: 0 1.25rem;
+          padding: 0 1rem;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
         }
         .rep-list {
-          padding: 0.75rem 1.25rem 1.25rem;
+          padding: 0.75rem 1rem 1.25rem;
+        }
+        .rep-item-main {
+          grid-template-columns: auto 1fr;
+          gap: 0.6rem;
+          padding: 0.75rem 0.85rem;
+        }
+        .ri-actions {
+          grid-column: 1 / -1;
+          justify-self: end;
+        }
+        .ri-badge {
+          min-width: auto;
+          font-size: 9px;
+          padding: 0.15rem 0.45rem;
         }
         .stats-grid {
           grid-template-columns: repeat(2, 1fr);
+        }
+        .progress-section {
+          padding: 0.65rem 1rem;
+        }
+        .progress-row {
+          flex-wrap: wrap;
+          gap: 0.5rem;
+        }
+        .progress-label {
+          width: 100%;
+        }
+        .progress-pct {
+          width: 100%;
+          text-align: right;
+        }
+        .contribute-bar {
+          margin: 0.5rem 1rem 1.25rem;
+          padding: 0.85rem 1rem;
+          flex-direction: column;
+          text-align: center;
+        }
+        .footer-bar {
+          flex-direction: column;
+          gap: 0.3rem;
+          text-align: center;
+          padding: 0.65rem 1rem;
+        }
+        .footer-bar a {
+          margin-left: 0.5rem;
+        }
+      }
+      @media (max-width: 400px) {
+        .topbar-name span {
+          display: none;
+        }
+        .detail-wrap {
+          padding: 0.5rem;
+        }
+        .dh {
+          padding: 1rem;
+        }
+        .dh-title {
+          font-size: 0.95rem;
+        }
+        .dh-apa-text {
+          font-size: 11.5px;
+        }
+        .action-bar {
+          padding: 0.4rem 0.75rem;
+        }
+        .ab-sep {
+          display: none;
+        }
+        .rep-list {
+          padding: 0.5rem 0.75rem 1rem;
+        }
+        .ri-title {
+          font-size: 12.5px;
+        }
+        .ri-meta {
+          font-size: 11px;
+        }
+        .stats-grid {
+          gap: 0.5rem;
+        }
+        .stat-value {
+          font-size: 1.3rem;
+        }
+        .tabs-bar {
+          padding: 0 0.75rem;
+          gap: 0;
+        }
+        .tab {
+          font-size: 12px;
+          padding: 0.6rem 0.5rem;
+        }
+        .contribute-bar {
+          margin: 0.5rem 0.75rem 1rem;
+        }
+        .footer-bar {
+          font-size: 10.5px;
         }
       }
     </style>
