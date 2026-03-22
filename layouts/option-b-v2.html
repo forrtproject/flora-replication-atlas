@@ -955,6 +955,62 @@
         flex-shrink: 0;
       }
 
+      /* Expandable quote */
+      .ri-expand {
+        border-top: 1px solid var(--border-light);
+        background: #fcfbf8;
+      }
+      .ri-expand-toggle {
+        width: 100%;
+        padding: 0.45rem 1rem;
+        font-size: 11.5px;
+        font-weight: 600;
+        color: var(--primary);
+        background: none;
+        border: none;
+        cursor: pointer;
+        text-align: left;
+        font-family: var(--font-body);
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        transition: color var(--transition-fast);
+      }
+      .ri-expand-toggle:hover {
+        color: var(--primary-light);
+      }
+      .ri-expand-toggle .arrow {
+        transition: transform var(--transition);
+        font-size: 10px;
+        display: inline-block;
+      }
+      .ri-expand-toggle[aria-expanded="true"] .arrow {
+        transform: rotate(90deg);
+      }
+      .ri-quote {
+        padding: 0 1rem 0.75rem;
+        display: none;
+      }
+      .ri-quote.open {
+        display: block;
+      }
+      .ri-quote-text {
+        font-family: var(--font-display);
+        font-size: 12.5px;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        font-style: italic;
+        padding: 0.6rem 0.85rem;
+        background: var(--white);
+        border-left: 3px solid var(--border);
+        border-radius: 0 var(--radius) var(--radius) 0;
+      }
+      .ri-quote-source {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-top: 0.35rem;
+        font-style: normal;
+      }
 
       /* ═══════════════════════════════
      CONTRIBUTE CTA
@@ -1272,20 +1328,6 @@
           <h3>Search Results</h3>
           <span class="lp-count">3 studies</span>
         </div>
-        <div class="lp-filters">
-          <button class="filter-chip active">
-            <span class="filter-dot all"></span> All
-          </button>
-          <button class="filter-chip">
-            <span class="filter-dot success"></span> Successful
-          </button>
-          <button class="filter-chip">
-            <span class="filter-dot mixed"></span> Mixed
-          </button>
-          <button class="filter-chip">
-            <span class="filter-dot failed"></span> Failed
-          </button>
-        </div>
         <div class="study-list">
           <!-- Active item -->
           <div class="sli active">
@@ -1368,7 +1410,6 @@
           <div class="detail-card">
             <!-- Header -->
             <div class="dh">
-              <div class="dh-label">Replication Study</div>
               <h1 class="dh-title">
                 Estimating the Reproducibility of Psychological Science
               </h1>
@@ -1453,35 +1494,7 @@
               </div>
             </div>
 
-            <!-- Stats + donut -->
-            <div class="stats-row">
-              <div class="stats-grid">
-                <div class="stat-box">
-                  <div class="stat-value success">3</div>
-                  <div class="stat-label">Successful</div>
-                </div>
-                <div class="stat-box">
-                  <div class="stat-value warning">2</div>
-                  <div class="stat-label">Mixed</div>
-                </div>
-                <div class="stat-box">
-                  <div class="stat-value error">1</div>
-                  <div class="stat-label">Failed</div>
-                </div>
-                <div class="stat-box">
-                  <div class="stat-value neutral">6</div>
-                  <div class="stat-label">Total</div>
-                </div>
-              </div>
-              <div class="donut-wrap">
-                <div class="donut">
-                  <div class="donut-hole">
-                    <div class="donut-pct">50%</div>
-                    <div class="donut-pct-label">success</div>
-                  </div>
-                </div>
-              </div>
-            </div>
+
 
             <!-- Progress bar -->
             <div class="progress-section">
@@ -1550,6 +1563,33 @@
                     </button>
                   </div>
                 </div>
+                <div class="ri-expand">
+                  <button
+                    class="ri-expand-toggle"
+                    aria-expanded="true"
+                    onclick="
+                      this.setAttribute(
+                        'aria-expanded',
+                        this.getAttribute('aria-expanded') === 'true'
+                          ? 'false'
+                          : 'true',
+                      );
+                      this.nextElementSibling.classList.toggle('open');
+                    "
+                  >
+                    <span class="arrow">&#9654;</span> Outcome quote
+                  </button>
+                  <div class="ri-quote open">
+                    <div class="ri-quote-text">
+                      "The original finding was successfully replicated across
+                      all 36 labs, with a pooled effect size of d = 0.37 (95% CI
+                      [0.31, 0.43]), closely matching the original d = 0.42."
+                    </div>
+                    <div class="ri-quote-source">
+                      Source: original paper, p. 12
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div class="rep-item">
@@ -1589,6 +1629,32 @@
                       </svg>
                       View
                     </button>
+                  </div>
+                </div>
+                <div class="ri-expand">
+                  <button
+                    class="ri-expand-toggle"
+                    aria-expanded="false"
+                    onclick="
+                      this.setAttribute(
+                        'aria-expanded',
+                        this.getAttribute('aria-expanded') === 'true'
+                          ? 'false'
+                          : 'true',
+                      );
+                      this.nextElementSibling.classList.toggle('open');
+                    "
+                  >
+                    <span class="arrow">&#9654;</span> Outcome quote
+                  </button>
+                  <div class="ri-quote">
+                    <div class="ri-quote-text">
+                      "Of 21 studies replicated, 13 (62%) produced statistically
+                      significant results in the same direction as the original.
+                      However, effect sizes were on average 50% smaller than
+                      originally reported."
+                    </div>
+                    <div class="ri-quote-source">Source: abstract</div>
                   </div>
                 </div>
               </div>
@@ -1631,6 +1697,30 @@
                     </button>
                   </div>
                 </div>
+                <div class="ri-expand">
+                  <button
+                    class="ri-expand-toggle"
+                    aria-expanded="false"
+                    onclick="
+                      this.setAttribute(
+                        'aria-expanded',
+                        this.getAttribute('aria-expanded') === 'true'
+                          ? 'false'
+                          : 'true',
+                      );
+                      this.nextElementSibling.classList.toggle('open');
+                    "
+                  >
+                    <span class="arrow">&#9654;</span> Outcome quote
+                  </button>
+                  <div class="ri-quote">
+                    <div class="ri-quote-text">
+                      "11 of 18 (61%) studies replicated, with replication
+                      effect sizes averaging 66% of the original."
+                    </div>
+                    <div class="ri-quote-source">Source: abstract</div>
+                  </div>
+                </div>
               </div>
 
               <div class="rep-item">
@@ -1669,6 +1759,31 @@
                       </svg>
                       View
                     </button>
+                  </div>
+                </div>
+                <div class="ri-expand">
+                  <button
+                    class="ri-expand-toggle"
+                    aria-expanded="false"
+                    onclick="
+                      this.setAttribute(
+                        'aria-expanded',
+                        this.getAttribute('aria-expanded') === 'true'
+                          ? 'false'
+                          : 'true',
+                      );
+                      this.nextElementSibling.classList.toggle('open');
+                    "
+                  >
+                    <span class="arrow">&#9654;</span> Outcome quote
+                  </button>
+                  <div class="ri-quote">
+                    <div class="ri-quote-text">
+                      "We found no statistically significant effect in the
+                      hypothesized direction (p = .34, d = 0.05), failing to
+                      replicate the original finding."
+                    </div>
+                    <div class="ri-quote-source">Source: results section</div>
                   </div>
                 </div>
               </div>
