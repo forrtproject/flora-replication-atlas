@@ -1,4 +1,5 @@
 import { For } from "solid-js";
+import { A } from "@solidjs/router";
 import forrt from "../../assets/FORRT.svg";
 
 type TopBarProps = {
@@ -8,10 +9,21 @@ type TopBarProps = {
   onAddTag: (tag: string) => void;
   onRemoveTag: (index: number) => void;
   onSearchSubmit: () => void;
+  onNavigateSearch?: (tags: string[]) => void;
 };
 
 export const TopBar = (props: TopBarProps) => {
   let inputRef: HTMLInputElement | undefined;
+
+  const fireSearch = (extraTag?: string) => {
+    const allTags = extraTag ? [...props.tags, extraTag] : [...props.tags];
+    if (props.onNavigateSearch) {
+      props.onNavigateSearch(allTags);
+    } else {
+      if (extraTag) props.onAddTag(extraTag);
+      setTimeout(() => props.onSearchSubmit(), 0);
+    }
+  };
 
   const handleKeyDown = (e: KeyboardEvent) => {
     const value = props.inputValue.trim();
@@ -23,12 +35,7 @@ export const TopBar = (props: TopBarProps) => {
         return;
       }
       if (e.key === "Enter") {
-        // If there's text in the input, add it as a tag first, then search
-        if (value) {
-          props.onAddTag(value);
-        }
-        // Small delay so the tag state updates before search fires
-        setTimeout(() => props.onSearchSubmit(), 0);
+        fireSearch(value || undefined);
         return;
       }
     }
@@ -53,7 +60,7 @@ export const TopBar = (props: TopBarProps) => {
   return (
     <nav class="topbar">
       <div class="topbar-left">
-        <a class="topbar-brand" href="./">
+        <A class="topbar-brand" href="/">
           <div class="topbar-icon">
             <img src={forrt} alt="F" style={{ width: "20px", height: "20px" }} />
           </div>
@@ -61,7 +68,7 @@ export const TopBar = (props: TopBarProps) => {
             <strong>FReD</strong>
             <span>Replication Hub</span>
           </div>
-        </a>
+        </A>
       </div>
       <div class="topbar-search" onClick={() => inputRef?.focus()}>
         <svg
@@ -104,8 +111,7 @@ export const TopBar = (props: TopBarProps) => {
         </div>
         <button class="topbar-search-btn" onClick={() => {
           const value = props.inputValue.trim();
-          if (value) props.onAddTag(value);
-          setTimeout(() => props.onSearchSubmit(), 0);
+          fireSearch(value || undefined);
         }}>
           Search
         </button>

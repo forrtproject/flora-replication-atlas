@@ -1,7 +1,7 @@
 import { createSignal, Show } from "solid-js";
+import { useSearchParams, useNavigate } from "@solidjs/router";
 import type { DOIResults, OriginalPaper } from "./@types";
 import { fetchMultipleDOIInfo } from "./api/backend";
-import { query } from "./utils/http";
 import { TopBar } from "./components/layout/TopBar";
 import { StudyListPanel } from "./components/layout/StudyListPanel";
 import { WelcomeState } from "./components/layout/WelcomeState";
@@ -10,9 +10,11 @@ import { NoDataState } from "./components/layout/NoDataState";
 import { Footer } from "./components/Footer";
 
 function App() {
-  const initialDoi = query.get("doi") || query.get("dois") || "";
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const initialDoi = String(searchParams.doi || searchParams.dois || "");
   const initialTags = initialDoi
-    ? initialDoi.split(",").map((d) => d.trim()).filter((d) => d !== "")
+    ? initialDoi.split(",").map((d: string) => d.trim()).filter((d: string) => d !== "")
     : [];
 
   const [tags, setTags] = createSignal<string[]>(initialTags);
@@ -77,6 +79,15 @@ function App() {
         onAddTag={addTag}
         onRemoveTag={removeTag}
         onSearchSubmit={doSearch}
+        onNavigateSearch={(allTags) => {
+          if (allTags.length === 1) {
+            navigate(`/doi/${allTags[0]}`);
+          } else if (allTags.length > 0) {
+            setTags(allTags);
+            setInputValue("");
+            setTimeout(() => doSearch(), 0);
+          }
+        }}
       />
 
       <div class="main-layout">
@@ -92,9 +103,7 @@ function App() {
           <Show when={selectedDoi()} fallback={
             <WelcomeState
               onExampleClick={(doi) => {
-                setTags([doi]);
-                setInputValue("");
-                setTimeout(() => doSearch(), 0);
+                navigate(`/doi/${doi}`);
               }}
             />
           }>

@@ -101,7 +101,8 @@ export const DetailView = (props: DetailViewProps) => {
   };
 
   const handleShareLink = () => {
-    const url = `${window.location.origin}${window.location.pathname}?doi=${props.paper.doi}`;
+    const base = import.meta.env.BASE_URL || "/";
+    const url = `${window.location.origin}${base}doi/${props.paper.doi}`;
     copyToClipboard(url, "Share link");
   };
 
