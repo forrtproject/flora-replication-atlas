@@ -217,7 +217,7 @@ export const DetailView = (props: DetailViewProps) => {
                 <div class="progress-seg mixed" style={{ width: `${mixedPct()}%` }} />
                 <div class="progress-seg failed" style={{ width: `${failedPct()}%` }} />
               </div>
-              <span class="progress-pct">{successPct()}% replicated</span>
+
             </div>
           </div>
         </Show>
