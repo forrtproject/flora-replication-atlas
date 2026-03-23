@@ -1,0 +1,115 @@
+import { createSignal } from "solid-js";
+import type { ReplicationItem } from "../../@types";
+import { formatAuthors } from "../../utils/formatter";
+
+type ReplicationItemCardProps = {
+  item: ReplicationItem;
+  onCopyApa: (text: string) => void;
+  onCopyBibtex: (text: string) => void;
+};
+
+const CopyIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <rect x="9" y="9" width="13" height="13" rx="2" />
+    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+  </svg>
+);
+
+const ExternalLinkIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+    <polyline points="15,3 21,3 21,9" />
+    <line x1="10" y1="14" x2="21" y2="3" />
+  </svg>
+);
+
+export const ReplicationItemCard = (props: ReplicationItemCardProps) => {
+  const [expanded, setExpanded] = createSignal(false);
+
+  const badgeLabel = () => {
+    switch (props.item.outcome) {
+      case "successful": return "Success";
+      case "failed": return "Failed";
+      case "mixed": return "Mixed";
+      case "partial": return "Partial";
+      default: return props.item.outcome || "N/A";
+    }
+  };
+
+  return (
+    <div class="rep-item">
+      <div class="rep-item-main">
+        <span class={`ri-badge ${props.item.outcome || ""}`}>{badgeLabel()}</span>
+        <div class="ri-body">
+          <div class="ri-title">{props.item.title}</div>
+          <div class="ri-meta">
+            {formatAuthors(props.item.authors)} ({props.item.year}) &middot;{" "}
+            {props.item.journal}
+          </div>
+          {props.item.doi && (
+            <a
+              class="ri-doi"
+              href={`https://doi.org/${props.item.doi}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {props.item.doi}
+            </a>
+          )}
+        </div>
+        <div class="ri-actions">
+          {props.item.apa_ref && (
+            <button
+              class="ri-action"
+              title="Copy APA reference"
+              onClick={() => props.onCopyApa(props.item.apa_ref)}
+            >
+              <CopyIcon /> APA
+            </button>
+          )}
+          {props.item.bibtex_ref && (
+            <button
+              class="ri-action"
+              title="Copy BibTeX citation"
+              onClick={() => props.onCopyBibtex(props.item.bibtex_ref)}
+            >
+              <CopyIcon /> BibTeX
+            </button>
+          )}
+          {props.item.doi && (
+            <a
+              class="ri-action"
+              href={`https://doi.org/${props.item.doi}`}
+              target="_blank"
+              rel="noreferrer"
+              title="View paper"
+            >
+              <ExternalLinkIcon /> View
+            </a>
+          )}
+        </div>
+      </div>
+
+      {props.item.outcome_quote && (
+        <div class="ri-expand">
+          <button
+            class={`ri-expand-toggle ${expanded() ? "expanded" : ""}`}
+            onClick={() => setExpanded(!expanded())}
+          >
+            <span class="arrow">&#9654;</span> Outcome quote
+          </button>
+          {expanded() && (
+            <div class="ri-quote">
+              <div class="ri-quote-text">"{props.item.outcome_quote}"</div>
+              {props.item.outcome_quote_source && (
+                <div class="ri-quote-source">
+                  Source: {props.item.outcome_quote_source}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
