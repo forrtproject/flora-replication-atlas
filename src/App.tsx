@@ -1,121 +1,129 @@
-import repResearch from "/forrt_text.svg";
+import { createSignal, Show } from "solid-js";
+import { useSearchParams, useNavigate } from "@solidjs/router";
+import type { DOIResults, OriginalPaper } from "./@types";
+import { fetchMultipleDOIInfo } from "./api/backend";
+import { TopBar } from "./components/layout/TopBar";
+import { StudyListPanel } from "./components/layout/StudyListPanel";
+import { WelcomeState } from "./components/layout/WelcomeState";
+import { DetailView } from "./components/layout/DetailView";
+import { NoDataState } from "./components/layout/NoDataState";
 import { Footer } from "./components/Footer";
-import forrt from "./assets/FORRT.svg";
-import { ReplicationSearchPanel } from "./components/replication/ReplicationSearchPanel";
-import { createSignal } from "solid-js";
-import type { DOIResults } from "./@types";
 
 function App() {
-  const [doi, setDoi] = createSignal<DOIResults | null>(null);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const initialDoi = String(searchParams.doi || searchParams.dois || "");
+  const initialTags = initialDoi
+    ? initialDoi.split(",").map((d: string) => d.trim()).filter((d: string) => d !== "")
+    : [];
+
+  const [tags, setTags] = createSignal<string[]>(initialTags);
+  const [inputValue, setInputValue] = createSignal("");
+  const [results, setResults] = createSignal<Record<string, OriginalPaper>>({});
+  const [selectedDoi, setSelectedDoi] = createSignal<string | null>(null);
+  const [isLoading, setIsLoading] = createSignal(false);
+  const [hasSearched, setHasSearched] = createSignal(false);
+
+  const addTag = (tag: string) => {
+    const trimmed = tag.trim();
+    if (trimmed && !tags().includes(trimmed)) {
+      setTags([...tags(), trimmed]);
+    }
+    setInputValue("");
+  };
+
+  const removeTag = (index: number) => {
+    setTags(tags().filter((_, i) => i !== index));
+  };
+
+  const doSearch = () => {
+    const params = tags();
+    if (params.length === 0) return;
+
+    setIsLoading(true);
+    setHasSearched(true);
+    setResults({});
+    setSelectedDoi(null);
+
+    fetchMultipleDOIInfo(params)
+      .then((res: DOIResults) => {
+        if (res.isEmpty) {
+          setResults({});
+        } else {
+          setResults(res.results || {});
+          const keys = Object.keys(res.results || {});
+          if (keys.length > 0) {
+            setSelectedDoi(keys[0]);
+          }
+        }
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching DOI info:", error);
+        setIsLoading(false);
+        setResults({});
+      });
+  };
+
+  // Auto-search if DOI is in URL
+  if (initialTags.length > 0) {
+    doSearch();
+  }
+
   return (
-    <div class="bg-neutral min-h-screen">
-      <div class="navbar bg-neutral text-neutral-content shadow-sm">
-        <div class="navbar-start">
-          <div class="dropdown">
-            <div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                {" "}
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M4 6h16M4 12h8m-8 6h16"
-                />{" "}
-              </svg>
-            </div>
-            <ul
-              tabindex="-1"
-              class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow text-gray-800"
-            >
-              <li>
-                <a href="./">Home</a>
-              </li>
-              <li>
-                <a href="https://forrt.org/about/us/" target="_blank">
-                  About
-                </a>
-              </li>
-              <li>
-                <a href="https://forrt.org/apps/fred_explorer.html">
-                  FReeD Explorer
-                </a>
-              </li>
-              <li>
-                <a href="#">Contact</a>
-              </li>
-            </ul>
-          </div>
-          <a class="link text-xl" href="/">
-            <div class="avatar">
-              <div class="w-10 rounded">
-                <img src={forrt} alt="FORRT Logo" />
-              </div>
-              <div class="ml-2 font-bold flex flex-col max-h-11 w-34">
-                <span class="text-m">FReD</span>
-                <span class="text-xs">Replication Hub</span>
-              </div>
-            </div>
-          </a>
-        </div>
-        <div class="navbar-end">
-          <div class="hidden lg:flex">
-            <ul class="menu menu-horizontal px-1">
-              <li>
-                <a href="./">Home</a>
-              </li>
-              <li>
-                <a
-                  href="https://forrt.org/about/us/"
-                  target="_blank"
-                  class="no-underline!"
+    <>
+      <TopBar
+        tags={tags()}
+        inputValue={inputValue()}
+        onInputChange={(v) => setInputValue(v)}
+        onAddTag={addTag}
+        onRemoveTag={removeTag}
+        onSearchSubmit={doSearch}
+        onNavigateSearch={(allTags) => {
+          if (allTags.length === 1) {
+            navigate(`/doi/${allTags[0]}`);
+          } else if (allTags.length > 0) {
+            setTags(allTags);
+            setInputValue("");
+            setTimeout(() => doSearch(), 0);
+          }
+        }}
+      />
+
+      <div class="main-layout">
+        <StudyListPanel
+          results={results()}
+          selectedDoi={selectedDoi()}
+          onSelect={(doi) => setSelectedDoi(doi)}
+          isLoading={isLoading()}
+          hasSearched={hasSearched()}
+        />
+
+        <div class="right-panel">
+          <Show when={selectedDoi()} fallback={
+            <WelcomeState
+              onExampleClick={(doi) => {
+                navigate(`/doi/${doi}`);
+              }}
+            />
+          }>
+            {(doi) => {
+              const paper = () => results()[doi()];
+              return (
+                <Show
+                  when={paper()?.record}
+                  fallback={<NoDataState doi={doi()} />}
                 >
-                  About
-                </a>
-              </li>
-              <li>
-                <a href="https://forrt.org/apps/fred_explorer.html">
-                  FReD Explorer
-                </a>
-              </li>
-            </ul>
-          </div>
-          {/* <a class="btn btn-secondary">Contact Us</a> */}
+                  <DetailView paper={paper()!} />
+                </Show>
+              );
+            }}
+          </Show>
         </div>
       </div>
-      <div class="bg-base-200 ">
-          <div class="flex-col px-8 lg:px-16">
-            {doi() == null ? (
-              <div class="px-4">
-                <div class="flex w-64 shadow-sm">
-                  <img
-                    src={repResearch}
-                    alt="Replication Research"
-                    class="rounded-lg"
-                  />
-                </div>
-                <h1 class="text-5xl font-bold">Replication Summary</h1>
-                <p class="py-6">
-                  Replication is essential to scientific progress. Use this tool
-                  to check whether a study has been replicated, explore the
-                  outcomes, and contribute to the growing ecosystem of
-                  reproducible research. If you spot missing data or want to
-                  suggest a new replication, we welcome your input!
-                </p>
-              </div>
-            ) : null}
-            <div class="bg-base-200 min-h-[40vh] pb-8">
-              <ReplicationSearchPanel onSuccess={(dois) => setDoi(dois)} />
-            </div>
-          </div>
-      </div>
+
       <Footer />
-    </div>
+    </>
   );
 }
 

@@ -1,8 +1,20 @@
 /* @refresh reload */
 import { render } from 'solid-js/web'
+import { Router, Route } from '@solidjs/router'
 import './index.css'
-import App from './App.tsx'
+import App from './App'
+import { DoiPage } from './components/pages/DoiPage'
+
+const base = import.meta.env.BASE_URL
 
 const root = document.getElementById('root')
 
-render(() => <App />, root!)
+render(
+  () => (
+    <Router base={base.endsWith('/') ? base.slice(0, -1) : base}>
+      <Route path="/" component={App} />
+      <Route path="/doi/*doi" component={DoiPage} />
+    </Router>
+  ),
+  root!
+)

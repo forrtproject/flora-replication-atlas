@@ -1,0 +1,1849 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FReD Replication Hub — Option B v2</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Domine:wght@400;500;600;700&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --primary: #3e3e3e;
+        --primary-light: #006080;
+        --primary-dark: #002e3d;
+        --primary-faint: #edf5f8;
+        --neutral: #3e3e3e;
+        --surface: #f4f3ee;
+        --surface-alt: #eae7de;
+        --white: #fff;
+        --success: #1a7a3a;
+        --success-light: #22a04d;
+        --success-bg: #e8f5ec;
+        --success-border: #b8dfca;
+        --warning: #b8860b;
+        --warning-bg: #fef8e8;
+        --warning-border: #f0dfa0;
+        --error: #b42318;
+        --error-bg: #fef0ee;
+        --error-border: #f5c6c0;
+        --info: #3d7a94;
+        --info-bg: #edf5f8;
+        --info-border: #b8d8e8;
+        --text: #1a1a1a;
+        --text-secondary: #4a4a4a;
+        --text-muted: #888;
+        --text-faint: #aaa;
+        --border: #d8d4ca;
+        --border-light: #e8e5dc;
+        --font-display: "Domine", Georgia, serif;
+        --font-body: "Source Sans 3", "Segoe UI", sans-serif;
+        --radius: 6px;
+        --radius-lg: 10px;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.07);
+        --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.1);
+        --transition-fast: 0.12s ease;
+        --transition: 0.2s ease;
+      }
+
+      body {
+        font-family: var(--font-body);
+        color: var(--text);
+        background: var(--surface);
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        height: 100vh;
+        height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      /* ═══════════════════════════════
+     TOP BAR
+  ═══════════════════════════════ */
+      .topbar {
+        background: var(--primary);
+        color: var(--white);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 1.25rem;
+        height: 52px;
+        flex-shrink: 0;
+        z-index: 100;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      }
+      .topbar-left {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+      }
+      .topbar-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        color: var(--white);
+      }
+      .topbar-icon {
+        width: 30px;
+        height: 30px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 14px;
+        font-family: var(--font-display);
+        letter-spacing: -0.5px;
+      }
+      .topbar-name {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.1;
+      }
+      .topbar-name strong {
+        font-family: var(--font-display);
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+      }
+      .topbar-name span {
+        font-size: 10px;
+        opacity: 0.5;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+      }
+
+      .topbar-divider {
+        width: 1px;
+        height: 24px;
+        background: rgba(255, 255, 255, 0.12);
+        margin: 0 0.5rem;
+      }
+
+      /* ─── Search bar in topbar ─── */
+      .topbar-search {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 0.25rem 0.3rem 0.25rem 0.85rem;
+        width: 480px;
+        max-width: 45vw;
+        transition: all var(--transition);
+      }
+      .topbar-search:focus-within {
+        background: rgba(255, 255, 255, 0.14);
+        border-color: rgba(255, 255, 255, 0.25);
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06);
+        width: 520px;
+      }
+      .topbar-search svg {
+        color: rgba(255, 255, 255, 0.3);
+        flex-shrink: 0;
+      }
+      .topbar-search input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        color: var(--white);
+        font-size: 13px;
+        font-family: var(--font-body);
+        outline: none;
+        padding: 0.3rem 0;
+      }
+      .topbar-search input::placeholder {
+        color: rgba(255, 255, 255, 0.28);
+      }
+      .topbar-search-btn {
+        background: rgba(255, 255, 255, 0.92);
+        color: var(--primary);
+        border: none;
+        padding: 0.35rem 1rem;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: var(--font-body);
+        transition: all var(--transition-fast);
+        white-space: nowrap;
+      }
+      .topbar-search-btn:hover {
+        background: var(--white);
+      }
+
+      .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 0.15rem;
+      }
+      .topbar-link {
+        color: rgba(255, 255, 255, 0.6);
+        text-decoration: none;
+        font-size: 13px;
+        padding: 0.35rem 0.7rem;
+        border-radius: var(--radius);
+        transition: all var(--transition-fast);
+      }
+      .topbar-link:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      /* ═══════════════════════════════
+     MAIN LAYOUT: SPLIT PANEL
+  ═══════════════════════════════ */
+      .main-layout {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 360px 1fr;
+        overflow: hidden;
+      }
+
+      /* ═══════════════════════════════
+     LEFT PANEL
+  ═══════════════════════════════ */
+      .left-panel {
+        background: var(--white);
+        border-right: 1px solid var(--border-light);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .lp-header {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border-light);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0;
+      }
+      .lp-header h3 {
+        font-family: var(--font-display);
+        font-size: 0.8rem;
+        color: var(--primary);
+        font-weight: 600;
+      }
+      .lp-count {
+        font-size: 10.5px;
+        background: var(--surface);
+        padding: 0.15rem 0.5rem;
+        border-radius: 100px;
+        color: var(--text-muted);
+        font-weight: 500;
+      }
+
+      /* ─── Filter chips ─── */
+      .lp-filters {
+        padding: 0.5rem 1rem;
+        border-bottom: 1px solid var(--border-light);
+        display: flex;
+        gap: 0.35rem;
+        flex-shrink: 0;
+        flex-wrap: wrap;
+      }
+      .filter-chip {
+        font-size: 11px;
+        padding: 0.2rem 0.55rem;
+        border-radius: 100px;
+        border: 1px solid var(--border-light);
+        background: var(--white);
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        font-family: var(--font-body);
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+      }
+      .filter-chip:hover {
+        border-color: var(--border);
+        color: var(--text-secondary);
+      }
+      .filter-chip.active {
+        background: var(--primary-faint);
+        border-color: rgba(0, 64, 85, 0.2);
+        color: var(--primary);
+      }
+      .filter-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+      }
+      .filter-dot.all {
+        background: var(--primary);
+      }
+      .filter-dot.success {
+        background: var(--success);
+      }
+      .filter-dot.mixed {
+        background: var(--warning);
+      }
+      .filter-dot.failed {
+        background: var(--error);
+      }
+
+      /* ─── Study list ─── */
+      .study-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0.4rem;
+      }
+      .study-list::-webkit-scrollbar {
+        width: 5px;
+      }
+      .study-list::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .study-list::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 100px;
+      }
+
+      .sli {
+        display: flex;
+        gap: 0.65rem;
+        padding: 0.75rem 0.85rem;
+        border-radius: var(--radius);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        align-items: flex-start;
+        border: 1px solid transparent;
+        margin-bottom: 1px;
+        position: relative;
+      }
+      .sli:hover {
+        background: var(--surface);
+      }
+      .sli.active {
+        background: var(--primary-faint);
+        border-color: rgba(0, 64, 85, 0.1);
+      }
+      .sli.active::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 8px;
+        bottom: 8px;
+        width: 3px;
+        border-radius: 0 3px 3px 0;
+        background: var(--primary);
+      }
+      .sli-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        margin-top: 0.35rem;
+      }
+      .sli-dot.mixed {
+        background: var(--warning);
+      }
+      .sli-dot.successful {
+        background: var(--success);
+      }
+      .sli-dot.failed {
+        background: var(--error);
+      }
+      .sli-body {
+        flex: 1;
+        min-width: 0;
+      }
+      .sli-title {
+        font-weight: 600;
+        font-size: 13px;
+        line-height: 1.35;
+        color: var(--text);
+        margin-bottom: 0.15rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .sli-meta {
+        font-size: 11.5px;
+        color: var(--text-muted);
+      }
+      .sli-pills {
+        display: flex;
+        gap: 0.35rem;
+        margin-top: 0.35rem;
+        flex-wrap: wrap;
+      }
+      .sli-pill {
+        font-size: 10px;
+        padding: 0.1rem 0.4rem;
+        border-radius: 100px;
+        font-weight: 600;
+        line-height: 1.4;
+      }
+      .sli-pill.s {
+        background: var(--success-bg);
+        color: var(--success);
+      }
+      .sli-pill.m {
+        background: var(--warning-bg);
+        color: var(--warning);
+      }
+      .sli-pill.f {
+        background: var(--error-bg);
+        color: var(--error);
+      }
+
+      /* ═══════════════════════════════
+     RIGHT PANEL
+  ═══════════════════════════════ */
+      .right-panel {
+        overflow-y: auto;
+        background: var(--surface);
+        display: flex;
+        flex-direction: column;
+      }
+      .right-panel::-webkit-scrollbar {
+        width: 6px;
+      }
+      .right-panel::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .right-panel::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 100px;
+      }
+
+      /* ─── Welcome state (before search) ─── */
+      .welcome-state {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 2rem;
+        text-align: center;
+        max-width: 500px;
+        margin: 0 auto;
+      }
+      .welcome-icon {
+        width: 64px;
+        height: 64px;
+        background: var(--white);
+        border: 1px solid var(--border-light);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-sm);
+      }
+      .welcome-state h2 {
+        font-family: var(--font-display);
+        font-size: 1.3rem;
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+        font-weight: 700;
+      }
+      .welcome-state p {
+        font-size: 14px;
+        color: var(--text-secondary);
+        line-height: 1.6;
+        margin-bottom: 1.75rem;
+        max-width: 380px;
+      }
+      .welcome-examples {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        width: 100%;
+        max-width: 340px;
+      }
+      .welcome-examples-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--text-muted);
+        font-weight: 600;
+      }
+      .welcome-doi {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.55rem 0.85rem;
+        background: var(--white);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius);
+        font-size: 13px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        font-family: var(--font-body);
+      }
+      .welcome-doi:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+        background: var(--primary-faint);
+      }
+      .welcome-doi svg {
+        opacity: 0.4;
+        flex-shrink: 0;
+      }
+      .welcome-doi:hover svg {
+        opacity: 0.8;
+      }
+
+      /* ─── Detail content ─── */
+      .detail-wrap {
+        padding: 1.5rem;
+        flex: 1;
+      }
+      .detail-card {
+        background: var(--white);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border-light);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        animation: slideUp 0.3s ease-out;
+      }
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* ─── Detail header ─── */
+      .dh {
+        padding: 1.5rem 1.75rem;
+        border-bottom: 1px solid var(--border-light);
+      }
+      .dh-top {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 0.5rem;
+      }
+      .dh-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        color: var(--text-muted);
+        font-weight: 600;
+        margin-bottom: 0.4rem;
+      }
+      .dh-title {
+        font-family: var(--font-display);
+        font-size: 1.15rem;
+        font-weight: 700;
+        line-height: 1.35;
+        color: var(--text);
+        margin-bottom: 0.4rem;
+      }
+      .dh-authors {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-bottom: 0.15rem;
+      }
+      .dh-journal {
+        font-size: 13px;
+        color: var(--text-muted);
+        font-style: italic;
+        margin-bottom: 0.15rem;
+      }
+      .dh-doi-link {
+        font-size: 12.5px;
+        color: var(--primary-light);
+        text-decoration: none;
+        transition: color var(--transition-fast);
+      }
+      .dh-doi-link:hover {
+        color: var(--primary);
+        text-decoration: underline;
+      }
+
+      /* APA reference */
+      .dh-apa {
+        margin-top: 0.85rem;
+        padding: 0.65rem 0.85rem;
+        background: var(--surface);
+        border-radius: var(--radius);
+        border-left: 3px solid var(--primary);
+      }
+      .dh-apa-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--text-muted);
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+      .dh-apa-text {
+        font-family: var(--font-display);
+        font-size: 12.5px;
+        line-height: 1.55;
+        color: var(--text-secondary);
+        font-style: italic;
+        font-weight: 400;
+      }
+
+      /* ─── Action bar ─── */
+      .action-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.65rem 1.75rem;
+        border-bottom: 1px solid var(--border-light);
+        background: #fafaf7;
+        flex-wrap: wrap;
+      }
+      .ab-group {
+        display: flex;
+        gap: 0.35rem;
+        align-items: center;
+      }
+      .ab-sep {
+        width: 1px;
+        height: 20px;
+        background: var(--border-light);
+        margin: 0 0.35rem;
+      }
+      .ab-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.3rem 0.65rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius);
+        font-size: 11.5px;
+        color: var(--text-secondary);
+        background: var(--white);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        text-decoration: none;
+        font-family: var(--font-body);
+        font-weight: 500;
+        white-space: nowrap;
+      }
+      .ab-btn:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+      }
+      .ab-btn.accent {
+        background: var(--primary);
+        color: var(--white);
+        border-color: var(--primary);
+      }
+      .ab-btn.accent:hover {
+        background: var(--primary-light);
+      }
+      .ab-btn svg {
+        flex-shrink: 0;
+      }
+
+      /* ─── Stats + donut row ─── */
+      .stats-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        border-bottom: 1px solid var(--border-light);
+      }
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1px;
+        background: var(--border-light);
+      }
+      .stat-box {
+        background: var(--white);
+        padding: 1rem 1rem;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .stat-value {
+        font-family: var(--font-display);
+        font-size: 1.6rem;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 0.25rem;
+      }
+      .stat-value.success {
+        color: var(--success);
+      }
+      .stat-value.warning {
+        color: var(--warning);
+      }
+      .stat-value.error {
+        color: var(--error);
+      }
+      .stat-value.neutral {
+        color: var(--primary);
+      }
+      .stat-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--text-muted);
+        font-weight: 500;
+      }
+
+      /* CSS-only donut chart */
+      .donut-wrap {
+        background: var(--white);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1.5rem;
+        border-left: 1px solid var(--border-light);
+      }
+      .donut {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        position: relative;
+        /* 50% success, 33% mixed, 17% failed */
+        background: conic-gradient(
+          var(--success) 0deg 180deg,
+          var(--warning) 180deg 300deg,
+          var(--error) 300deg 360deg
+        );
+      }
+      .donut-hole {
+        position: absolute;
+        inset: 14px;
+        background: var(--white);
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .donut-pct {
+        font-family: var(--font-display);
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--success);
+        line-height: 1;
+      }
+      .donut-pct-label {
+        font-size: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-muted);
+        margin-top: 1px;
+      }
+
+      /* ─── Progress bar ─── */
+      .progress-section {
+        padding: 0.65rem 1.75rem;
+        border-bottom: 1px solid var(--border-light);
+        background: #fafaf7;
+      }
+      .progress-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      .progress-label {
+        font-size: 11px;
+        color: var(--text-muted);
+        white-space: nowrap;
+        min-width: 120px;
+      }
+      .progress-track {
+        flex: 1;
+        height: 6px;
+        border-radius: 100px;
+        background: var(--surface);
+        display: flex;
+        overflow: hidden;
+        gap: 1px;
+      }
+      .progress-seg {
+        height: 100%;
+        border-radius: 100px;
+        transition: width 0.5s ease;
+      }
+      .progress-seg.success {
+        background: var(--success);
+      }
+      .progress-seg.mixed {
+        background: var(--warning);
+      }
+      .progress-seg.failed {
+        background: var(--error);
+      }
+      .progress-pct {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--success);
+        white-space: nowrap;
+      }
+
+      /* ═══════════════════════════════
+     TABS (replications/reproductions/originals)
+  ═══════════════════════════════ */
+      .tabs-bar {
+        display: flex;
+        border-bottom: 1px solid var(--border-light);
+        padding: 0 1.75rem;
+        gap: 0;
+        background: var(--white);
+      }
+      .tab {
+        padding: 0.7rem 1rem;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-muted);
+        background: none;
+        border: none;
+        cursor: pointer;
+        position: relative;
+        font-family: var(--font-body);
+        transition: color var(--transition-fast);
+        white-space: nowrap;
+      }
+      .tab:hover {
+        color: var(--text-secondary);
+      }
+      .tab.active {
+        color: var(--primary);
+      }
+      .tab.active::after {
+        content: "";
+        position: absolute;
+        bottom: -1px;
+        left: 0.5rem;
+        right: 0.5rem;
+        height: 2px;
+        background: var(--primary);
+        border-radius: 2px 2px 0 0;
+      }
+      .tab-badge {
+        font-size: 10px;
+        background: var(--surface);
+        padding: 0.1rem 0.4rem;
+        border-radius: 100px;
+        margin-left: 0.3rem;
+        font-weight: 400;
+        color: var(--text-muted);
+      }
+
+      /* ═══════════════════════════════
+     REPLICATION ITEMS
+  ═══════════════════════════════ */
+      .rep-list {
+        padding: 1rem 1.75rem 1.5rem;
+      }
+      .rep-item {
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius);
+        margin-bottom: 0.5rem;
+        background: var(--white);
+        transition: box-shadow var(--transition-fast);
+        overflow: hidden;
+      }
+      .rep-item:hover {
+        box-shadow: var(--shadow-sm);
+      }
+      .rep-item-main {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 0.85rem;
+        padding: 0.85rem 1rem;
+        align-items: flex-start;
+      }
+      .ri-badge {
+        padding: 0.2rem 0.55rem;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        margin-top: 0.15rem;
+        white-space: nowrap;
+        min-width: 56px;
+        text-align: center;
+      }
+      .ri-badge.successful {
+        background: var(--success-bg);
+        color: var(--success);
+      }
+      .ri-badge.failed {
+        background: var(--error-bg);
+        color: var(--error);
+      }
+      .ri-badge.mixed {
+        background: var(--warning-bg);
+        color: var(--warning);
+      }
+      .ri-badge.partial {
+        background: var(--warning-bg);
+        color: #9a6f00;
+      }
+      .ri-body {
+        min-width: 0;
+      }
+      .ri-title {
+        font-weight: 600;
+        font-size: 13.5px;
+        line-height: 1.4;
+        margin-bottom: 0.2rem;
+        color: var(--text);
+      }
+      .ri-meta {
+        font-size: 12px;
+        color: var(--text-muted);
+      }
+      .ri-doi {
+        font-size: 11.5px;
+        color: var(--primary-light);
+        text-decoration: none;
+        margin-top: 0.15rem;
+        display: inline-block;
+      }
+      .ri-doi:hover {
+        text-decoration: underline;
+      }
+      .ri-actions {
+        display: flex;
+        gap: 0.3rem;
+        flex-shrink: 0;
+        flex-wrap: wrap;
+      }
+      .ri-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.25rem 0.55rem;
+        border: 1px solid var(--border-light);
+        border-radius: 5px;
+        cursor: pointer;
+        color: var(--text-muted);
+        transition: all var(--transition-fast);
+        background: transparent;
+        font-size: 11px;
+        font-weight: 600;
+        font-family: var(--font-body);
+        white-space: nowrap;
+      }
+      .ri-action:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+        background: var(--primary-faint);
+      }
+      .ri-action svg {
+        flex-shrink: 0;
+      }
+
+      /* Expandable quote */
+      .ri-expand {
+        border-top: 1px solid var(--border-light);
+        background: #fcfbf8;
+      }
+      .ri-expand-toggle {
+        width: 100%;
+        padding: 0.45rem 1rem;
+        font-size: 11.5px;
+        font-weight: 600;
+        color: var(--primary);
+        background: none;
+        border: none;
+        cursor: pointer;
+        text-align: left;
+        font-family: var(--font-body);
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        transition: color var(--transition-fast);
+      }
+      .ri-expand-toggle:hover {
+        color: var(--primary-light);
+      }
+      .ri-expand-toggle .arrow {
+        transition: transform var(--transition);
+        font-size: 10px;
+        display: inline-block;
+      }
+      .ri-expand-toggle[aria-expanded="true"] .arrow {
+        transform: rotate(90deg);
+      }
+      .ri-quote {
+        padding: 0 1rem 0.75rem;
+        display: none;
+      }
+      .ri-quote.open {
+        display: block;
+      }
+      .ri-quote-text {
+        font-family: var(--font-display);
+        font-size: 12.5px;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        font-style: italic;
+        padding: 0.6rem 0.85rem;
+        background: var(--white);
+        border-left: 3px solid var(--border);
+        border-radius: 0 var(--radius) var(--radius) 0;
+      }
+      .ri-quote-source {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-top: 0.35rem;
+        font-style: normal;
+      }
+
+      /* ═══════════════════════════════
+     CONTRIBUTE CTA
+  ═══════════════════════════════ */
+      .contribute-bar {
+        margin: 0.5rem 1.75rem 1.5rem;
+        padding: 1rem 1.25rem;
+        background: var(--primary-faint);
+        border: 1px dashed rgba(0, 64, 85, 0.15);
+        border-radius: var(--radius);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+      .contribute-text {
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+      .contribute-text strong {
+        color: var(--primary);
+        font-weight: 600;
+      }
+      .contribute-btns {
+        display: flex;
+        gap: 0.4rem;
+      }
+      .cb-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: var(--radius);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        font-family: var(--font-body);
+        transition: all var(--transition-fast);
+        border: none;
+      }
+      .cb-btn.primary {
+        background: var(--primary);
+        color: var(--white);
+      }
+      .cb-btn.primary:hover {
+        background: var(--primary-light);
+      }
+      .cb-btn.ghost {
+        background: var(--white);
+        color: var(--primary);
+        border: 1px solid rgba(0, 64, 85, 0.15);
+      }
+      .cb-btn.ghost:hover {
+        border-color: var(--primary);
+      }
+
+      /* ═══════════════════════════════
+     FOOTER
+  ═══════════════════════════════ */
+      .footer-bar {
+        background: var(--neutral);
+        color: rgba(255, 255, 255, 0.45);
+        padding: 0.55rem 1.25rem;
+        font-size: 11.5px;
+        display: flex;
+        justify-content: space-between;
+        flex-shrink: 0;
+        align-items: center;
+      }
+      .footer-bar a {
+        color: rgba(255, 255, 255, 0.4);
+        text-decoration: none;
+        margin-left: 1rem;
+        transition: color var(--transition-fast);
+      }
+      .footer-bar a:hover {
+        color: rgba(255, 255, 255, 0.75);
+      }
+
+      /* ═══════════════════════════════
+     RESPONSIVE
+  ═══════════════════════════════ */
+      @media (max-width: 960px) {
+        body {
+          overflow: auto;
+        }
+        .main-layout {
+          grid-template-columns: 1fr;
+          overflow: visible;
+        }
+        .left-panel {
+          max-height: 260px;
+          border-right: none;
+          border-bottom: 1px solid var(--border-light);
+        }
+        .right-panel {
+          overflow: visible;
+        }
+        .topbar-search {
+          max-width: 40vw;
+          width: 340px;
+        }
+        .topbar-search:focus-within {
+          width: 340px;
+        }
+        .stats-row {
+          grid-template-columns: 1fr;
+        }
+        .donut-wrap {
+          border-left: none;
+          border-top: 1px solid var(--border-light);
+          padding: 1rem;
+        }
+        .contribute-bar {
+          margin: 0.5rem 1.25rem 1.25rem;
+        }
+      }
+      @media (max-width: 640px) {
+        .topbar {
+          padding: 0 0.75rem;
+        }
+        .topbar-search {
+          display: none;
+        }
+        .topbar-right {
+          gap: 0;
+        }
+        .topbar-link {
+          font-size: 12px;
+          padding: 0.3rem 0.5rem;
+        }
+        .left-panel {
+          max-height: 200px;
+        }
+        .lp-filters {
+          padding: 0.4rem 0.75rem;
+        }
+        .detail-wrap {
+          padding: 0.75rem;
+        }
+        .dh {
+          padding: 1.25rem;
+        }
+        .dh-top {
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+        .dh-title {
+          font-size: 1rem;
+        }
+        .dh-authors {
+          font-size: 13px;
+        }
+        .action-bar {
+          padding: 0.5rem 1rem;
+          gap: 0.3rem;
+        }
+        .ab-btn {
+          font-size: 11px;
+          padding: 0.25rem 0.5rem;
+        }
+        .tabs-bar {
+          padding: 0 1rem;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+        .rep-list {
+          padding: 0.75rem 1rem 1.25rem;
+        }
+        .rep-item-main {
+          grid-template-columns: auto 1fr;
+          gap: 0.6rem;
+          padding: 0.75rem 0.85rem;
+        }
+        .ri-actions {
+          grid-column: 1 / -1;
+          justify-self: end;
+        }
+        .ri-badge {
+          min-width: auto;
+          font-size: 9px;
+          padding: 0.15rem 0.45rem;
+        }
+        .stats-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .progress-section {
+          padding: 0.65rem 1rem;
+        }
+        .progress-row {
+          flex-wrap: wrap;
+          gap: 0.5rem;
+        }
+        .progress-label {
+          width: 100%;
+        }
+        .progress-pct {
+          width: 100%;
+          text-align: right;
+        }
+        .contribute-bar {
+          margin: 0.5rem 1rem 1.25rem;
+          padding: 0.85rem 1rem;
+          flex-direction: column;
+          text-align: center;
+        }
+        .footer-bar {
+          flex-direction: column;
+          gap: 0.3rem;
+          text-align: center;
+          padding: 0.65rem 1rem;
+        }
+        .footer-bar a {
+          margin-left: 0.5rem;
+        }
+      }
+      @media (max-width: 400px) {
+        .topbar-name span {
+          display: none;
+        }
+        .detail-wrap {
+          padding: 0.5rem;
+        }
+        .dh {
+          padding: 1rem;
+        }
+        .dh-title {
+          font-size: 0.95rem;
+        }
+        .dh-apa-text {
+          font-size: 11.5px;
+        }
+        .action-bar {
+          padding: 0.4rem 0.75rem;
+        }
+        .ab-sep {
+          display: none;
+        }
+        .rep-list {
+          padding: 0.5rem 0.75rem 1rem;
+        }
+        .ri-title {
+          font-size: 12.5px;
+        }
+        .ri-meta {
+          font-size: 11px;
+        }
+        .stats-grid {
+          gap: 0.5rem;
+        }
+        .stat-value {
+          font-size: 1.3rem;
+        }
+        .tabs-bar {
+          padding: 0 0.75rem;
+          gap: 0;
+        }
+        .tab {
+          font-size: 12px;
+          padding: 0.6rem 0.5rem;
+        }
+        .contribute-bar {
+          margin: 0.5rem 0.75rem 1rem;
+        }
+        .footer-bar {
+          font-size: 10.5px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ═══ TOP BAR ═══ -->
+    <nav class="topbar">
+      <div class="topbar-left">
+        <a class="topbar-brand" href="#">
+          <div class="topbar-icon">F</div>
+          <div class="topbar-name">
+            <strong>FReD</strong>
+            <span>Replication Hub</span>
+          </div>
+        </a>
+      </div>
+      <div class="topbar-search">
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+        >
+          <circle cx="11" cy="11" r="8" />
+          <path d="M21 21l-4.3-4.3" />
+        </svg>
+        <input
+          type="text"
+          placeholder="Search by DOI — e.g. 10.1126/science.aac4716"
+          value="10.1126/science.aac4716"
+        />
+        <button class="topbar-search-btn">Search</button>
+      </div>
+      <div class="topbar-right">
+        <a class="topbar-link" href="#">About</a>
+        <a class="topbar-link" href="#">FReD Explorer</a>
+      </div>
+    </nav>
+
+    <!-- ═══ MAIN LAYOUT ═══ -->
+    <div class="main-layout">
+      <!-- ─── LEFT PANEL ─── -->
+      <div class="left-panel">
+        <div class="lp-header">
+          <h3>Search Results</h3>
+          <span class="lp-count">3 studies</span>
+        </div>
+        <div class="study-list">
+          <!-- Active item -->
+          <div class="sli active">
+            <div class="sli-dot mixed"></div>
+            <div class="sli-body">
+              <div class="sli-title">
+                Estimating the Reproducibility of Psychological Science
+              </div>
+              <div class="sli-meta">
+                Open Science Collaboration &middot; 2015
+              </div>
+              <div class="sli-pills">
+                <span class="sli-pill s">3 successful</span>
+                <span class="sli-pill m">2 mixed</span>
+                <span class="sli-pill f">1 failed</span>
+              </div>
+            </div>
+          </div>
+          <div class="sli">
+            <div class="sli-dot successful"></div>
+            <div class="sli-body">
+              <div class="sli-title">
+                Many Labs 2: Investigating Variation in Replicability Across
+                Samples and Settings
+              </div>
+              <div class="sli-meta">Klein, R. A., et al. &middot; 2018</div>
+              <div class="sli-pills">
+                <span class="sli-pill s">14 successful</span>
+                <span class="sli-pill f">3 failed</span>
+              </div>
+            </div>
+          </div>
+          <div class="sli">
+            <div class="sli-dot failed"></div>
+            <div class="sli-body">
+              <div class="sli-title">
+                Social priming: Revisiting the unconscious goal pursuit effect
+              </div>
+              <div class="sli-meta">Harris, C. R., et al. &middot; 2013</div>
+              <div class="sli-pills">
+                <span class="sli-pill f">2 failed</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── RIGHT PANEL ─── -->
+      <div class="right-panel">
+        <!--
+    ░░░ WELCOME STATE (shown when no study selected) ░░░
+    Uncomment this and comment out detail-wrap to see the empty state:
+
+    <div class="welcome-state">
+      <div class="welcome-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#004055" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+      </div>
+      <h2>Has this study been replicated?</h2>
+      <p>Enter a DOI in the search bar above to see replication outcomes, related studies, and more.</p>
+      <div class="welcome-examples">
+        <div class="welcome-examples-label">Example DOIs</div>
+        <div class="welcome-doi">
+          <span>10.1126/science.aac4716</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg>
+        </div>
+        <div class="welcome-doi">
+          <span>10.1037/a0021524</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg>
+        </div>
+        <div class="welcome-doi">
+          <span>10.1111/j.1467-9280.2008.02225.x</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg>
+        </div>
+      </div>
+    </div>
+    -->
+
+        <!-- ░░░ DETAIL VIEW (shown when a study is selected) ░░░ -->
+        <div class="detail-wrap">
+          <div class="detail-card">
+            <!-- Header -->
+            <div class="dh">
+              <h1 class="dh-title">
+                Estimating the Reproducibility of Psychological Science
+              </h1>
+              <div class="dh-authors">Open Science Collaboration (2015)</div>
+              <div class="dh-journal">Science, Vol 349, Issue 6251</div>
+              <a class="dh-doi-link" href="#">10.1126/science.aac4716</a>
+
+              <div class="dh-apa">
+                <div class="dh-apa-label">APA Reference</div>
+                <div class="dh-apa-text">
+                  Open Science Collaboration. (2015). Estimating the
+                  reproducibility of psychological science.
+                  <em>Science, 349</em>(6251), aac4716.
+                  https://doi.org/10.1126/science.aac4716
+                </div>
+              </div>
+            </div>
+
+            <!-- Action bar -->
+            <div class="action-bar">
+              <div class="ab-group">
+                <a class="ab-btn accent" href="#">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"
+                    />
+                    <polyline points="15,3 21,3 21,9" />
+                    <line x1="10" y1="14" x2="21" y2="3" />
+                  </svg>
+                  View Paper
+                </a>
+                <a class="ab-btn" href="#">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                    <polyline points="7,10 12,15 17,10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  PDF
+                </a>
+              </div>
+              <div class="ab-sep"></div>
+              <div class="ab-group">
+                <button class="ab-btn" title="Copy APA reference">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" />
+                    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                  </svg>
+                  Copy APA
+                </button>
+                <button class="ab-btn" title="Copy BibTeX citation">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" />
+                    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                  </svg>
+                  Copy BibTeX
+                </button>
+                <button class="ab-btn">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
+                    <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
+                  </svg>
+                  Share Link
+                </button>
+              </div>
+              <div class="ab-sep"></div>
+              <div class="ab-group">
+                <a class="ab-btn" href="#">PubPeer</a>
+              </div>
+            </div>
+
+
+
+            <!-- Progress bar -->
+            <div class="progress-section">
+              <div class="progress-row">
+                <span class="progress-label">Outcome distribution</span>
+                <div class="progress-track">
+                  <div class="progress-seg success" style="width: 50%"></div>
+                  <div class="progress-seg mixed" style="width: 33%"></div>
+                  <div class="progress-seg failed" style="width: 17%"></div>
+                </div>
+                <span class="progress-pct">50% replicated</span>
+              </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs-bar">
+              <button class="tab active">
+                Replications <span class="tab-badge">4</span>
+              </button>
+              <button class="tab">
+                Reproductions <span class="tab-badge">1</span>
+              </button>
+              <button class="tab">
+                Related Originals <span class="tab-badge">1</span>
+              </button>
+            </div>
+
+            <!-- Replication items -->
+            <div class="rep-list">
+              <div class="rep-item">
+                <div class="rep-item-main">
+                  <span class="ri-badge successful">Success</span>
+                  <div class="ri-body">
+                    <div class="ri-title">
+                      Replication of Study 1 from "Estimating the
+                      Reproducibility of Psychological Science"
+                    </div>
+                    <div class="ri-meta">
+                      Klein, R. A., et al. (2018) &middot; Advances in Methods
+                      and Practices in Psychological Science
+                    </div>
+                    <a class="ri-doi" href="#">10.1177/2515245918810225</a>
+                  </div>
+                  <div class="ri-actions">
+                    <button class="ri-action" title="Copy APA reference">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" />
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                      </svg>
+                      APA
+                    </button>
+                    <button class="ri-action" title="Copy BibTeX citation">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" />
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                      </svg>
+                      BibTeX
+                    </button>
+                    <button class="ri-action" title="View paper">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+                        <polyline points="15,3 21,3 21,9" />
+                        <line x1="10" y1="14" x2="21" y2="3" />
+                      </svg>
+                      View
+                    </button>
+                  </div>
+                </div>
+                <div class="ri-expand">
+                  <button
+                    class="ri-expand-toggle"
+                    aria-expanded="true"
+                    onclick="
+                      this.setAttribute(
+                        'aria-expanded',
+                        this.getAttribute('aria-expanded') === 'true'
+                          ? 'false'
+                          : 'true',
+                      );
+                      this.nextElementSibling.classList.toggle('open');
+                    "
+                  >
+                    <span class="arrow">&#9654;</span> Outcome quote
+                  </button>
+                  <div class="ri-quote open">
+                    <div class="ri-quote-text">
+                      "The original finding was successfully replicated across
+                      all 36 labs, with a pooled effect size of d = 0.37 (95% CI
+                      [0.31, 0.43]), closely matching the original d = 0.42."
+                    </div>
+                    <div class="ri-quote-source">
+                      Source: original paper, p. 12
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="rep-item">
+                <div class="rep-item-main">
+                  <span class="ri-badge mixed">Mixed</span>
+                  <div class="ri-body">
+                    <div class="ri-title">
+                      A multi-site collaborative study of the association
+                      between methodological quality and replication rates
+                    </div>
+                    <div class="ri-meta">
+                      Camerer, C. F., et al. (2018) &middot; Nature Human
+                      Behaviour
+                    </div>
+                    <a class="ri-doi" href="#">10.1038/s41562-018-0399-z</a>
+                  </div>
+                  <div class="ri-actions">
+                    <button class="ri-action" title="Copy APA reference">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" />
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                      </svg>
+                      APA
+                    </button>
+                    <button class="ri-action" title="Copy BibTeX citation">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" />
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                      </svg>
+                      BibTeX
+                    </button>
+                    <button class="ri-action" title="View paper">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+                        <polyline points="15,3 21,3 21,9" />
+                        <line x1="10" y1="14" x2="21" y2="3" />
+                      </svg>
+                      View
+                    </button>
+                  </div>
+                </div>
+                <div class="ri-expand">
+                  <button
+                    class="ri-expand-toggle"
+                    aria-expanded="false"
+                    onclick="
+                      this.setAttribute(
+                        'aria-expanded',
+                        this.getAttribute('aria-expanded') === 'true'
+                          ? 'false'
+                          : 'true',
+                      );
+                      this.nextElementSibling.classList.toggle('open');
+                    "
+                  >
+                    <span class="arrow">&#9654;</span> Outcome quote
+                  </button>
+                  <div class="ri-quote">
+                    <div class="ri-quote-text">
+                      "Of 21 studies replicated, 13 (62%) produced statistically
+                      significant results in the same direction as the original.
+                      However, effect sizes were on average 50% smaller than
+                      originally reported."
+                    </div>
+                    <div class="ri-quote-source">Source: abstract</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="rep-item">
+                <div class="rep-item-main">
+                  <span class="ri-badge successful">Success</span>
+                  <div class="ri-body">
+                    <div class="ri-title">
+                      Evaluating replicability of laboratory experiments in
+                      economics
+                    </div>
+                    <div class="ri-meta">
+                      Camerer, C. F., et al. (2016) &middot; Science
+                    </div>
+                    <a class="ri-doi" href="#">10.1126/science.aaf0918</a>
+                  </div>
+                  <div class="ri-actions">
+                    <button class="ri-action" title="Copy APA reference">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" />
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                      </svg>
+                      APA
+                    </button>
+                    <button class="ri-action" title="Copy BibTeX citation">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" />
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                      </svg>
+                      BibTeX
+                    </button>
+                    <button class="ri-action" title="View paper">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+                        <polyline points="15,3 21,3 21,9" />
+                        <line x1="10" y1="14" x2="21" y2="3" />
+                      </svg>
+                      View
+                    </button>
+                  </div>
+                </div>
+                <div class="ri-expand">
+                  <button
+                    class="ri-expand-toggle"
+                    aria-expanded="false"
+                    onclick="
+                      this.setAttribute(
+                        'aria-expanded',
+                        this.getAttribute('aria-expanded') === 'true'
+                          ? 'false'
+                          : 'true',
+                      );
+                      this.nextElementSibling.classList.toggle('open');
+                    "
+                  >
+                    <span class="arrow">&#9654;</span> Outcome quote
+                  </button>
+                  <div class="ri-quote">
+                    <div class="ri-quote-text">
+                      "11 of 18 (61%) studies replicated, with replication
+                      effect sizes averaging 66% of the original."
+                    </div>
+                    <div class="ri-quote-source">Source: abstract</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="rep-item">
+                <div class="rep-item-main">
+                  <span class="ri-badge failed">Failed</span>
+                  <div class="ri-body">
+                    <div class="ri-title">
+                      Failed replication of anchoring effects in estimating
+                      psychological reproducibility
+                    </div>
+                    <div class="ri-meta">
+                      Johnson, M., et al. (2019) &middot; PLOS ONE
+                    </div>
+                    <a class="ri-doi" href="#">10.1371/journal.pone.0218881</a>
+                  </div>
+                  <div class="ri-actions">
+                    <button class="ri-action" title="Copy APA reference">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" />
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                      </svg>
+                      APA
+                    </button>
+                    <button class="ri-action" title="Copy BibTeX citation">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" />
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                      </svg>
+                      BibTeX
+                    </button>
+                    <button class="ri-action" title="View paper">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+                        <polyline points="15,3 21,3 21,9" />
+                        <line x1="10" y1="14" x2="21" y2="3" />
+                      </svg>
+                      View
+                    </button>
+                  </div>
+                </div>
+                <div class="ri-expand">
+                  <button
+                    class="ri-expand-toggle"
+                    aria-expanded="false"
+                    onclick="
+                      this.setAttribute(
+                        'aria-expanded',
+                        this.getAttribute('aria-expanded') === 'true'
+                          ? 'false'
+                          : 'true',
+                      );
+                      this.nextElementSibling.classList.toggle('open');
+                    "
+                  >
+                    <span class="arrow">&#9654;</span> Outcome quote
+                  </button>
+                  <div class="ri-quote">
+                    <div class="ri-quote-text">
+                      "We found no statistically significant effect in the
+                      hypothesized direction (p = .34, d = 0.05), failing to
+                      replicate the original finding."
+                    </div>
+                    <div class="ri-quote-source">Source: results section</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Contribute CTA -->
+            <div class="contribute-bar">
+              <div class="contribute-text">
+                <strong>Know of a missing replication?</strong> Help keep FReD
+                comprehensive.
+              </div>
+              <div class="contribute-btns">
+                <a class="cb-btn primary" href="#">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                  >
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                  Suggest Addition
+                </a>
+                <a class="cb-btn ghost" href="#">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"
+                    />
+                    <line x1="4" y1="22" x2="4" y2="15" />
+                  </svg>
+                  Flag Error
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ FOOTER ═══ -->
+    <div class="footer-bar">
+      <span
+        >FORRT &middot; Framework for Open and Reproducible Research
+        Training</span
+      >
+      <div>
+        <a href="#">About</a>
+        <a href="#">FReD Explorer</a>
+        <a href="#">Contact</a>
+      </div>
+    </div>
+  </body>
+</html>
