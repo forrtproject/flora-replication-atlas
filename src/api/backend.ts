@@ -3,17 +3,17 @@ import { createHttp } from "../utils/http";
 import { replicationResponseHasNoData } from "./formatter";
 
 const backend = createHttp({
-  baseURL: import.meta.env.VITE_BACKEND_URL || "https://5waa6mryb6.execute-api.eu-central-1.amazonaws.com/v1",
+  baseURL: import.meta.env.VITE_BACKEND_URL || "https://rep-api.forrt.org/v1",
 });
 
 export const fetchDOIInfo = async (doi: string) => {
-  const response = await backend.get<DOIResults>('/original-lookup', { params: { doi } });
+  const response = await backend.post<DOIResults>('/original-lookup', { dois: [doi] });
 
   return response.data;
 };
 
 export const fetchMultipleDOIInfo = async (dois: string[]) => {
-  const response = await backend.get<DOIResults>('/original-lookup', { params: { dois } });
+  const response = await backend.post<DOIResults>('/original-lookup', { dois });
   response.data.isEmpty = replicationResponseHasNoData(response.data);
   return response.data;
 }
