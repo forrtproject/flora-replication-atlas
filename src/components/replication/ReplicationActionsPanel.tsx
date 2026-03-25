@@ -1,4 +1,4 @@
-import { createSignal, onCleanup, onMount } from "solid-js";
+import { createSignal, createEffect, onCleanup } from "solid-js";
 import type {FormattedDOIResult } from "../../@types";
 import { CopyIcon } from "../icons/copy";
 import { DNAIcon } from "../icons/dna";
@@ -20,10 +20,13 @@ export const ReplicationActionsPanel = (props: ReplicationActionsPanelProps) => 
     const [pdfLoading, setPdfLoading] = createSignal(false);
     let toastTimer: number | undefined;
 
-    onMount(async () => {
+    createEffect(async () => {
         const doi = props.data.doi;
-        if (!doi) return;
-
+        if (!doi) {
+            setPdfUrl(null);
+            return;
+        }
+        setPdfUrl(null);
         try {
             const result = await fetchPdfUrl(doi);
             if (result.pdfUrl) {
@@ -109,29 +112,31 @@ export const ReplicationActionsPanel = (props: ReplicationActionsPanelProps) => 
                     </button>
                 </div>
                 <div class="navbar-end p-0 gap-2 w-auto flex-1 flex-wrap">
-                    <div class="relative inline-flex">
-                        <button class="btn btn-sm" onClick={handleTextCopy}><CopyIcon className="w-5 h-5" /></button>
-                        {showToast() ? (
-                            <div class="absolute -top-10 right-0 z-50">
-                                <div class="alert alert-success shadow-lg py-2 px-3 text-xs min-w-36">
-                                    Copied to clipboard
+                    <div class="join">
+                        <div class="relative inline-flex">
+                            <button class="btn btn-sm join-item" onClick={handleTextCopy}><CopyIcon className="w-5 h-5" /></button>
+                            {showToast() ? (
+                                <div class="absolute -top-10 right-0 z-50">
+                                    <div class="alert alert-success shadow-lg py-2 px-3 text-xs min-w-36">
+                                        Copied to clipboard
+                                    </div>
                                 </div>
-                            </div>
-                        ) : null}
-                    </div>
-                    <div class="relative inline-flex">
-                        <button class="btn btn-sm" onClick={handleLinkCopy}><CopyLinkIcon className="w-5 h-5" /></button>
-                        {showLinkCopyToast() ? (
-                            <div class="absolute -top-10 right-0 z-50">
-                                <div class="alert alert-success shadow-lg py-2 px-3 text-xs min-w-40">
-                                    Url Copied to clipboard
+                            ) : null}
+                        </div>
+                        <div class="relative inline-flex">
+                            <button class="btn btn-sm join-item" onClick={handleLinkCopy}><CopyLinkIcon className="w-5 h-5" /></button>
+                            {showLinkCopyToast() ? (
+                                <div class="absolute -top-10 right-0 z-50">
+                                    <div class="alert alert-success shadow-lg py-2 px-3 text-xs min-w-40">
+                                        Url Copied to clipboard
+                                    </div>
                                 </div>
-                            </div>
-                        ) : null}
+                            ) : null}
+                        </div>
+                        <a class="btn btn-sm join-item" href={`https://pubpeer.com/search?q=${props.data.doi}`} target="_blank">
+                            <ShareIcon className="w-5 h-5" /> PubPeer
+                        </a>
                     </div>
-                    <a class="btn btn-sm" href={`https://pubpeer.com/search?q=${props.data.doi}`} target="_blank">
-                        <ShareIcon className="w-5 h-5" /> PubPeer
-                    </a>
                     {pdfUrl() ? (
                         <button class="btn btn-sm" onClick={handleDownloadPdf} disabled={pdfLoading()}>
                             <DownloadIcon className="w-5 h-5" /> {pdfLoading() ? "Downloading..." : "Download PDF"}

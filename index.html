@@ -1,37 +1,43 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/icon_hub.webp">
+    <link rel="icon" type="image/png" href="/icon_hub.webp" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#004055">
-    <title>FReD Replication Summary</title>
+    <meta name="theme-color" content="#004055" />
+    <title>FLoRA Replication Summary</title>
   </head>
   <body>
     <div id="root"></div>
     <!-- GitHub Pages SPA redirect restore -->
     <script>
-      (function(){
+      (function () {
         var redirect = sessionStorage.redirect;
         delete sessionStorage.redirect;
         if (redirect && redirect !== location.href) {
-          history.replaceState(null, '', redirect);
+          history.replaceState(null, "", redirect);
         }
       })();
       // Handle 404.html redirect query format: /?/doi/10.xxx
-      (function(){
+      (function () {
         var l = window.location;
-        if (l.search[1] === '/') {
-          var decoded = l.search.slice(1).split('&').map(function(s) {
-            return s.replace(/~and~/g, '&');
-          }).join('?');
-          var path = decoded.split('?')[0];
-          var query = decoded.split('?')[1] || '';
-          history.replaceState(null, '',
-            l.pathname.slice(0, -1) + path +
-            (query ? '?' + query : '') +
-            l.hash
+        if (l.search[1] === "/") {
+          var decoded = l.search
+            .slice(1)
+            .split("&")
+            .map(function (s) {
+              return s.replace(/~and~/g, "&");
+            })
+            .join("?");
+          var path = decoded.split("?")[0];
+          var query = decoded.split("?")[1] || "";
+          history.replaceState(
+            null,
+            "",
+            l.pathname.slice(0, -1) +
+              path +
+              (query ? "?" + query : "") +
+              l.hash,
           );
         }
       })();

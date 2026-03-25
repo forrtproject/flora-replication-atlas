@@ -24,16 +24,26 @@ function App() {
   const [isLoading, setIsLoading] = createSignal(false);
   const [hasSearched, setHasSearched] = createSignal(false);
 
+  const syncUrl = (newTags: string[]) => {
+    const base = import.meta.env.BASE_URL || "/";
+    const url = newTags.length > 0 ? `${base}?dois=${newTags.join(",")}` : base;
+    window.history.replaceState(null, "", url);
+  };
+
   const addTag = (tag: string) => {
     const trimmed = tag.trim();
     if (trimmed && !tags().includes(trimmed)) {
-      setTags([...tags(), trimmed]);
+      const newTags = [...tags(), trimmed];
+      setTags(newTags);
+      syncUrl(newTags);
     }
     setInputValue("");
   };
 
   const removeTag = (index: number) => {
-    setTags(tags().filter((_, i) => i !== index));
+    const newTags = tags().filter((_, i) => i !== index);
+    setTags(newTags);
+    syncUrl(newTags);
   };
 
   const doSearch = () => {
@@ -85,6 +95,7 @@ function App() {
           } else if (allTags.length > 0) {
             setTags(allTags);
             setInputValue("");
+            syncUrl(allTags);
             setTimeout(() => doSearch(), 0);
           }
         }}

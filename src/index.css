@@ -1148,3 +1148,11 @@ body {
 .reference strong { font-weight: bold; }
 
 .md-to-html { font-style: inherit; }
+
+/* Not Available fallback text */
+.not-available {
+  color: #b91c1c;
+  font-style: italic;
+  opacity: 0.8;
+  font-size: 0.85em;
+}

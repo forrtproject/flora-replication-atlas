@@ -1,7 +1,7 @@
 import { For, Show } from "solid-js";
 import type { OriginalPaper, FormattedDOIResult } from "../../@types";
 import { formatReplicationResponse } from "../../api/formatter";
-import { formatAuthors } from "../../utils/formatter";
+import { renderAuthors, na } from "../../utils/formatter";
 
 type StudyListPanelProps = {
   results: Record<string, OriginalPaper>;
@@ -81,7 +81,7 @@ export const StudyListPanel = (props: StudyListPanelProps) => {
                 <div class="sli-body">
                   <div class="sli-title">{entry.rep.title || entry.doi}</div>
                   <div class="sli-meta">
-                    {formatAuthors(entry.rep.authors)} &middot; {entry.rep.year || ""}
+                    {renderAuthors(entry.rep.authors)} &middot; {entry.rep.year || na("Year")}
                   </div>
                   <div class="sli-pills">
                     <Show when={(entry.rep.outcomes?.success || 0) > 0}>

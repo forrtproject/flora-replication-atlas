@@ -1,6 +1,6 @@
 import type { Author, ReplicationStats } from "../../@types";
 import { badgeBgs,  TextColor } from "../../configs";
-import { formatAuthors } from "../../utils/formatter";
+import { renderAuthors, na } from "../../utils/formatter";
 import { ScrollIcon } from "../icons/scroll";
 
 type ReplicationTimelineItemProps = {
@@ -32,19 +32,17 @@ export const ReplicationTimelineItem = (props: ReplicationTimelineItemProps) => 
                                 </div>
                                 <div class="flex flex-col">
                                     <span class={`badge badge-sm ${badgeBgs[props.status || "blank"]} ${TextColor[props.status || "blank"]}`}>{props.doi}</span>
-                                    {props.title ? (
-                                            <a class="link link-hover font-semibold" href={props.doi ? `https://doi.org/${props.doi}` : undefined} rel="noreferrer">
-                                                {props.title}
-                                            </a>
-                                        ) : null }
+                                    <a class="link link-hover font-semibold" href={props.doi ? `https://doi.org/${props.doi}` : undefined} rel="noreferrer">
+                                        {props.title || na("Title")}
+                                    </a>
                                 </div>
                             </div>
                             <div class="text-xs text-neutral/70 mt-1">
-                                {formatAuthors(props.authors)}
+                                {renderAuthors(props.authors)}
                             </div>
                             <div class="text-xs text-neutral/70 flex flex-wrap gap-2 mt-1">
-                                {props.journal ? <span>{props.journal}</span> : null}
-                                {props.year ? <span>{props.year}</span> : null}
+                                <span>{props.journal || na("Journal")}</span>
+                                <span>{props.year || na("Year")}</span>
                                 {props.doi ? <span>{props.doi}</span> : null}
                             </div>
                             <span class="text-xs">Replications: {replicationCount}</span>
