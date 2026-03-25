@@ -2,7 +2,6 @@ import { createSignal, createEffect, For, Show, onCleanup } from "solid-js";
 import type { OriginalPaper, ReplicationItem } from "../../@types";
 import { formatReplicationResponse } from "../../api/formatter";
 import { renderAuthors, na } from "../../utils/formatter";
-import { MarkdownToHtml } from "../../utils/markdown";
 import { ReplicationItemCard } from "./ReplicationItemCard";
 import { fetchPdfUrl } from "../../api/unpaywall";
 
