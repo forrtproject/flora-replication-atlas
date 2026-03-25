@@ -211,26 +211,26 @@ export const DetailView = (props: DetailViewProps) => {
               <LinkIcon />
             </button>
           </div>
-          <p class="dh-citation">
-            {renderAuthors(rep().authors)} ({rep().year || na("Year")}).{" "}
-            <em>{rep().title || na("Title")}</em>.{" "}
-            <Show when={rep().data?.journal}>
-              <em>{rep().data!.journal}</em>
-              {rep().data!.volume ? <em>, {rep().data!.volume}</em> : ""}
-              {rep().data!.issue ? <>({rep().data!.issue})</> : ""}
-              .{" "}
-            </Show>
-            <Show when={rep().doi}>
-              <a
-                class="dh-doi-link"
-                href={`https://doi.org/${rep().doi}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                https://doi.org/{rep().doi}
-              </a>
-            </Show>
-          </p>
+          <div class="dh-authors">
+            {renderAuthors(rep().authors)} ({rep().year || na("Year")})
+          </div>
+          <Show when={rep().data?.journal}>
+            <div class="dh-journal">
+              {rep().data!.journal}
+              {rep().data!.volume ? ` ${rep().data!.volume}` : ""}
+              {rep().data!.issue ? `(${rep().data!.issue})` : ""}
+            </div>
+          </Show>
+          <Show when={rep().doi}>
+            <a
+              class="dh-doi-link"
+              href={`https://doi.org/${rep().doi}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {rep().doi}
+            </a>
+          </Show>
         </div>
 
         {/* Action bar */}
