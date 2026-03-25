@@ -600,16 +600,12 @@ body {
   color: var(--text);
   margin-bottom: 0.4rem;
 }
-.dh-authors {
-  font-size: 14px;
+.dh-citation {
+  font-family: var(--font-display);
+  font-size: 13.5px;
+  line-height: 1.55;
   color: var(--text-secondary);
-  margin-bottom: 0.15rem;
-}
-.dh-journal {
-  font-size: 13px;
-  color: var(--text-muted);
-  font-style: italic;
-  margin-bottom: 0.15rem;
+  margin-top: 0.5rem;
 }
 .dh-doi-link {
   font-size: 12.5px;
@@ -1086,7 +1082,7 @@ body {
   .detail-wrap { padding: 0.75rem; }
   .dh { padding: 1.25rem; }
   .dh-title { font-size: 1rem; }
-  .dh-authors { font-size: 13px; }
+  .dh-citation { font-size: 12.5px; }
   .action-bar { padding: 0.5rem 1rem; gap: 0.3rem; }
   .ab-btn { font-size: 11px; padding: 0.25rem 0.5rem; }
   .tabs-bar {
@@ -1148,3 +1144,11 @@ body {
 .reference strong { font-weight: bold; }
 
 .md-to-html { font-style: inherit; }
+
+/* Not Available fallback text */
+.not-available {
+  color: #b91c1c;
+  font-style: italic;
+  opacity: 0.8;
+  font-size: 0.85em;
+}

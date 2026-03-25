@@ -19,10 +19,12 @@ export const DoiPage = () => {
   // SEO: update document title and meta tags
   const updateMeta = (paper: OriginalPaper | null) => {
     if (paper?.title) {
-      document.title = `${paper.title} — FReD Replication Hub`;
+      document.title = `${paper.title} — FLoRA Replication Hub`;
 
       const setMetaTag = (name: string, content: string, attr = "name") => {
-        let el = document.querySelector(`meta[${attr}="${name}"]`) as HTMLMetaElement | null;
+        let el = document.querySelector(
+          `meta[${attr}="${name}"]`,
+        ) as HTMLMetaElement | null;
         if (!el) {
           el = document.createElement("meta");
           el.setAttribute(attr, name);
@@ -31,7 +33,8 @@ export const DoiPage = () => {
         el.content = content;
       };
 
-      const authors = paper.authors?.map((a) => `${a.family}, ${a.given}`).join("; ") || "";
+      const authors =
+        paper.authors?.map((a) => `${a.family}, ${a.given}`).join("; ") || "";
       const description = `Replication data for "${paper.title}" by ${authors} (${paper.year}). ${paper.journal || ""}`;
 
       setMetaTag("description", description);
@@ -41,7 +44,9 @@ export const DoiPage = () => {
       setMetaTag("og:url", window.location.href, "property");
 
       // Schema.org structured data for Google
-      let script = document.getElementById("doi-jsonld") as HTMLScriptElement | null;
+      let script = document.getElementById(
+        "doi-jsonld",
+      ) as HTMLScriptElement | null;
       if (!script) {
         script = document.createElement("script");
         script.id = "doi-jsonld";
@@ -58,17 +63,23 @@ export const DoiPage = () => {
           familyName: a.family,
         })),
         datePublished: String(paper.year),
-        isPartOf: paper.journal ? { "@type": "Periodical", name: paper.journal } : undefined,
-        identifier: { "@type": "PropertyValue", propertyID: "DOI", value: paper.doi },
+        isPartOf: paper.journal
+          ? { "@type": "Periodical", name: paper.journal }
+          : undefined,
+        identifier: {
+          "@type": "PropertyValue",
+          propertyID: "DOI",
+          value: paper.doi,
+        },
         url: `https://doi.org/${paper.doi}`,
       });
     } else {
-      document.title = `${doi()} — FReD Replication Hub`;
+      document.title = `${doi()} — FLoRA Replication Hub`;
     }
   };
 
   onCleanup(() => {
-    document.title = "FReD Replication Summary";
+    document.title = "FLoRA Replication Summary";
     const jsonld = document.getElementById("doi-jsonld");
     if (jsonld) jsonld.remove();
   });
@@ -113,21 +124,35 @@ export const DoiPage = () => {
       />
 
       <div class="doi-page-layout">
-          <Show when={!isLoading()} fallback={
+        <Show
+          when={!isLoading()}
+          fallback={
             <div class="welcome-state">
               <div class="welcome-icon">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#004055" stroke-width="1.5" class="spin">
+                <svg
+                  width="28"
+                  height="28"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#004055"
+                  stroke-width="1.5"
+                  class="spin"
+                >
                   <path d="M12 2a10 10 0 1 0 10 10" />
                 </svg>
               </div>
               <h2>Loading replication data...</h2>
               <p>{doi()}</p>
             </div>
-          }>
-            <Show when={hasData() && paper()} fallback={<NoDataState doi={doi()} />}>
-              <DetailView paper={paper()!} />
-            </Show>
+          }
+        >
+          <Show
+            when={hasData() && paper()}
+            fallback={<NoDataState doi={doi()} />}
+          >
+            <DetailView paper={paper()!} />
           </Show>
+        </Show>
       </div>
 
       <Footer />

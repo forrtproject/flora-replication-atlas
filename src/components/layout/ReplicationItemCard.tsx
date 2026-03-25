@@ -1,6 +1,6 @@
 import { createSignal } from "solid-js";
 import type { ReplicationItem } from "../../@types";
-import { formatAuthors } from "../../utils/formatter";
+import { renderAuthors, na } from "../../utils/formatter";
 
 type ReplicationItemCardProps = {
   item: ReplicationItem;
@@ -41,10 +41,10 @@ export const ReplicationItemCard = (props: ReplicationItemCardProps) => {
       <div class="rep-item-main">
         <span class={`ri-badge ${props.item.outcome || ""}`}>{badgeLabel()}</span>
         <div class="ri-body">
-          <div class="ri-title">{props.item.title}</div>
+          <div class="ri-title">{props.item.title || na("Title")}</div>
           <div class="ri-meta">
-            {formatAuthors(props.item.authors)} ({props.item.year}) &middot;{" "}
-            {props.item.journal}
+            {renderAuthors(props.item.authors)} ({props.item.year || na("Year")}) &middot;{" "}
+            {props.item.journal || na("Journal")}
           </div>
           {props.item.doi && (
             <a

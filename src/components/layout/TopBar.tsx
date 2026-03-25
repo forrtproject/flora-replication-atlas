@@ -41,7 +41,11 @@ export const TopBar = (props: TopBarProps) => {
     }
 
     // Backspace on empty input removes the last tag
-    if (e.key === "Backspace" && props.inputValue === "" && props.tags.length > 0) {
+    if (
+      e.key === "Backspace" &&
+      props.inputValue === "" &&
+      props.tags.length > 0
+    ) {
       props.onRemoveTag(props.tags.length - 1);
     }
   };
@@ -50,7 +54,10 @@ export const TopBar = (props: TopBarProps) => {
     const pasted = e.clipboardData?.getData("text") || "";
     if (pasted.includes(",")) {
       e.preventDefault();
-      const parts = pasted.split(",").map((s) => s.trim()).filter((s) => s !== "");
+      const parts = pasted
+        .split(",")
+        .map((s) => s.trim())
+        .filter((s) => s !== "");
       for (const part of parts) {
         props.onAddTag(part);
       }
@@ -62,10 +69,14 @@ export const TopBar = (props: TopBarProps) => {
       <div class="topbar-left">
         <A class="topbar-brand" href="/">
           <div class="topbar-icon">
-            <img src={forrt} alt="F" style={{ width: "20px", height: "20px" }} />
+            <img
+              src={forrt}
+              alt="F"
+              style={{ width: "20px", height: "20px" }}
+            />
           </div>
           <div class="topbar-name">
-            <strong>FReD</strong>
+            <strong>FLoRA</strong>
             <span>Replication Hub</span>
           </div>
         </A>
@@ -89,6 +100,7 @@ export const TopBar = (props: TopBarProps) => {
                 {tag}
                 <button
                   class="search-tag-remove"
+                  onMouseDown={(e) => e.preventDefault()}
                   onClick={(e) => {
                     e.stopPropagation();
                     props.onRemoveTag(i());
@@ -102,25 +114,40 @@ export const TopBar = (props: TopBarProps) => {
           <input
             ref={inputRef}
             type="text"
-            placeholder={props.tags.length === 0 ? "Search by DOI — e.g. 10.1126/science.aac4716" : "Add another DOI..."}
+            placeholder={
+              props.tags.length === 0
+                ? "Search by DOI — e.g. 10.1126/science.aac4716"
+                : "Add another DOI..."
+            }
             value={props.inputValue}
             onInput={(e) => props.onInputChange(e.currentTarget.value)}
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
           />
         </div>
-        <button class="topbar-search-btn" onClick={() => {
-          const value = props.inputValue.trim();
-          fireSearch(value || undefined);
-        }}>
+        <button
+          class="topbar-search-btn"
+          onClick={() => {
+            const value = props.inputValue.trim();
+            fireSearch(value || undefined);
+          }}
+        >
           Search
         </button>
       </div>
       <div class="topbar-right">
-        <a class="topbar-link" href="https://forrt.org/about/us/" target="_blank">
+        <a
+          class="topbar-link"
+          href="https://forrt.org/replication-hub/"
+          target="_blank"
+        >
           About
         </a>
-        <a class="topbar-link" href="https://forrt.org/apps/fred_explorer.html" target="_blank">
+        <a
+          class="topbar-link"
+          href="https://forrt.org/apps/fred_explorer.html"
+          target="_blank"
+        >
           FReD Explorer
         </a>
       </div>

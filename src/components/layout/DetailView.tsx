@@ -1,7 +1,7 @@
-import { createSignal, For, Show, onMount, onCleanup } from "solid-js";
+import { createSignal, createEffect, For, Show, onCleanup } from "solid-js";
 import type { OriginalPaper, ReplicationItem } from "../../@types";
 import { formatReplicationResponse } from "../../api/formatter";
-import { formatAuthors } from "../../utils/formatter";
+import { renderAuthors, na } from "../../utils/formatter";
 import { MarkdownToHtml } from "../../utils/markdown";
 import { ReplicationItemCard } from "./ReplicationItemCard";
 import { fetchPdfUrl } from "../../api/unpaywall";
@@ -13,7 +13,14 @@ type DetailViewProps = {
 type TabId = "replications" | "reproductions" | "originals";
 
 const ExternalLinkIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <svg
+    width="12"
+    height="12"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+  >
     <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
     <polyline points="15,3 21,3 21,9" />
     <line x1="10" y1="14" x2="21" y2="3" />
@@ -21,7 +28,14 @@ const ExternalLinkIcon = () => (
 );
 
 const DownloadIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <svg
+    width="12"
+    height="12"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+  >
     <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
     <polyline points="7,10 12,15 17,10" />
     <line x1="12" y1="15" x2="12" y2="3" />
@@ -29,28 +43,56 @@ const DownloadIcon = () => (
 );
 
 const CopyIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <svg
+    width="12"
+    height="12"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+  >
     <rect x="9" y="9" width="13" height="13" rx="2" />
     <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
   </svg>
 );
 
 const LinkIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <svg
+    width="12"
+    height="12"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+  >
     <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
     <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
   </svg>
 );
 
 const PlusIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+  <svg
+    width="12"
+    height="12"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2.5"
+  >
     <line x1="12" y1="5" x2="12" y2="19" />
     <line x1="5" y1="12" x2="19" y2="12" />
   </svg>
 );
 
 const FlagIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <svg
+    width="12"
+    height="12"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+  >
     <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
     <line x1="4" y1="22" x2="4" y2="15" />
   </svg>
@@ -64,14 +106,30 @@ export const DetailView = (props: DetailViewProps) => {
 
   const rep = () => formatReplicationResponse(props.paper);
 
-  onMount(async () => {
+  createEffect(async () => {
     const doi = props.paper.doi;
-    if (!doi) return;
+    if (!doi) {
+      setPdfUrl(null);
+      return;
+    }
+    setPdfUrl(null);
     try {
       const result = await fetchPdfUrl(doi);
       if (result.pdfUrl) setPdfUrl(result.pdfUrl);
     } catch {
       // No PDF available
+    }
+  });
+
+  createEffect(() => {
+    const r = rep();
+    const hasRepOrRepro =
+      (r.replications?.length || 0) > 0 || (r.reproductions?.length || 0) > 0;
+    const hasOriginals = (r.originals?.length || 0) > 0;
+    if (!hasRepOrRepro && hasOriginals) {
+      setActiveTab("originals");
+    } else if (hasRepOrRepro) {
+      setActiveTab("replications");
     }
   });
 
@@ -109,54 +167,70 @@ export const DetailView = (props: DetailViewProps) => {
   const currentItems = (): ReplicationItem[] => {
     const r = rep();
     switch (activeTab()) {
-      case "replications": return r.replications || [];
-      case "reproductions": return r.reproductions || [];
-      case "originals": return r.originals || [];
-      default: return [];
+      case "replications":
+        return r.replications || [];
+      case "reproductions":
+        return r.reproductions || [];
+      case "originals":
+        return r.originals || [];
+      default:
+        return [];
     }
   };
 
   const outcomes = () => rep().outcomes;
   const total = () => outcomes()?.total || 0;
-  const successPct = () => total() > 0 ? Math.round(((outcomes()?.success || 0) / total()) * 100) : 0;
-  const mixedPct = () => total() > 0 ? Math.round((((outcomes()?.mixed || 0) + (outcomes()?.partial || 0)) / total()) * 100) : 0;
-  const failedPct = () => total() > 0 ? 100 - successPct() - mixedPct() : 0;
+  const successPct = () =>
+    total() > 0 ? Math.round(((outcomes()?.success || 0) / total()) * 100) : 0;
+  const mixedPct = () =>
+    total() > 0
+      ? Math.round(
+          (((outcomes()?.mixed || 0) + (outcomes()?.partial || 0)) / total()) *
+            100,
+        )
+      : 0;
+  const failedPct = () => (total() > 0 ? 100 - successPct() - mixedPct() : 0);
+  const outcomeVariations = () => {
+    const o = outcomes();
+    if (!o) return 0;
+    return [
+      (o.success || 0) > 0,
+      ((o.mixed || 0) + (o.partial || 0)) > 0,
+      (o.failed || 0) > 0,
+    ].filter(Boolean).length;
+  };
 
   return (
     <div class="detail-wrap">
       <div class="detail-card">
         {/* Header */}
         <div class="dh">
-          <h1 class="dh-title">{rep().title}</h1>
-          <div class="dh-authors">
-            {formatAuthors(rep().authors)} ({rep().year})
+          <div style={{ display: "flex", "justify-content": "space-between", "align-items": "flex-start", gap: "1rem" }}>
+            <h1 class="dh-title">{rep().title || na("Title")}</h1>
+            <button class="ab-btn" onClick={handleShareLink} title="Copy share link" style={{ "flex-shrink": "0" }}>
+              <LinkIcon />
+            </button>
           </div>
-          <Show when={rep().data?.journal}>
-            <div class="dh-journal">
-              {rep().data!.journal}
-              {rep().data!.volume ? `, Vol ${rep().data!.volume}` : ""}
-              {rep().data!.issue ? `, Issue ${rep().data!.issue}` : ""}
-            </div>
-          </Show>
-          <Show when={rep().doi}>
-            <a
-              class="dh-doi-link"
-              href={`https://doi.org/${rep().doi}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {rep().doi}
-            </a>
-          </Show>
-
-          <Show when={rep().apaRef}>
-            <div class="dh-apa">
-              <div class="dh-apa-label">APA Reference</div>
-              <div class="dh-apa-text">
-                <MarkdownToHtml text={rep().apaRef!} />
-              </div>
-            </div>
-          </Show>
+          <p class="dh-citation">
+            {renderAuthors(rep().authors)} ({rep().year || na("Year")}).{" "}
+            <em>{rep().title || na("Title")}</em>.{" "}
+            <Show when={rep().data?.journal}>
+              <em>{rep().data!.journal}</em>
+              {rep().data!.volume ? <em>, {rep().data!.volume}</em> : ""}
+              {rep().data!.issue ? <>({rep().data!.issue})</> : ""}
+              .{" "}
+            </Show>
+            <Show when={rep().doi}>
+              <a
+                class="dh-doi-link"
+                href={`https://doi.org/${rep().doi}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                https://doi.org/{rep().doi}
+              </a>
+            </Show>
+          </p>
         </div>
 
         {/* Action bar */}
@@ -173,7 +247,12 @@ export const DetailView = (props: DetailViewProps) => {
               </a>
             </Show>
             <Show when={pdfUrl()}>
-              <a class="ab-btn" href={pdfUrl()!} target="_blank" rel="noreferrer">
+              <a
+                class="ab-btn"
+                href={pdfUrl()!}
+                target="_blank"
+                rel="noreferrer"
+              >
                 <DownloadIcon /> PDF
               </a>
             </Show>
@@ -181,100 +260,137 @@ export const DetailView = (props: DetailViewProps) => {
           <div class="ab-sep" />
           <div class="ab-group">
             <Show when={rep().apaRef}>
-              <button class="ab-btn" onClick={handleCopyApa} title="Copy APA reference">
+              <button
+                class="ab-btn"
+                onClick={handleCopyApa}
+                title="Copy APA reference"
+              >
                 <CopyIcon /> Copy APA
               </button>
             </Show>
             <Show when={rep().bibtexRef}>
-              <button class="ab-btn" onClick={handleCopyBibtex} title="Copy BibTeX citation">
+              <button
+                class="ab-btn"
+                onClick={handleCopyBibtex}
+                title="Copy BibTeX citation"
+              >
                 <CopyIcon /> Copy BibTeX
               </button>
             </Show>
-            <button class="ab-btn" onClick={handleShareLink}>
-              <LinkIcon /> Share Link
-            </button>
-          </div>
-          <div class="ab-sep" />
-          <div class="ab-group">
             <a
               class="ab-btn"
               href={`https://pubpeer.com/search?q=${rep().doi}`}
               target="_blank"
               rel="noreferrer"
             >
-              PubPeer
+              <ExternalLinkIcon /> PubPeer
             </a>
           </div>
         </div>
 
         {/* Progress bar */}
-        <Show when={total() > 0}>
+        <Show when={outcomeVariations() > 1}>
           <div class="progress-section">
             <div class="progress-row">
-              <span class="progress-label">Outcome distribution</span>
               <div class="progress-track">
-                <div class="progress-seg success" style={{ width: `${successPct()}%` }} />
-                <div class="progress-seg mixed" style={{ width: `${mixedPct()}%` }} />
-                <div class="progress-seg failed" style={{ width: `${failedPct()}%` }} />
+                <div
+                  class="progress-seg success"
+                  style={{ width: `${successPct()}%` }}
+                />
+                <div
+                  class="progress-seg mixed"
+                  style={{ width: `${mixedPct()}%` }}
+                />
+                <div
+                  class="progress-seg failed"
+                  style={{ width: `${failedPct()}%` }}
+                />
               </div>
-
             </div>
           </div>
         </Show>
 
         {/* Tabs */}
-        <div class="tabs-bar">
-          <button
-            class={`tab-btn ${activeTab() === "replications" ? "active" : ""}`}
-            onClick={() => setActiveTab("replications")}
-          >
-            Replications{" "}
-            <span class="tab-badge">{rep().replications?.length || 0}</span>
-          </button>
-          <button
-            class={`tab-btn ${activeTab() === "reproductions" ? "active" : ""}`}
-            onClick={() => setActiveTab("reproductions")}
-          >
-            Reproductions{" "}
-            <span class="tab-badge">{rep().reproductions?.length || 0}</span>
-          </button>
-          <button
-            class={`tab-btn ${activeTab() === "originals" ? "active" : ""}`}
-            onClick={() => setActiveTab("originals")}
-          >
-            Related Originals{" "}
-            <span class="tab-badge">{rep().originals?.length || 0}</span>
-          </button>
-        </div>
+        <Show
+          when={
+            (rep().replications?.length || 0) > 0 ||
+            (rep().reproductions?.length || 0) > 0 ||
+            (rep().originals?.length || 0) > 0
+          }
+        >
+          <div class="tabs-bar">
+            <Show
+              when={
+                (rep().replications?.length || 0) > 0 ||
+                (rep().reproductions?.length || 0) > 0
+              }
+            >
+              <button
+                class={`tab-btn ${activeTab() === "replications" ? "active" : ""}`}
+                onClick={() => setActiveTab("replications")}
+              >
+                Replications{" "}
+                <span class="tab-badge">{rep().replications?.length || 0}</span>
+              </button>
+              <button
+                class={`tab-btn ${activeTab() === "reproductions" ? "active" : ""}`}
+                onClick={() => setActiveTab("reproductions")}
+              >
+                Reproductions{" "}
+                <span class="tab-badge">
+                  {rep().reproductions?.length || 0}
+                </span>
+              </button>
+            </Show>
+            <Show when={(rep().originals?.length || 0) > 0}>
+              <button
+                class={`tab-btn ${activeTab() === "originals" ? "active" : ""}`}
+                onClick={() => setActiveTab("originals")}
+              >
+                Target Studies{" "}
+                <span class="tab-badge">{rep().originals?.length || 0}</span>
+              </button>
+            </Show>
+          </div>
+        </Show>
 
         {/* Items list */}
-        <div class="rep-list">
-          <Show
-            when={currentItems().length > 0}
-            fallback={
-              <div class="lp-empty" style={{ padding: "2rem" }}>
-                <p>
-                  No {activeTab()} found for this study.
-                </p>
-              </div>
-            }
-          >
-            <For each={currentItems()}>
-              {(item) => (
-                <ReplicationItemCard
-                  item={item}
-                  onCopyApa={(text) => copyToClipboard(text, "APA reference")}
-                  onCopyBibtex={(text) => copyToClipboard(text, "BibTeX citation")}
-                />
-              )}
-            </For>
-          </Show>
-        </div>
+        <Show
+          when={
+            (rep().replications?.length || 0) > 0 ||
+            (rep().reproductions?.length || 0) > 0 ||
+            (rep().originals?.length || 0) > 0
+          }
+        >
+          <div class="rep-list">
+            <Show
+              when={currentItems().length > 0}
+              fallback={
+                <div class="lp-empty" style={{ padding: "2rem" }}>
+                  <p>No {activeTab()} found for this study.</p>
+                </div>
+              }
+            >
+              <For each={currentItems()}>
+                {(item) => (
+                  <ReplicationItemCard
+                    item={item}
+                    onCopyApa={(text) => copyToClipboard(text, "APA reference")}
+                    onCopyBibtex={(text) =>
+                      copyToClipboard(text, "BibTeX citation")
+                    }
+                  />
+                )}
+              </For>
+            </Show>
+          </div>
+        </Show>
 
         {/* Contribute CTA */}
         <div class="contribute-bar">
           <div class="contribute-text">
-            <strong>Know of a missing replication?</strong> Help keep FReD comprehensive.
+            <strong>Know of a missing replication?</strong> Help keep FReD
+            comprehensive.
           </div>
           <div class="contribute-btns">
             <a
