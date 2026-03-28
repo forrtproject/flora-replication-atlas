@@ -8,7 +8,7 @@ export const NoDataState = (props: NoDataStateProps) => {
       <div class="detail-card">
         <div class="no-data-state">
           <div class="no-data-icon">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#b8860b" stroke-width="1.5">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#853953" stroke-width="1.5">
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="8" x2="12" y2="12" />
               <line x1="12" y1="16" x2="12.01" y2="16" />

@@ -17,7 +17,7 @@ export const WelcomeState = (props: WelcomeStateProps) => {
           height="28"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="#004055"
+          stroke="#853953"
           stroke-width="1.5"
         >
           <circle cx="11" cy="11" r="8" />
