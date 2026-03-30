@@ -3,7 +3,7 @@ import type { Author } from "../@types";
 export const NA_MARKER = "__NOT_AVAILABLE__";
 
 export const formatAuthors = (authors?: Author[]) => {
-    if (!authors?.length) return NA_MARKER;
+    if (!Array.isArray(authors) || authors.length === 0) return NA_MARKER;
     const names = authors
         .map(author => {
             const family = author.family || "";

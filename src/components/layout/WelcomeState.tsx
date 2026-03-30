@@ -1,11 +1,12 @@
 type WelcomeStateProps = {
-  onExampleClick: (doi: string) => void;
+  onExampleClick: (query: string) => void;
 };
 
-const exampleDois = [
-  "10.1126/science.aac4716",
-  "10.1037/a0021524",
-  "10.1111/j.1467-9280.2008.02225.x",
+const exampleSearches = [
+  { label: "social priming", query: "social priming" },
+  { label: "ego depletion replication", query: "ego depletion replication" },
+  { label: "10.1126/science.aac4716", query: "10.1126/science.aac4716" },
+  { label: "10.1037/a0021524", query: "10.1037/a0021524" },
 ];
 
 export const WelcomeState = (props: WelcomeStateProps) => {
@@ -26,14 +27,14 @@ export const WelcomeState = (props: WelcomeStateProps) => {
       </div>
       <h2>Has this study been replicated?</h2>
       <p>
-        Enter a DOI in the search bar above to see replication outcomes, related
+        Search by title, author, or DOI to see replication outcomes, related
         studies, and more.
       </p>
       <div class="welcome-examples">
-        <div class="welcome-examples-label">Example DOIs</div>
-        {exampleDois.map((doi) => (
-          <div class="welcome-doi" onClick={() => props.onExampleClick(doi)}>
-            <span>{doi}</span>
+        <div class="welcome-examples-label">Example searches</div>
+        {exampleSearches.map((ex) => (
+          <div class="welcome-doi" onClick={() => props.onExampleClick(ex.query)}>
+            <span>{ex.label}</span>
             <svg
               width="14"
               height="14"

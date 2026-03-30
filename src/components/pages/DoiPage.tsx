@@ -2,7 +2,7 @@ import { createSignal, Show, onMount, onCleanup } from "solid-js";
 import { useParams, useNavigate } from "@solidjs/router";
 import type { DOIResults, OriginalPaper } from "../../@types";
 import { fetchMultipleDOIInfo } from "../../api/backend";
-import { TopBar } from "../layout/TopBar";
+import { TopBar, type SearchMode } from "../layout/TopBar";
 import { DetailView } from "../layout/DetailView";
 import { NoDataState } from "../layout/NoDataState";
 import { Footer } from "../Footer";
@@ -103,23 +103,61 @@ export const DoiPage = () => {
       });
   });
 
-  const handleSearch = (tags: string[]) => {
-    if (tags.length === 1) {
-      navigate(`/doi/${tags[0]}`);
-    } else if (tags.length > 1) {
-      navigate(`/?dois=${tags.join(",")}`);
+  const [searchMode, setSearchMode] = createSignal<SearchMode>("doi");
+  const [tags, setTags] = createSignal<string[]>([doi()]);
+  const [inputValue, setInputValue] = createSignal("");
+
+  const handleSearch = (allTags: string[]) => {
+    if (searchMode() === "fuzzy") {
+      const query = allTags[0] || inputValue().trim();
+      if (query) {
+        navigate(`/?q=${encodeURIComponent(query)}`);
+      }
+    } else if (allTags.length === 1) {
+      navigate(`/doi/${allTags[0]}`);
+    } else if (allTags.length > 1) {
+      navigate(`/?dois=${allTags.join(",")}`);
+    }
+  };
+
+  const addTag = (tag: string) => {
+    const trimmed = tag.trim();
+    if (trimmed && !tags().includes(trimmed)) {
+      setTags([...tags(), trimmed]);
+    }
+    setInputValue("");
+  };
+
+  const removeTag = (index: number) => {
+    const newTags = tags().filter((_, i) => i !== index);
+    if (newTags.length === 0) {
+      navigate("/");
+    } else {
+      setTags(newTags);
+    }
+  };
+
+  const handleSearchModeChange = (mode: SearchMode) => {
+    setSearchMode(mode);
+    setInputValue("");
+    if (mode === "fuzzy") {
+      setTags([]);
+    } else {
+      setTags([doi()]);
     }
   };
 
   return (
     <>
       <TopBar
-        tags={[doi()]}
-        inputValue=""
-        onInputChange={() => {}}
-        onAddTag={() => {}}
-        onRemoveTag={() => navigate("/")}
-        onSearchSubmit={() => {}}
+        tags={tags()}
+        inputValue={inputValue()}
+        searchMode={searchMode()}
+        onInputChange={(v) => setInputValue(v)}
+        onAddTag={addTag}
+        onRemoveTag={removeTag}
+        onSearchSubmit={() => handleSearch(tags())}
+        onSearchModeChange={handleSearchModeChange}
         onNavigateSearch={handleSearch}
       />
 
