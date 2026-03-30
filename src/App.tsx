@@ -1,5 +1,5 @@
 import { createSignal, Show } from "solid-js";
-import { useSearchParams, useNavigate } from "@solidjs/router";
+import { useSearchParams } from "@solidjs/router";
 import type { DOIResults, OriginalPaper } from "./@types";
 import { fetchMultipleDOIInfo, fetchFuzzySearch } from "./api/backend";
 import { TopBar, type SearchMode } from "./components/layout/TopBar";
