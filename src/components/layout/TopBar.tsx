@@ -2,14 +2,18 @@ import { For } from "solid-js";
 import { A } from "@solidjs/router";
 import forrt from "../../assets/FORRT.svg";
 
+export type SearchMode = "doi" | "fuzzy";
+
 type TopBarProps = {
   tags: string[];
   inputValue: string;
+  searchMode: SearchMode;
   onInputChange: (value: string) => void;
   onAddTag: (tag: string) => void;
   onRemoveTag: (index: number) => void;
   onSearchSubmit: () => void;
   onNavigateSearch?: (tags: string[]) => void;
+  onSearchModeChange: (mode: SearchMode) => void;
 };
 
 export const TopBar = (props: TopBarProps) => {
@@ -29,7 +33,7 @@ export const TopBar = (props: TopBarProps) => {
     const value = props.inputValue.trim();
 
     if (e.key === "," || e.key === "Enter") {
-      if (value && e.key === ",") {
+      if (value && e.key === "," && props.searchMode === "doi") {
         e.preventDefault();
         props.onAddTag(value);
         return;
@@ -51,6 +55,7 @@ export const TopBar = (props: TopBarProps) => {
   };
 
   const handlePaste = (e: ClipboardEvent) => {
+    if (props.searchMode !== "doi") return;
     const pasted = e.clipboardData?.getData("text") || "";
     if (pasted.includes(",")) {
       e.preventDefault();
@@ -93,31 +98,55 @@ export const TopBar = (props: TopBarProps) => {
           <circle cx="11" cy="11" r="8" />
           <path d="M21 21l-4.3-4.3" />
         </svg>
+        <div class="search-mode-toggle">
+          <button
+            classList={{ active: props.searchMode === "doi" }}
+            onClick={(e) => {
+              e.stopPropagation();
+              props.onSearchModeChange("doi");
+            }}
+          >
+            DOI
+          </button>
+          <button
+            classList={{ active: props.searchMode === "fuzzy" }}
+            onClick={(e) => {
+              e.stopPropagation();
+              props.onSearchModeChange("fuzzy");
+            }}
+          >
+            Fuzzy
+          </button>
+        </div>
         <div class="tag-input-wrap">
-          <For each={props.tags}>
-            {(tag, i) => (
-              <span class="search-tag">
-                {tag}
-                <button
-                  class="search-tag-remove"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    props.onRemoveTag(i());
-                  }}
-                >
-                  &times;
-                </button>
-              </span>
-            )}
-          </For>
+          {props.searchMode === "doi" && (
+            <For each={props.tags}>
+              {(tag, i) => (
+                <span class="search-tag">
+                  {tag}
+                  <button
+                    class="search-tag-remove"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      props.onRemoveTag(i());
+                    }}
+                  >
+                    &times;
+                  </button>
+                </span>
+              )}
+            </For>
+          )}
           <input
             ref={inputRef}
             type="text"
             placeholder={
-              props.tags.length === 0
-                ? "Search by DOI — e.g. 10.1126/science.aac4716"
-                : "Add another DOI..."
+              props.searchMode === "doi"
+                ? props.tags.length === 0
+                  ? "Search by DOI…"
+                  : "Add another DOI…"
+                : "Search by title, author, or year…"
             }
             value={props.inputValue}
             onInput={(e) => props.onInputChange(e.currentTarget.value)}
