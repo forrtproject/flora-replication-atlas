@@ -13,17 +13,19 @@ const isDoi = (s: string) => /^10\.\d{4,}\//.test(s.trim());
 
 function App() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
   const initialDoi = String(searchParams.doi || searchParams.dois || "");
   const initialQuery = String(searchParams.q || "");
   const initialTags = initialDoi
-    ? initialDoi.split(",").map((d: string) => d.trim()).filter((d: string) => d !== "")
+    ? initialDoi
+        .split(",")
+        .map((d: string) => d.trim())
+        .filter((d: string) => d !== "")
     : [];
 
   const [tags, setTags] = createSignal<string[]>(initialTags);
   const [inputValue, setInputValue] = createSignal(initialQuery);
   const [searchMode, setSearchMode] = createSignal<SearchMode>(
-    initialQuery ? "fuzzy" : "doi"
+    initialQuery ? "fuzzy" : "doi",
   );
   const [results, setResults] = createSignal<Record<string, OriginalPaper>>({});
   const [selectedDoi, setSelectedDoi] = createSignal<string | null>(null);
@@ -31,7 +33,10 @@ function App() {
   const [hasSearched, setHasSearched] = createSignal(false);
 
   const syncUrl = (newTags: string[]) => {
-    setSearchParams({ dois: newTags.length > 0 ? newTags.join(",") : undefined, q: undefined });
+    setSearchParams({
+      dois: newTags.length > 0 ? newTags.join(",") : undefined,
+      q: undefined,
+    });
   };
 
   const addTag = (tag: string) => {
@@ -145,25 +150,28 @@ function App() {
         />
 
         <div class="right-panel">
-          <Show when={selectedDoi()} fallback={
-            <WelcomeState
-              onExampleClick={(query) => {
-                if (isDoi(query)) {
-                  setSearchMode("doi");
-                  setInputValue("");
-                  const newTags = [query.trim()];
-                  setTags(newTags);
-                  syncUrl(newTags);
-                  doDoiSearch(newTags);
-                } else {
-                  setSearchMode("fuzzy");
-                  setTags([]);
-                  setInputValue(query);
-                  doFuzzySearch(query);
-                }
-              }}
-            />
-          }>
+          <Show
+            when={selectedDoi()}
+            fallback={
+              <WelcomeState
+                onExampleClick={(query) => {
+                  if (isDoi(query)) {
+                    setSearchMode("doi");
+                    setInputValue("");
+                    const newTags = [query.trim()];
+                    setTags(newTags);
+                    syncUrl(newTags);
+                    doDoiSearch(newTags);
+                  } else {
+                    setSearchMode("fuzzy");
+                    setTags([]);
+                    setInputValue(query);
+                    doFuzzySearch(query);
+                  }
+                }}
+              />
+            }
+          >
             {(doi) => {
               const paper = () => results()[doi()];
               return (
