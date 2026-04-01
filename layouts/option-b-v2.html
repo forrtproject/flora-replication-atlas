@@ -18,33 +18,33 @@
       }
 
       :root {
-        --primary: #3e3e3e;
-        --primary-light: #006080;
-        --primary-dark: #002e3d;
-        --primary-faint: #edf5f8;
-        --neutral: #3e3e3e;
-        --surface: #f4f3ee;
-        --surface-alt: #eae7de;
+        --primary: #853953;
+        --primary-dark: #612D53;
+        --primary-light: #a04d6b;
+        --primary-faint: #f9f0f4;
+        --neutral: #2C2C2C;
+        --surface: #F3F4F4;
+        --surface-alt: #e8e9e9;
         --white: #fff;
-        --success: #1a7a3a;
-        --success-light: #22a04d;
-        --success-bg: #e8f5ec;
-        --success-border: #b8dfca;
+        --success: #853953;
+        --success-light: #a04d6b;
+        --success-bg: #f9f0f4;
+        --success-border: #d4a5b8;
         --warning: #b8860b;
         --warning-bg: #fef8e8;
         --warning-border: #f0dfa0;
         --error: #b42318;
         --error-bg: #fef0ee;
         --error-border: #f5c6c0;
-        --info: #3d7a94;
-        --info-bg: #edf5f8;
-        --info-border: #b8d8e8;
-        --text: #1a1a1a;
+        --info: #853953;
+        --info-bg: #f9f0f4;
+        --info-border: #d4a5b8;
+        --text: #2C2C2C;
         --text-secondary: #4a4a4a;
         --text-muted: #888;
         --text-faint: #aaa;
-        --border: #d8d4ca;
-        --border-light: #e8e5dc;
+        --border: #d0d1d1;
+        --border-light: #e0e1e1;
         --font-display: "Domine", Georgia, serif;
         --font-body: "Source Sans 3", "Segoe UI", sans-serif;
         --radius: 6px;
@@ -73,7 +73,7 @@
      TOP BAR
   ═══════════════════════════════ */
       .topbar {
-        background: var(--primary);
+        background: var(--neutral);
         color: var(--white);
         display: flex;
         align-items: center;
@@ -146,6 +146,7 @@
         padding: 0.25rem 0.3rem 0.25rem 0.85rem;
         width: 480px;
         max-width: 45vw;
+        max-height: 38px;
         transition: all var(--transition);
       }
       .topbar-search:focus-within {
@@ -172,8 +173,8 @@
         color: rgba(255, 255, 255, 0.28);
       }
       .topbar-search-btn {
-        background: rgba(255, 255, 255, 0.92);
-        color: var(--primary);
+        background: var(--primary);
+        color: var(--white);
         border: none;
         padding: 0.35rem 1rem;
         border-radius: 6px;
@@ -185,7 +186,39 @@
         white-space: nowrap;
       }
       .topbar-search-btn:hover {
-        background: var(--white);
+        background: var(--primary-dark);
+      }
+
+      /* ─── Search mode toggle ─── */
+      .search-mode-toggle {
+        display: flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 5px;
+        overflow: hidden;
+        flex-shrink: 0;
+      }
+      .search-mode-toggle button {
+        background: transparent;
+        border: none;
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 11px;
+        font-weight: 600;
+        font-family: var(--font-body);
+        padding: 0.25rem 0.5rem;
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        white-space: nowrap;
+        line-height: 1;
+      }
+      .search-mode-toggle button.active {
+        background: rgba(255, 255, 255, 0.15);
+        color: rgba(255, 255, 255, 0.9);
+      }
+      .search-mode-toggle button:hover:not(.active) {
+        color: rgba(255, 255, 255, 0.6);
+        background: rgba(255, 255, 255, 0.04);
       }
 
       .topbar-right {
@@ -279,7 +312,7 @@
       }
       .filter-chip.active {
         background: var(--primary-faint);
-        border-color: rgba(0, 64, 85, 0.2);
+        border-color: rgba(133, 57, 83, 0.2);
         color: var(--primary);
       }
       .filter-dot {
@@ -334,7 +367,7 @@
       }
       .sli.active {
         background: var(--primary-faint);
-        border-color: rgba(0, 64, 85, 0.1);
+        border-color: rgba(133, 57, 83, 0.1);
       }
       .sli.active::before {
         content: "";
@@ -353,15 +386,10 @@
         flex-shrink: 0;
         margin-top: 0.35rem;
       }
-      .sli-dot.mixed {
-        background: var(--warning);
-      }
-      .sli-dot.successful {
-        background: var(--success);
-      }
-      .sli-dot.failed {
-        background: var(--error);
-      }
+      .sli-dot.mixed, .sli-dot.partial { background: var(--warning); }
+      .sli-dot.successful { background: var(--success); }
+      .sli-dot.failed { background: var(--error); }
+      .sli-dot.blank { background: var(--text-muted); }
       .sli-body {
         flex: 1;
         min-width: 0;
@@ -374,6 +402,7 @@
         margin-bottom: 0.15rem;
         display: -webkit-box;
         -webkit-line-clamp: 2;
+        line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
       }
@@ -658,100 +687,6 @@
         flex-shrink: 0;
       }
 
-      /* ─── Stats + donut row ─── */
-      .stats-row {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        border-bottom: 1px solid var(--border-light);
-      }
-      .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 1px;
-        background: var(--border-light);
-      }
-      .stat-box {
-        background: var(--white);
-        padding: 1rem 1rem;
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-      }
-      .stat-value {
-        font-family: var(--font-display);
-        font-size: 1.6rem;
-        font-weight: 700;
-        line-height: 1;
-        margin-bottom: 0.25rem;
-      }
-      .stat-value.success {
-        color: var(--success);
-      }
-      .stat-value.warning {
-        color: var(--warning);
-      }
-      .stat-value.error {
-        color: var(--error);
-      }
-      .stat-value.neutral {
-        color: var(--primary);
-      }
-      .stat-label {
-        font-size: 10px;
-        text-transform: uppercase;
-        letter-spacing: 0.8px;
-        color: var(--text-muted);
-        font-weight: 500;
-      }
-
-      /* CSS-only donut chart */
-      .donut-wrap {
-        background: var(--white);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0.75rem 1.5rem;
-        border-left: 1px solid var(--border-light);
-      }
-      .donut {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        position: relative;
-        /* 50% success, 33% mixed, 17% failed */
-        background: conic-gradient(
-          var(--success) 0deg 180deg,
-          var(--warning) 180deg 300deg,
-          var(--error) 300deg 360deg
-        );
-      }
-      .donut-hole {
-        position: absolute;
-        inset: 14px;
-        background: var(--white);
-        border-radius: 50%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-      }
-      .donut-pct {
-        font-family: var(--font-display);
-        font-size: 15px;
-        font-weight: 700;
-        color: var(--success);
-        line-height: 1;
-      }
-      .donut-pct-label {
-        font-size: 8px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: var(--text-muted);
-        margin-top: 1px;
-      }
-
       /* ─── Progress bar ─── */
       .progress-section {
         padding: 0.65rem 1.75rem;
@@ -809,7 +744,7 @@
         gap: 0;
         background: var(--white);
       }
-      .tab {
+      .tab-btn {
         padding: 0.7rem 1rem;
         font-size: 13px;
         font-weight: 600;
@@ -822,13 +757,13 @@
         transition: color var(--transition-fast);
         white-space: nowrap;
       }
-      .tab:hover {
+      .tab-btn:hover {
         color: var(--text-secondary);
       }
-      .tab.active {
+      .tab-btn.active {
         color: var(--primary);
       }
-      .tab.active::after {
+      .tab-btn.active::after {
         content: "";
         position: absolute;
         bottom: -1px;
@@ -1019,7 +954,7 @@
         margin: 0.5rem 1.75rem 1.5rem;
         padding: 1rem 1.25rem;
         background: var(--primary-faint);
-        border: 1px dashed rgba(0, 64, 85, 0.15);
+        border: 1px dashed rgba(133, 57, 83, 0.15);
         border-radius: var(--radius);
         display: flex;
         align-items: center;
@@ -1063,7 +998,7 @@
       .cb-btn.ghost {
         background: var(--white);
         color: var(--primary);
-        border: 1px solid rgba(0, 64, 85, 0.15);
+        border: 1px solid rgba(133, 57, 83, 0.15);
       }
       .cb-btn.ghost:hover {
         border-color: var(--primary);
@@ -1270,7 +1205,7 @@
           padding: 0 0.75rem;
           gap: 0;
         }
-        .tab {
+        .tab-btn {
           font-size: 12px;
           padding: 0.6rem 0.5rem;
         }
@@ -1280,6 +1215,186 @@
         .footer-bar {
           font-size: 10.5px;
         }
+      }
+
+      /* ─── Loading / empty states ─── */
+      .loading-panel {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem;
+        gap: 1rem;
+        color: var(--text-muted);
+        font-size: 13px;
+      }
+      .loading-spinner {
+        width: 28px;
+        height: 28px;
+        border: 3px solid var(--border-light);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .lp-empty {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 13px;
+      }
+      .lp-error {
+        padding: 2rem 1rem;
+        text-align: center;
+        color: var(--error);
+        font-size: 13px;
+      }
+
+      /* ─── Rep item grid columns ─── */
+      .rep-item-main {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 0.85rem;
+        padding: 0.85rem 1rem;
+        align-items: flex-start;
+      }
+
+      /* ─── Rep item actions ─── */
+      .ri-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.25rem 0.55rem;
+        border: 1px solid var(--border-light);
+        border-radius: 5px;
+        cursor: pointer;
+        color: var(--text-muted);
+        transition: all var(--transition-fast);
+        background: transparent;
+        font-size: 11px;
+        font-weight: 600;
+        font-family: var(--font-body);
+        white-space: nowrap;
+        text-decoration: none;
+      }
+      .ri-action:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+        background: var(--primary-faint);
+      }
+      .ri-actions {
+        display: flex;
+        gap: 0.3rem;
+        flex-shrink: 0;
+        flex-wrap: wrap;
+      }
+
+      /* ─── Expandable outcome quote ─── */
+      .ri-expand {
+        border-top: 1px solid var(--border-light);
+        background: #fcfbf8;
+      }
+      .ri-expand-toggle {
+        width: 100%;
+        padding: 0.45rem 1rem;
+        font-size: 11.5px;
+        font-weight: 600;
+        color: var(--primary);
+        background: none;
+        border: none;
+        cursor: pointer;
+        text-align: left;
+        font-family: var(--font-body);
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        transition: color var(--transition-fast);
+      }
+      .ri-expand-toggle:hover { color: var(--primary-light); }
+      .ri-expand-toggle .arrow {
+        transition: transform var(--transition);
+        font-size: 10px;
+        display: inline-block;
+      }
+      .ri-expand-toggle.expanded .arrow { transform: rotate(90deg); }
+      .ri-quote { padding: 0 1rem 0.75rem; display: none; }
+      .ri-quote.open { display: block; }
+      .ri-quote-text {
+        font-family: var(--font-display);
+        font-size: 12.5px;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        font-style: italic;
+        padding: 0.6rem 0.85rem;
+        background: var(--white);
+        border-left: 3px solid var(--border);
+        border-radius: 0 var(--radius) var(--radius) 0;
+      }
+      .ri-quote-source {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-top: 0.35rem;
+        font-style: normal;
+      }
+
+      /* ─── Contribute CTA ─── */
+      .contribute-bar {
+        margin: 0.5rem 1.75rem 1.5rem;
+        padding: 1rem 1.25rem;
+        background: var(--primary-faint);
+        border: 1px dashed rgba(133, 57, 83, 0.15);
+        border-radius: var(--radius);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+      .contribute-text { font-size: 13px; color: var(--text-secondary); }
+      .contribute-text strong { color: var(--primary); font-weight: 600; }
+      .contribute-btns { display: flex; gap: 0.4rem; }
+      .cb-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: var(--radius);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        font-family: var(--font-body);
+        transition: all var(--transition-fast);
+        border: none;
+      }
+      .cb-btn.primary { background: var(--primary); color: var(--white); }
+      .cb-btn.primary:hover { background: var(--primary-light); }
+      .cb-btn.ghost {
+        background: var(--white);
+        color: var(--primary);
+        border: 1px solid rgba(133, 57, 83, 0.15);
+      }
+      .cb-btn.ghost:hover { border-color: var(--primary); }
+
+      /* ─── Toast ─── */
+      .toast-msg {
+        position: fixed;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        background: var(--success);
+        color: var(--white);
+        padding: 0.5rem 1rem;
+        border-radius: var(--radius);
+        font-size: 12px;
+        font-weight: 600;
+        box-shadow: var(--shadow-md);
+        z-index: 1000;
+        animation: slideUp 0.2s ease-out;
       }
     </style>
   </head>
@@ -1307,12 +1422,17 @@
           <circle cx="11" cy="11" r="8" />
           <path d="M21 21l-4.3-4.3" />
         </svg>
+        <div class="search-mode-toggle" id="search-mode-toggle">
+          <button class="active" data-mode="doi">DOI</button>
+          <button data-mode="fuzzy">Fuzzy</button>
+        </div>
         <input
+          id="search-input"
           type="text"
-          placeholder="Search by DOI — e.g. 10.1126/science.aac4716"
-          value="10.1126/science.aac4716"
+          placeholder="Search by DOI…"
+          value=""
         />
-        <button class="topbar-search-btn">Search</button>
+        <button id="search-btn" class="topbar-search-btn">Search</button>
       </div>
       <div class="topbar-right">
         <a class="topbar-link" href="#">About</a>
@@ -1325,10 +1445,10 @@
       <!-- ─── LEFT PANEL ─── -->
       <div class="left-panel">
         <div class="lp-header">
-          <h3>Search Results</h3>
-          <span class="lp-count">3 studies</span>
+          <h3 id="lp-heading">Search Results</h3>
+          <span id="lp-count" class="lp-count">3 studies</span>
         </div>
-        <div class="study-list">
+        <div id="study-list" class="study-list">
           <!-- Active item -->
           <div class="sli active">
             <div class="sli-dot mixed"></div>
@@ -1377,55 +1497,22 @@
 
       <!-- ─── RIGHT PANEL ─── -->
       <div class="right-panel">
-        <!--
-    ░░░ WELCOME STATE (shown when no study selected) ░░░
-    Uncomment this and comment out detail-wrap to see the empty state:
-
-    <div class="welcome-state">
-      <div class="welcome-icon">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#004055" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
-      </div>
-      <h2>Has this study been replicated?</h2>
-      <p>Enter a DOI in the search bar above to see replication outcomes, related studies, and more.</p>
-      <div class="welcome-examples">
-        <div class="welcome-examples-label">Example DOIs</div>
-        <div class="welcome-doi">
-          <span>10.1126/science.aac4716</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg>
-        </div>
-        <div class="welcome-doi">
-          <span>10.1037/a0021524</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg>
-        </div>
-        <div class="welcome-doi">
-          <span>10.1111/j.1467-9280.2008.02225.x</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg>
-        </div>
-      </div>
-    </div>
-    -->
-
-        <!-- ░░░ DETAIL VIEW (shown when a study is selected) ░░░ -->
+        <!-- ░░░ DETAIL VIEW ░░░ -->
         <div class="detail-wrap">
           <div class="detail-card">
             <!-- Header -->
             <div class="dh">
-              <h1 class="dh-title">
-                Estimating the Reproducibility of Psychological Science
-              </h1>
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem">
+                <h1 class="dh-title">
+                  Estimating the Reproducibility of Psychological Science
+                </h1>
+                <button class="ab-btn" title="Copy share link">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                </button>
+              </div>
               <div class="dh-authors">Open Science Collaboration (2015)</div>
               <div class="dh-journal">Science, Vol 349, Issue 6251</div>
-              <a class="dh-doi-link" href="#">10.1126/science.aac4716</a>
-
-              <div class="dh-apa">
-                <div class="dh-apa-label">APA Reference</div>
-                <div class="dh-apa-text">
-                  Open Science Collaboration. (2015). Estimating the
-                  reproducibility of psychological science.
-                  <em>Science, 349</em>(6251), aac4716.
-                  https://doi.org/10.1126/science.aac4716
-                </div>
-              </div>
+              <a class="dh-doi-link" href="https://doi.org/10.1126/science.aac4716" target="_blank">10.1126/science.aac4716</a>
             </div>
 
             <!-- Action bar -->
@@ -1525,25 +1612,23 @@
             <!-- Progress bar -->
             <div class="progress-section">
               <div class="progress-row">
-                <span class="progress-label">Outcome distribution</span>
                 <div class="progress-track">
                   <div class="progress-seg success" style="width: 50%"></div>
                   <div class="progress-seg mixed" style="width: 33%"></div>
                   <div class="progress-seg failed" style="width: 17%"></div>
                 </div>
-                <span class="progress-pct">50% replicated</span>
               </div>
             </div>
 
             <!-- Tabs -->
             <div class="tabs-bar">
-              <button class="tab active">
+              <button class="tab-btn active">
                 Replications <span class="tab-badge">4</span>
               </button>
-              <button class="tab">
+              <button class="tab-btn">
                 Reproductions <span class="tab-badge">1</span>
               </button>
-              <button class="tab">
+              <button class="tab-btn">
                 Target Studies <span class="tab-badge">1</span>
               </button>
             </div>
@@ -1967,6 +2052,289 @@
       </div>
     </div>
 
+    <!--<script>
+      const API_BASE = 'https://5waa6mryb6.execute-api.eu-central-1.amazonaws.com/v1/search';
+      const LIMIT = 20;
+
+      let currentResults = {};
+      let selectedDoi = null;
+
+      const searchInput = document.getElementById('search-input');
+      const searchBtn   = document.getElementById('search-btn');
+      const studyList   = document.getElementById('study-list');
+      const lpCount     = document.getElementById('lp-count');
+      const welcomeState = document.getElementById('welcome-state');
+      const detailView  = document.getElementById('detail-view');
+
+      function escHtml(s) {
+        return String(s == null ? '' : s)
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      }
+
+      function formatAuthors(authors) {
+        if (!authors || authors.length === 0) return '';
+        const fmt = a => `${a.family}, ${(a.given || '')[0] || ''}.`;
+        if (authors.length === 1) return fmt(authors[0]);
+        if (authors.length === 2) return `${fmt(authors[0])} & ${fmt(authors[1])}`;
+        return `${fmt(authors[0])} et al.`;
+      }
+
+      function countOutcomes(replications) {
+        const c = { successful: 0, failed: 0, mixed: 0 };
+        for (const r of replications || []) {
+          if (r.outcome === 'successful') c.successful++;
+          else if (r.outcome === 'failed')     c.failed++;
+          else                                  c.mixed++;
+        }
+        return c;
+      }
+
+      function overallOutcome(record) {
+        const reps = record.replications || [];
+        if (reps.length === 0) return 'mixed';
+        const outcomes = reps.map(r => r.outcome).filter(Boolean);
+        if (outcomes.every(o => o === 'successful')) return 'successful';
+        if (outcomes.every(o => o === 'failed'))     return 'failed';
+        return 'mixed';
+      }
+
+      /* ─── Left-panel study list item ─── */
+      function renderSliItem(study, isActive) {
+        const outcome = overallOutcome(study.record);
+        const counts  = countOutcomes(study.record.replications);
+        const authors = formatAuthors(study.authors);
+        const meta    = [authors, study.year].filter(Boolean).join(' · ');
+
+        let pills = '';
+        if (counts.successful) pills += `<span class="sli-pill s">${counts.successful} successful</span>`;
+        if (counts.mixed)      pills += `<span class="sli-pill m">${counts.mixed} mixed</span>`;
+        if (counts.failed)     pills += `<span class="sli-pill f">${counts.failed} failed</span>`;
+        if (!pills) {
+          const n = study.record.stats.n_replications_total;
+          pills = `<span class="sli-pill" style="background:var(--surface);color:var(--text-muted)">${n} replication${n !== 1 ? 's' : ''}</span>`;
+        }
+
+        const el = document.createElement('div');
+        el.className = `sli${isActive ? ' active' : ''}`;
+        el.dataset.doi = study.doi;
+        el.innerHTML = `
+          <div class="sli-dot ${outcome}"></div>
+          <div class="sli-body">
+            <div class="sli-title">${escHtml(study.title)}</div>
+            <div class="sli-meta">${escHtml(meta)}</div>
+            <div class="sli-pills">${pills}</div>
+          </div>`;
+        el.addEventListener('click', () => selectStudy(study.doi));
+        return el;
+      }
+
+      /* ─── Right-panel detail view ─── */
+      function badgeLabel(outcome) {
+        switch (outcome) {
+          case 'successful': return 'Success';
+          case 'failed':     return 'Failed';
+          case 'mixed':      return 'Mixed';
+          case 'partial':    return 'Partial';
+          default:           return outcome || 'N/A';
+        }
+      }
+
+      function showToast(msg) {
+        let toast = document.getElementById('toast-msg');
+        if (!toast) {
+          toast = document.createElement('div');
+          toast.id = 'toast-msg';
+          toast.className = 'toast-msg';
+          document.body.appendChild(toast);
+        }
+        toast.textContent = msg;
+        toast.style.display = 'block';
+        clearTimeout(toast._timer);
+        toast._timer = setTimeout(() => { toast.style.display = 'none'; }, 2000);
+      }
+
+      function buildRepItems(items, type) {
+        if (!items || items.length === 0)
+          return `<div class="lp-empty"><p>No ${type} found for this study.</p></div>`;
+        return items.map(r => {
+          const rAuthors = (r.authors || []).map(a => `${a.family}, ${a.given}`).join('; ');
+          const rJournal = r.journal || '';
+          const cls      = r.outcome === 'successful' ? 'successful' : r.outcome === 'failed' ? 'failed' : r.outcome === 'partial' ? 'partial' : 'mixed';
+          const expandId = 'q' + Math.random().toString(36).slice(2);
+          const quoteBlock = r.outcome_quote
+            ? `<div class="ri-expand">
+                <button class="ri-expand-toggle" onclick="var q=document.getElementById('${expandId}');var open=q.style.display!=='none';q.style.display=open?'none':'block';this.classList.toggle('expanded',!open)"><span class="arrow">&#9654;</span> Outcome quote</button>
+                <div id="${expandId}" class="ri-quote" style="display:none">
+                  <div class="ri-quote-text">"${escHtml(r.outcome_quote)}"</div>
+                  ${r.outcome_quote_source ? `<div class="ri-quote-source">Source: ${escHtml(r.outcome_quote_source)}</div>` : ''}
+                </div>
+              </div>`
+            : '';
+          return `
+            <div class="rep-item">
+              <div class="rep-item-main">
+                <span class="ri-badge ${cls}">${escHtml(badgeLabel(r.outcome))}</span>
+                <div class="ri-body">
+                  <div class="ri-title">${escHtml(r.title || '—')}</div>
+                  <div class="ri-meta">${escHtml([rAuthors, r.year].filter(Boolean).join(' · '))}${rJournal ? ' &middot; ' + escHtml(rJournal) : ''}</div>
+                  ${r.doi ? `<a class="ri-doi" href="https://doi.org/${escHtml(r.doi)}" target="_blank">${escHtml(r.doi)}</a>` : ''}
+                </div>
+                <div class="ri-actions">
+                  ${r.apa_ref ? `<button class="ri-action" onclick="navigator.clipboard&&navigator.clipboard.writeText(this.dataset.apa).then(()=>showToast('APA copied'))" data-apa="${escHtml(r.apa_ref)}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> APA</button>` : ''}
+                  ${r.doi ? `<a class="ri-action" href="https://doi.org/${escHtml(r.doi)}" target="_blank"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg> View</a>` : ''}
+                </div>
+              </div>
+              ${quoteBlock}
+            </div>`;
+        }).join('');
+      }
+
+      function renderDetail(study) {
+        const reps      = study.record.replications  || [];
+        const repros    = study.record.reproductions || [];
+        const originals = study.record.originals     || [];
+        const counts    = countOutcomes(reps);
+        const total     = reps.length;
+        const doiUrl    = 'https://doi.org/' + study.doi;
+        const authorsStr    = (study.authors || []).map(a => a.family + ', ' + a.given).join('; ');
+        const journalParts  = [study.journal, study.year].filter(Boolean).join(', ');
+
+        // Progress bar — only when >1 outcome type present
+        const variations = [counts.successful > 0, counts.mixed > 0, counts.failed > 0].filter(Boolean).length;
+        const sPct = total > 0 ? Math.round(counts.successful / total * 100) : 0;
+        const mPct = total > 0 ? Math.round(counts.mixed      / total * 100) : 0;
+        const fPct = total > 0 ? 100 - sPct - mPct : 0;
+        const progressBar = variations > 1
+          ? '<div class="progress-section"><div class="progress-row"><div class="progress-track">'
+            + '<div class="progress-seg success" style="width:' + sPct + '%"></div>'
+            + '<div class="progress-seg mixed"   style="width:' + mPct + '%"></div>'
+            + '<div class="progress-seg failed"  style="width:' + fPct + '%"></div>'
+            + '</div></div></div>'
+          : '';
+
+        const hasItems = reps.length || repros.length || originals.length;
+        const tabsHtml = hasItems
+          ? '<div class="tabs-bar" id="tabs-bar">'
+            + '<button class="tab-btn active" data-tab="replications">Replications <span class="tab-badge">' + reps.length + '</span></button>'
+            + '<button class="tab-btn" data-tab="reproductions">Reproductions <span class="tab-badge">' + repros.length + '</span></button>'
+            + '<button class="tab-btn" data-tab="originals">Target Studies <span class="tab-badge">' + originals.length + '</span></button>'
+            + '</div>'
+            + '<div class="rep-list" id="tab-content">' + buildRepItems(reps, 'replications') + '</div>'
+          : '';
+
+        const copyApaBtn   = study.apa_ref
+          ? '<button class="ab-btn" onclick="navigator.clipboard&&navigator.clipboard.writeText(this.dataset.apa).then(()=>showToast(\'APA reference copied\'))" data-apa="' + escHtml(study.apa_ref) + '"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy APA</button>'
+          : '';
+        const copyBibtexBtn = study.bibtex_ref
+          ? '<button class="ab-btn" onclick="navigator.clipboard&&navigator.clipboard.writeText(this.dataset.bib).then(()=>showToast(\'BibTeX copied\'))" data-bib="' + escHtml(study.bibtex_ref) + '"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy BibTeX</button>'
+          : '';
+
+        detailView.innerHTML =
+          '<div class="detail-wrap"><div class="detail-card">'
+
+          // Header
+          + '<div class="dh">'
+          + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem">'
+          + '<h1 class="dh-title">' + escHtml(study.title) + '</h1>'
+          + '<button class="ab-btn" title="Copy share link" onclick="navigator.clipboard&&navigator.clipboard.writeText(location.href).then(()=>showToast(\'Share link copied\'))"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg></button>'
+          + '</div>'
+          + '<div class="dh-authors">' + escHtml(authorsStr) + '</div>'
+          + (journalParts ? '<div class="dh-journal">' + escHtml(journalParts) + '</div>' : '')
+          + '<a class="dh-doi-link" href="' + escHtml(doiUrl) + '" target="_blank">' + escHtml(study.doi) + '</a>'
+          + '</div>'
+
+          // Action bar
+          + '<div class="action-bar"><div class="ab-group">'
+          + '<a class="ab-btn accent" href="' + escHtml(doiUrl) + '" target="_blank"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg> View Paper</a>'
+          + '</div><div class="ab-sep"></div><div class="ab-group">'
+          + copyApaBtn + copyBibtexBtn
+          + '<a class="ab-btn" href="https://pubpeer.com/search?q=' + encodeURIComponent(study.doi) + '" target="_blank"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg> PubPeer</a>'
+          + '</div></div>'
+
+          // Progress bar + tabs + items
+          + progressBar + tabsHtml
+
+          // Contribute CTA
+          + '<div class="contribute-bar">'
+          + '<div class="contribute-text"><strong>Know of a missing replication?</strong> Help keep FReD comprehensive.</div>'
+          + '<div class="contribute-btns">'
+          + '<a class="cb-btn primary" href="https://docs.google.com/forms/d/e/1FAIpQLSeMCwdtP0TPgL55stniuyyTxnNwyC34mO4VUuLcQwYrLI89sQ/viewform" target="_blank"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Suggest Addition</a>'
+          + '<a class="cb-btn ghost" href="mailto:fred@forrt.org?subject=[Replication Flag] ' + encodeURIComponent(study.doi) + '"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg> Flag Error</a>'
+          + '</div></div>'
+
+          + '</div></div>';
+
+        const tabData = { replications: reps, reproductions: repros, originals };
+        detailView.querySelectorAll('.tab-btn').forEach(tab => {
+          tab.addEventListener('click', () => {
+            detailView.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            detailView.querySelector('#tab-content').innerHTML =
+              buildRepItems(tabData[tab.dataset.tab], tab.dataset.tab);
+          });
+        });
+      }
+
+      function selectStudy(doi) {
+        selectedDoi = doi;
+        studyList.querySelectorAll('.sli').forEach(el =>
+          el.classList.toggle('active', el.dataset.doi === doi));
+        const study = currentResults[doi];
+        if (study) {
+          welcomeState.style.display = 'none';
+          renderDetail(study);
+        }
+      }
+
+      function syncUrl(query) {
+        const url = query
+          ? `${location.pathname}?q=${encodeURIComponent(query)}`
+          : location.pathname;
+        history.replaceState(null, '', url);
+      }
+
+      async function performSearch(query) {
+        query = query.trim();
+        if (!query) return;
+
+        searchInput.value = query;
+        syncUrl(query);
+
+        studyList.innerHTML = '<div class="study-list-loading"><div class="spinner"></div><span>Searching…</span></div>';
+        lpCount.textContent = '';
+        detailView.innerHTML = '';
+        welcomeState.style.display = 'none';
+
+        try {
+          const url = `${API_BASE}?q=${encodeURIComponent(query)}&limit=${LIMIT}`;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+
+          currentResults = data.results || {};
+          const studies  = Object.values(currentResults);
+
+          if (studies.length === 0) {
+            studyList.innerHTML = '<div class="study-list-empty">No studies found.</div>';
+            lpCount.textContent = '0 results';
+            welcomeState.style.display = '';
+            return;
+          }
+
+          lpCount.textContent = `${studies.length} ${studies.length === 1 ? 'study' : 'studies'}`;
+          studyList.innerHTML = '';
+          studies.forEach((study, i) => studyList.appendChild(renderSliItem(study, i === 0)));
+          selectStudy(studies[0].doi);
+
+        } catch (err) {
+          studyList.innerHTML = `<div class="study-list-error">Search failed: ${escHtml(err.message)}</div>`;
+          lpCount.textContent = '';
+        }
+      }
+
+    -->
+
     <!-- ═══ FOOTER ═══ -->
     <div class="footer-bar">
       <span
@@ -1979,5 +2347,33 @@
         <a href="#">Contact</a>
       </div>
     </div>
+
+    <script>
+      // ─── Search mode toggle ───
+      (function () {
+        const toggle = document.getElementById('search-mode-toggle');
+        const input  = document.getElementById('search-input');
+        if (!toggle || !input) return;
+
+        const placeholders = {
+          doi:   'Search by DOI…',
+          fuzzy: 'Search by title, author, or year…'
+        };
+
+        toggle.addEventListener('click', function (e) {
+          const btn = e.target.closest('button[data-mode]');
+          if (!btn || btn.classList.contains('active')) return;
+
+          toggle.querySelectorAll('button').forEach(function (b) {
+            b.classList.remove('active');
+          });
+          btn.classList.add('active');
+
+          input.placeholder = placeholders[btn.dataset.mode] || '';
+          input.value = '';
+          input.focus();
+        });
+      })();
+    </script>
   </body>
 </html>
