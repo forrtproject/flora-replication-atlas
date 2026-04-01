@@ -1,0 +1,35 @@
+name: Update Sitemap
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'  # Every Monday at 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-sitemap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate sitemap
+        run: node scripts/generate-sitemap.js
+        env:
+          OUTPUT_PATH: public/sitemap.xml
+
+      - name: Commit and push if changed
+        run: |
+          git diff --quiet public/sitemap.xml && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/sitemap.xml
+          git commit -m "chore: update sitemap"
+          git push

@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build && npm run copy-index2",
+    "build": "tsc -b && vite build && npm run copy-index2 && npm run generate-sitemap",
+    "generate-sitemap": "node scripts/generate-sitemap.js",
     "build:gh-pages": "BUILD_ENV=gh-pages && npm run build",
     "copy-index2": "node scripts/copy-index2.js",
     "copy-index2-only": "node scripts/copy-index2.js",
