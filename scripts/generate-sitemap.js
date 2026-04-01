@@ -35,7 +35,7 @@ function buildSitemap(dois) {
     ...dois.map(
       (doi) =>
         `  <url>
-    <loc>${SITE_URL}/doi/${encodeURIComponent(doi)}</loc>
+    <loc>${SITE_URL}/doi/${doi}</loc>
     <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
