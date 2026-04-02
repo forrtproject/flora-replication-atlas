@@ -1,8 +1,7 @@
 import { writeFile } from "fs/promises";
 
 // const API_BASE = process.env.VITE_BACKEND_URL || "https://rep-api.forrt.org/v1";
-const API_BASE =
-  "https://5waa6mryb6.execute-api.eu-central-1.amazonaws.com/v1/";
+const API_BASE = "https://rep-api.forrt.org/v1/";
 const SITE_URL = "https://forrt.org/fred_repl_landing_page";
 const OUTPUT_PATH = process.env.OUTPUT_PATH || "dist/sitemap.xml";
 

@@ -424,7 +424,7 @@ body {
   margin-top: 0.35rem;
 }
 .sli-dot.mixed, .sli-dot.partial { background: var(--warning); }
-.sli-dot.successful { background: var(--success); }
+.sli-dot.successful { background: #16a34a; }
 .sli-dot.failed { background: var(--error); }
 .sli-dot.blank { background: var(--text-muted); }
 .sli-body { flex: 1; min-width: 0; }
@@ -456,9 +456,17 @@ body {
   font-weight: 600;
   line-height: 1.4;
 }
-.sli-pill.s { background: var(--success-bg); color: var(--success); }
+.sli-pill.s { background: #ecfdf5; color: #16a34a; }
 .sli-pill.m { background: var(--warning-bg); color: var(--warning); }
 .sli-pill.f { background: var(--error-bg); color: var(--error); }
+.sli-type-tag.original { background: var(--primary-faint); color: var(--primary); }
+.sli-type-tag.replication { background: var(--success-bg); color: var(--success); }
+.sli-pills-sep {
+  width: 1px;
+  height: 12px;
+  background: var(--border-light);
+  align-self: center;
+}
 
 /* ═══════════════════════════════
    RIGHT PANEL
@@ -630,6 +638,29 @@ body {
   line-height: 1.35;
   color: var(--text);
   margin-bottom: 0.4rem;
+}
+.dh-title-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+.dh-tag {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.dh-tag.original {
+  background: var(--primary-faint);
+  color: var(--primary);
+}
+.dh-tag.replication {
+  background: var(--success-bg);
+  color: var(--success);
 }
 .dh-authors {
   font-size: 14px;

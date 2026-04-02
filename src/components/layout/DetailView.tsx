@@ -194,7 +194,7 @@ export const DetailView = (props: DetailViewProps) => {
     if (!o) return 0;
     return [
       (o.success || 0) > 0,
-      ((o.mixed || 0) + (o.partial || 0)) > 0,
+      (o.mixed || 0) + (o.partial || 0) > 0,
       (o.failed || 0) > 0,
     ].filter(Boolean).length;
   };
@@ -204,11 +204,30 @@ export const DetailView = (props: DetailViewProps) => {
       <div class="detail-card">
         {/* Header */}
         <div class="dh">
-          <div style={{ display: "flex", "justify-content": "space-between", "align-items": "flex-start", gap: "1rem" }}>
+          <div
+            style={{
+              display: "flex",
+              "justify-content": "space-between",
+              "align-items": "flex-start",
+              gap: "1rem",
+            }}
+          >
             <h1 class="dh-title">{rep().title || na("Title")}</h1>
-            <button class="ab-btn" onClick={handleShareLink} title="Copy share link" style={{ "flex-shrink": "0" }}>
-              <LinkIcon />
-            </button>
+            <div class="dh-title-actions">
+              <Show when={(rep().replications?.length || 0) > 0}>
+                <span class="dh-tag original">Original</span>
+              </Show>
+              <Show when={(rep().originals?.length || 0) > 0}>
+                <span class="dh-tag replication">Replication</span>
+              </Show>
+              <button
+                class="ab-btn"
+                onClick={handleShareLink}
+                title="Copy share link"
+              >
+                <LinkIcon />
+              </button>
+            </div>
           </div>
           <div class="dh-authors">
             {renderAuthors(rep().authors)} ({rep().year || na("Year")})
@@ -388,8 +407,9 @@ export const DetailView = (props: DetailViewProps) => {
         {/* Contribute CTA */}
         <div class="contribute-bar">
           <div class="contribute-text">
-            <strong>Know of a missing replication?</strong> Help keep FReD
-            comprehensive.
+            <strong>Know of a missing replication?</strong> Help us to expand
+            FLoRA by suggesting additions or flagging potential issues in
+            existing records.
           </div>
           <div class="contribute-btns">
             <a
@@ -402,7 +422,7 @@ export const DetailView = (props: DetailViewProps) => {
             </a>
             <a
               class="cb-btn ghost"
-              href={`mailto:fred@forrt.org?subject=[Replication Flag] ${rep().doi}&body=I would like to flag a potential issue in the replication record for:%0AOriginal DOI: ${rep().doi}%0AIssue details: [your comment here]`}
+              href={`mailto:lukas.roeseler@uni-muenster.de?subject=[Replication Flag] ${rep().doi}&body=I would like to flag a potential issue in the replication record for:%0AOriginal DOI: ${rep().doi}%0AIssue details: [your comment here]`}
             >
               <FlagIcon /> Flag Error
             </a>

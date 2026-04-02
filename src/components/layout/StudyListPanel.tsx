@@ -84,6 +84,18 @@ export const StudyListPanel = (props: StudyListPanelProps) => {
                     {renderAuthors(entry.rep.authors)} &middot; {entry.rep.year || na("Year")}
                   </div>
                   <div class="sli-pills">
+                    <Show when={(entry.rep.replications?.length || 0) > 0}>
+                      <span class="sli-pill sli-type-tag original">Original</span>
+                    </Show>
+                    <Show when={(entry.rep.originals?.length || 0) > 0}>
+                      <span class="sli-pill sli-type-tag replication">Replication</span>
+                    </Show>
+                    <Show when={
+                      ((entry.rep.replications?.length || 0) > 0 || (entry.rep.originals?.length || 0) > 0) &&
+                      (entry.rep.outcomes?.total || 0) > 0
+                    }>
+                      <span class="sli-pills-sep" />
+                    </Show>
                     <Show when={(entry.rep.outcomes?.success || 0) > 0}>
                       <span class="sli-pill s">{entry.rep.outcomes!.success} successful</span>
                     </Show>

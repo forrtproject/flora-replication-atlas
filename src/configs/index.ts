@@ -1,4 +1,4 @@
-export const appName = "FReD Replication Summary";
+export const appName = "FLoRA Replication Summary";
 export const badgeBgs = {
     successful: 'bg-success',
     failed: 'bg-error',
