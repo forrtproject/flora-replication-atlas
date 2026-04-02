@@ -19,7 +19,7 @@ export const Footer = () => {
         >
           FReD Explorer
         </a>
-        <a href="mailto:fred@forrt.org">Contact</a>
+        <a href="mailto:flora@forrt.org">Contact</a>
       </div>
     </div>
   );
