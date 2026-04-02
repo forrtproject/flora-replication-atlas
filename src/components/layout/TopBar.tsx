@@ -115,7 +115,7 @@ export const TopBar = (props: TopBarProps) => {
               props.onSearchModeChange("fuzzy");
             }}
           >
-            Keyword
+            Author / Title / Year
           </button>
         </div>
         <div class="tag-input-wrap">
