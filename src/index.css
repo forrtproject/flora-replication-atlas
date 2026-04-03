@@ -281,6 +281,21 @@ body {
   background: rgba(255, 255, 255, 0.08);
   color: rgba(255, 255, 255, 0.9);
 }
+.topbar-cta {
+  background: var(--primary);
+  color: rgba(255, 255, 255, 0.95);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 12px;
+  text-decoration: none;
+  margin-left: 0.25rem;
+  transition: background var(--transition-fast);
+}
+.topbar-cta:hover {
+  background: var(--primary-light);
+  color: #fff;
+}
 
 /* ═══════════════════════════════
    MAIN LAYOUT: SPLIT PANEL

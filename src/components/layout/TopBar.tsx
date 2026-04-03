@@ -179,6 +179,14 @@ export const TopBar = (props: TopBarProps) => {
         >
           FReD Explorer
         </a>
+        <a
+          class="topbar-cta"
+          href="https://docs.google.com/forms/d/e/1FAIpQLSeMCwdtP0TPgL55stniuyyTxnNwyC34mO4VUuLcQwYrLI89sQ/viewform"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Add Missing Study
+        </a>
       </div>
     </nav>
   );

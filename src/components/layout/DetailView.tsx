@@ -69,20 +69,6 @@ const LinkIcon = () => (
   </svg>
 );
 
-const PlusIcon = () => (
-  <svg
-    width="12"
-    height="12"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2.5"
-  >
-    <line x1="12" y1="5" x2="12" y2="19" />
-    <line x1="5" y1="12" x2="19" y2="12" />
-  </svg>
-);
-
 const FlagIcon = () => (
   <svg
     width="12"
@@ -320,6 +306,16 @@ export const DetailView = (props: DetailViewProps) => {
               <ExternalLinkIcon /> PubPeer
             </a>
           </div>
+          <div class="ab-sep" />
+          <div class="ab-group">
+            <a
+              class="ab-btn"
+              href={`mailto:lukas.roeseler@uni-muenster.de?subject=[Replication Flag] ${rep().doi}&body=I would like to flag a potential issue in the replication record for:%0AOriginal DOI: ${rep().doi}%0AIssue details: [your comment here]`}
+              title="Flag an error in this record"
+            >
+              <FlagIcon /> Flag Error
+            </a>
+          </div>
         </div>
 
         {/* Progress bar */}
@@ -420,30 +416,6 @@ export const DetailView = (props: DetailViewProps) => {
           </div>
         </Show>
 
-        {/* Contribute CTA */}
-        <div class="contribute-bar">
-          <div class="contribute-text">
-            <strong>Know of a missing replication?</strong> Help us to expand
-            FLoRA by suggesting additions or flagging potential issues in
-            existing records.
-          </div>
-          <div class="contribute-btns">
-            <a
-              class="cb-btn primary"
-              href={`https://docs.google.com/forms/d/e/1FAIpQLSeMCwdtP0TPgL55stniuyyTxnNwyC34mO4VUuLcQwYrLI89sQ/viewform?usp=pp_url&entry.1234567890=${encodeURIComponent(rep().doi || "")}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <PlusIcon /> Suggest Addition
-            </a>
-            <a
-              class="cb-btn ghost"
-              href={`mailto:lukas.roeseler@uni-muenster.de?subject=[Replication Flag] ${rep().doi}&body=I would like to flag a potential issue in the replication record for:%0AOriginal DOI: ${rep().doi}%0AIssue details: [your comment here]`}
-            >
-              <FlagIcon /> Flag Error
-            </a>
-          </div>
-        </div>
       </div>
 
       {/* Toast */}
