@@ -552,6 +552,15 @@ body {
 .right-panel::-webkit-scrollbar-track { background: transparent; }
 .right-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 100px; }
 
+/* ─── Scroll layout paper sections ─── */
+.scroll-paper-section {
+  border-bottom: 1px solid var(--border-light);
+  transition: background var(--transition);
+}
+.scroll-paper-section.highlighted {
+  background: rgba(133, 57, 83, 0.14);
+}
+
 /* ─── No data state ─── */
 .no-data-state {
   display: flex;

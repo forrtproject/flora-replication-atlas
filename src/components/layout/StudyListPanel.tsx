@@ -1,4 +1,4 @@
-import { createSignal, For, Show } from "solid-js";
+import { createSignal, createEffect, For, Show } from "solid-js";
 import type { OriginalPaper, FormattedDOIResult } from "../../@types";
 import { formatReplicationResponse } from "../../api/formatter";
 import { formatAuthors, renderAuthors, na } from "../../utils/formatter";
@@ -283,6 +283,13 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
             {(entry) => (
               <div
                 class={`sli ${props.selectedDoi === entry.doi ? "active" : ""}`}
+                ref={(el) => {
+                  createEffect(() => {
+                    if (props.selectedDoi === entry.doi) {
+                      el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                    }
+                  });
+                }}
                 onClick={() => props.onSelect(entry.doi)}
               >
                 <div class={`sli-dot ${entry.status}`} />
