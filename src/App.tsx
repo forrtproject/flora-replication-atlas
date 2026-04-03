@@ -1,4 +1,4 @@
-import { createSignal, Show } from "solid-js";
+import { createSignal, Show, For, onCleanup } from "solid-js";
 import { useSearchParams } from "@solidjs/router";
 import type { DOIResults, OriginalPaper } from "./@types";
 import { fetchMultipleDOIInfo, fetchFuzzySearch } from "./api/backend";
@@ -31,6 +31,70 @@ function App() {
   const [selectedDoi, setSelectedDoi] = createSignal<string | null>(null);
   const [isLoading, setIsLoading] = createSignal(false);
   const [hasSearched, setHasSearched] = createSignal(false);
+
+  const paperRefs: Record<string, HTMLDivElement> = {};
+  let rightPanelRef: HTMLDivElement | undefined;
+  let isScrollingFromClick = false;
+  let scrollClickTimer: number | undefined;
+  let observer: IntersectionObserver | undefined;
+
+  const visibilityMap = new Map<string, number>();
+
+  const pickActive = () => {
+    if (isScrollingFromClick) return;
+    if (!rightPanelRef) return;
+
+    const panelTop = rightPanelRef.getBoundingClientRect().top;
+    let best: { doi: string; distance: number } | null = null;
+
+    for (const [doi, ratio] of visibilityMap) {
+      if (ratio <= 0) continue;
+      const el = paperRefs[doi];
+      if (!el) continue;
+      const dist = Math.abs(el.getBoundingClientRect().top - panelTop);
+      if (!best || dist < best.distance) {
+        best = { doi, distance: dist };
+      }
+    }
+    if (best) setSelectedDoi(best.doi);
+  };
+
+  const setupObserver = () => {
+    if (observer) observer.disconnect();
+    visibilityMap.clear();
+    if (!rightPanelRef) return;
+
+    observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const doi = entry.target.getAttribute("data-doi");
+          if (doi) visibilityMap.set(doi, entry.intersectionRatio);
+        }
+        pickActive();
+      },
+      { root: rightPanelRef, threshold: [0, 0.1, 0.25, 0.5, 0.75, 1] },
+    );
+
+    for (const [, el] of Object.entries(paperRefs)) {
+      if (el) observer.observe(el);
+    }
+  };
+
+  onCleanup(() => {
+    if (observer) observer.disconnect();
+    if (scrollClickTimer) window.clearTimeout(scrollClickTimer);
+  });
+
+  const scrollToPaper = (doi: string) => {
+    setSelectedDoi(doi);
+    isScrollingFromClick = true;
+    if (scrollClickTimer) window.clearTimeout(scrollClickTimer);
+    scrollClickTimer = window.setTimeout(() => { isScrollingFromClick = false; }, 800);
+    const el = paperRefs[doi];
+    if (el && rightPanelRef) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
 
   const syncUrl = (newTags: string[]) => {
     setSearchParams({
@@ -144,14 +208,14 @@ function App() {
         <StudyListPanel
           results={results()}
           selectedDoi={selectedDoi()}
-          onSelect={(doi) => setSelectedDoi(doi)}
+          onSelect={(doi) => scrollToPaper(doi)}
           isLoading={isLoading()}
           hasSearched={hasSearched()}
         />
 
-        <div class="right-panel">
+        <div class="right-panel" ref={rightPanelRef}>
           <Show
-            when={selectedDoi()}
+            when={Object.keys(results()).length > 0}
             fallback={
               <WelcomeState
                 onExampleClick={(query) => {
@@ -172,17 +236,22 @@ function App() {
               />
             }
           >
-            {(doi) => {
-              const paper = () => results()[doi()];
-              return (
-                <Show
-                  when={paper()?.record}
-                  fallback={<NoDataState doi={doi()} />}
+            <For each={Object.entries(results())}>
+              {([doi, paper]) => (
+                <div
+                  data-doi={doi}
+                  ref={(el) => { paperRefs[doi] = el; setupObserver(); }}
+                  class={`scroll-paper-section ${selectedDoi() === doi ? "highlighted" : ""}`}
                 >
-                  <DetailView paper={paper()!} />
-                </Show>
-              );
-            }}
+                  <Show
+                    when={paper?.record}
+                    fallback={<NoDataState doi={doi} />}
+                  >
+                    <DetailView paper={paper!} />
+                  </Show>
+                </div>
+              )}
+            </For>
           </Show>
         </div>
       </div>

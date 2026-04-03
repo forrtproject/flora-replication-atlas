@@ -102,22 +102,38 @@ export const DetailView = (props: DetailViewProps) => {
   const [toastMessage, setToastMessage] = createSignal<string | null>(null);
   const [pdfUrl, setPdfUrl] = createSignal<string | null>(null);
   let toastTimer: number | undefined;
+  let wrapRef: HTMLDivElement | undefined;
+  let pdfFetched = false;
 
   const rep = () => formatReplicationResponse(props.paper);
 
-  createEffect(async () => {
+  const fetchPdfLazy = async () => {
+    if (pdfFetched) return;
+    pdfFetched = true;
     const doi = props.paper.doi;
-    if (!doi) {
-      setPdfUrl(null);
-      return;
-    }
-    setPdfUrl(null);
+    if (!doi) return;
     try {
       const result = await fetchPdfUrl(doi);
       if (result.pdfUrl) setPdfUrl(result.pdfUrl);
     } catch {
       // No PDF available
     }
+  };
+
+  // Lazy-load PDF URL only when this detail view scrolls into the viewport
+  createEffect(() => {
+    if (!wrapRef) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          fetchPdfLazy();
+          observer.disconnect();
+        }
+      },
+      { threshold: 0 },
+    );
+    observer.observe(wrapRef);
+    onCleanup(() => observer.disconnect());
   });
 
   createEffect(() => {
@@ -200,7 +216,7 @@ export const DetailView = (props: DetailViewProps) => {
   };
 
   return (
-    <div class="detail-wrap">
+    <div class="detail-wrap" ref={wrapRef}>
       <div class="detail-card">
         {/* Header */}
         <div class="dh">
