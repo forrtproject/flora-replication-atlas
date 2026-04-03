@@ -21,6 +21,7 @@
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.15",
     "@types/node": "^24.6.0",
+    "baseline-browser-mapping": "^2.10.14",
     "daisyui": "^5.3.7",
     "gh-pages": "^6.3.0",
     "tailwindcss": "^4.1.15",
