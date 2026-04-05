@@ -117,6 +117,12 @@ function App() {
     const newTags = tags().filter((_, i) => i !== index);
     setTags(newTags);
     syncUrl(newTags);
+    if (newTags.length === 0) {
+      setResults({});
+      setSelectedDoi(null);
+      setHasSearched(false);
+      setSearchParams({ dois: undefined, q: undefined });
+    }
   };
 
   const handleResults = (res: DOIResults) => {
@@ -131,6 +137,10 @@ function App() {
     setSearchMode(mode);
     setInputValue("");
     setTags([]);
+    setResults({});
+    setSelectedDoi(null);
+    setHasSearched(false);
+    setSearchParams({ q: undefined, dois: undefined });
   };
 
   const doDoiSearch = (dois: string[]) => {
@@ -182,7 +192,15 @@ function App() {
         tags={tags()}
         inputValue={inputValue()}
         searchMode={searchMode()}
-        onInputChange={(v) => setInputValue(v)}
+        onInputChange={(v) => {
+          setInputValue(v);
+          if (v.trim() === "" && searchMode() === "fuzzy" && tags().length === 0) {
+            setResults({});
+            setSelectedDoi(null);
+            setHasSearched(false);
+            setSearchParams({ q: undefined, dois: undefined });
+          }
+        }}
         onAddTag={addTag}
         onRemoveTag={removeTag}
         onSearchSubmit={doSearch}
