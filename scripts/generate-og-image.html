@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>OG Image Generator — FLoRA Replication Hub</title>
+  <style>
+    body { margin: 2rem; font-family: system-ui, sans-serif; background: #f5f5f5; }
+    #preview { border: 1px solid #ccc; display: block; margin-bottom: 1rem; }
+    button { padding: 0.75rem 1.5rem; font-size: 1rem; cursor: pointer; background: #853953; color: #fff; border: none; border-radius: 6px; }
+    button:hover { background: #6e2f46; }
+    p.note { color: #666; font-size: 0.875rem; max-width: 600px; }
+  </style>
+</head>
+<body>
+  <h1>OG Image Preview</h1>
+  <canvas id="preview" width="1200" height="630"></canvas>
+  <button onclick="download()">Download as PNG</button>
+  <p class="note">This generates the <code>og-image.png</code> file at 1200&times;630px.
+  After downloading, move it to <code>public/og-image.png</code>.</p>
+
+  <script>
+    const W = 1200, H = 630;
+    const canvas = document.getElementById('preview');
+    canvas.style.width = '600px';
+    canvas.style.height = '315px';
+    const ctx = canvas.getContext('2d');
+
+    // Embedded base64 logo to avoid file:// CORS issues
+    const LOGO_B64 = 'data:image/webp;base64,UklGRnwCAABXRUJQVlA4IHACAADQDgCdASogACAAABgAJ6QATyJ8Y/DP9IOx28A+rX7Y5e35F+FH60/4DUI/1L8h/05/uWcNfJ/6l+In7b/27YHP6l+FuyFfx3+V/i170f6l+Kv9m9r+oJ/If5D/ZvyI/rnfP9BP9KD3L269/3dJ5BbkuoGtlFECp7UGmwKx6IbgAP7//72V9QIrzF/YDITwUPet6DXjNlhFv8Rp3//9syf/3zoJ/dF1jR5PrERj/73yw///hkKi7feNirnDZXTTkryj4KY8CpmGbDooiVn8fbJXBvaNy987JP+GZ43yT6sSiPqsxm+9uwIuBftL5cwKzy9/d33YtUtd9cLR0UKRo8Y/MUq+LCP8XHm0xm2rLNvH7pedBmhlX5Tvu7RVmtVCSy0cXzXrMCVpn/90uQYoX/I6R5MzgLrqMCsBRBRAv1ReMYiWeXmXrHpx8z7W4w3tqh51Z7S8NT1Ujv3rXRaCAEY0unDOIfryOfaadks35otJkIs4Oy/v9RxoMqRWlNfdtCUWCL5SAqOlWbDP0kk8eDVB//v8vKFg3cMVtmjJWVMUB8cJwW//9QBaaeb//2Fy2cJ20JH/kKVZzXXyDa4e5090GZLTBjZQvSx7esuaYz/powu5IW06i6udOulSyqLViCFNUHZke5+cFH2zvtLDo0iERmQ/wP2W5w7PPLXqEDtpVWuywr/E20pXD4roblbSeKpFMKYdjugZAdFLmZFSvofGvh2lppbEm//y7/y4qGpIBN1LGablSn2tRU7KwtzA44TFfhaObdjGFUCDKg/QV1crXRqUr6y81n+laBPdbYxxlJdeCpuaw7d0tSyWbCfbgAA=';
+
+    const logo = new Image();
+    logo.onload = draw;
+    logo.src = LOGO_B64;
+
+    // Convert dark-on-white logo to white-on-transparent
+    function makeWhiteLogo(w, h) {
+      const off = document.createElement('canvas');
+      off.width = w; off.height = h;
+      const octx = off.getContext('2d');
+      octx.drawImage(logo, 0, 0, w, h);
+      const imgData = octx.getImageData(0, 0, w, h);
+      const d = imgData.data;
+      for (let i = 0; i < d.length; i += 4) {
+        const brightness = (d[i] + d[i+1] + d[i+2]) / 3;
+        d[i] = 255;
+        d[i+1] = 255;
+        d[i+2] = 255;
+        d[i+3] = Math.max(0, 255 - brightness);
+      }
+      octx.putImageData(imgData, 0, 0);
+      return off;
+    }
+
+    function draw() {
+      // === Background ===
+      ctx.fillStyle = '#853953';
+      ctx.fillRect(0, 0, W, H);
+
+      // Subtle gradient overlay
+      const grad = ctx.createLinearGradient(0, 0, W, H);
+      grad.addColorStop(0, 'rgba(0,0,0,0.08)');
+      grad.addColorStop(0.5, 'rgba(0,0,0,0)');
+      grad.addColorStop(1, 'rgba(0,0,0,0.15)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+
+      // Decorative pattern — dots grid
+      ctx.fillStyle = 'rgba(255,255,255,0.1)';
+      for (let x = 0; x < W; x += 40) {
+        for (let y = 0; y < H; y += 40) {
+          ctx.beginPath();
+          ctx.arc(x, y, 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // === Large FORRT logo on the right ===
+      const bigW = 240, bigH = Math.round(240 * (logo.naturalHeight / logo.naturalWidth));
+      const bigLogo = makeWhiteLogo(bigW, bigH);
+      ctx.save();
+      ctx.globalAlpha = 0.5;
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(bigLogo, W - bigW - 100, (H - bigH) / 2);
+      ctx.restore();
+
+      // === Left accent bar ===
+      ctx.fillStyle = 'rgba(255,255,255,0.35)';
+      ctx.fillRect(0, 0, 8, H);
+
+      const lx = 80;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+
+      // === All text vertically centered as a block ===
+      // Block: FLoRA(96) + gap(8) + Replication Hub(64) + gap(30) + tagline(36) + gap(8) + subtitle(28)
+      // Total height ≈ 96 + 8 + 64 + 30 + 36 + 8 + 28 = 270
+      // Footer sits at bottom independently
+      const blockH = 270;
+      const topY = (H - blockH) / 2 - 20; // shift slightly up to account for footer
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 96px "Segoe UI", system-ui, sans-serif';
+      ctx.fillText('FLoRA', lx, topY);
+
+      ctx.font = '400 64px "Segoe UI", system-ui, sans-serif';
+      ctx.fillText('Replication Hub', lx, topY + 104);
+
+      ctx.font = '400 36px "Segoe UI", system-ui, sans-serif';
+      ctx.fillText('Has this study been replicated?', lx, topY + 198);
+      ctx.font = '400 28px "Segoe UI", system-ui, sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.fillText('Search replication data by DOI, author, or title', lx, topY + 244);
+
+      // === FORRT branding — pinned to bottom ===
+      ctx.font = '500 22px "Segoe UI", system-ui, sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      ctx.fillText('FORRT — Framework for Open and Reproducible Research Training', lx, H - 60);
+    }
+
+    function download() {
+      const link = document.createElement('a');
+      link.download = 'og-image.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+  </script>
+</body>
+</html>

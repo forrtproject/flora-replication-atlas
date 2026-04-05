@@ -206,31 +206,24 @@ export const DetailView = (props: DetailViewProps) => {
       <div class="detail-card">
         {/* Header */}
         <div class="dh">
-          <div
-            style={{
-              display: "flex",
-              "justify-content": "space-between",
-              "align-items": "flex-start",
-              gap: "1rem",
-            }}
-          >
-            <h1 class="dh-title">{rep().title || na("Title")}</h1>
-            <div class="dh-title-actions">
+          <div class="dh-top">
+            <div class="dh-tags">
               <Show when={(rep().replications?.length || 0) > 0}>
                 <span class="dh-tag original">Original</span>
               </Show>
               <Show when={(rep().originals?.length || 0) > 0}>
                 <span class="dh-tag replication">Replication</span>
               </Show>
-              <button
-                class="ab-btn"
-                onClick={handleShareLink}
-                title="Copy share link"
-              >
-                <LinkIcon />
-              </button>
             </div>
+            <button
+              class="dh-share-btn"
+              onClick={handleShareLink}
+              title="Copy share link"
+            >
+              <LinkIcon />
+            </button>
           </div>
+          <h1 class="dh-title">{rep().title || na("Title")}</h1>
           <div class="dh-authors">
             {renderAuthors(rep().authors)} ({rep().year || na("Year")})
           </div>
