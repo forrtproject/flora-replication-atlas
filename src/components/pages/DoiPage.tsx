@@ -2,6 +2,7 @@ import { createSignal, Show, onMount, onCleanup } from "solid-js";
 import { useParams, useNavigate } from "@solidjs/router";
 import type { DOIResults, OriginalPaper } from "../../@types";
 import { fetchMultipleDOIInfo } from "../../api/backend";
+import { appName } from "../../configs";
 import { TopBar, type SearchMode } from "../layout/TopBar";
 import { DetailView } from "../layout/DetailView";
 import { NoDataState } from "../layout/NoDataState";
@@ -19,7 +20,7 @@ export const DoiPage = () => {
   // SEO: update document title and meta tags
   const updateMeta = (paper: OriginalPaper | null) => {
     if (paper?.title) {
-      document.title = `${paper.title} — FLoRA Replication Hub`;
+      document.title = `${paper.title} — ${appName}`;
 
       const setMetaTag = (name: string, content: string, attr = "name") => {
         let el = document.querySelector(
@@ -74,12 +75,12 @@ export const DoiPage = () => {
         url: `https://doi.org/${paper.doi}`,
       });
     } else {
-      document.title = `${doi()} — FLoRA Replication Hub`;
+      document.title = `${doi()} — ${appName}`;
     }
   };
 
   onCleanup(() => {
-    document.title = "FLoRA Replication Summary";
+    document.title = appName;
     const jsonld = document.getElementById("doi-jsonld");
     if (jsonld) jsonld.remove();
   });

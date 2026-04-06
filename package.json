@@ -1,5 +1,6 @@
 {
-  "name": "fred_repl_landing_page",
+  "name": "flora-replication-atlas",
+  "homepage": "https://forrt.org/flora-replication-atlas",
   "private": true,
   "version": "0.0.0",
   "type": "module",

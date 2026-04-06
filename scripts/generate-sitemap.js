@@ -1,8 +1,9 @@
-import { writeFile } from "fs/promises";
+import { writeFile, readFile } from "fs/promises";
 
 // const API_BASE = process.env.VITE_BACKEND_URL || "https://rep-api.forrt.org/v1";
 const API_BASE = "https://rep-api.forrt.org/v1/";
-const SITE_URL = "https://forrt.org/fred_repl_landing_page";
+const pkg = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf-8"));
+const SITE_URL = pkg.homepage;
 const OUTPUT_PATH = process.env.OUTPUT_PATH || "dist/sitemap.xml";
 
 async function fetchAllDois() {
