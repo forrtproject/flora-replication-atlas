@@ -3,6 +3,10 @@ name: Update Sitemap
 on:
   schedule:
     - cron: '0 6 * * 1'  # Every Monday at 06:00 UTC
+  workflow_run:
+    workflows: ["Deploy to GitHub Pages"]
+    types:
+      - completed
   workflow_dispatch:
 
 permissions:
