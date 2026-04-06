@@ -1,4 +1,4 @@
-import { createSignal, Show, For, onCleanup } from "solid-js";
+import { createSignal, createEffect, Show, For, onCleanup } from "solid-js";
 import { useSearchParams } from "@solidjs/router";
 import type { DOIResults, OriginalPaper } from "./@types";
 import { fetchMultipleDOIInfo, fetchFuzzySearch } from "./api/backend";
@@ -13,20 +13,10 @@ const isDoi = (s: string) => /^10\.\d{4,}\//.test(s.trim());
 
 function App() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialDoi = String(searchParams.doi || searchParams.dois || "");
-  const initialQuery = String(searchParams.q || "");
-  const initialTags = initialDoi
-    ? initialDoi
-        .split(",")
-        .map((d: string) => d.trim())
-        .filter((d: string) => d !== "")
-    : [];
 
-  const [tags, setTags] = createSignal<string[]>(initialTags);
-  const [inputValue, setInputValue] = createSignal(initialQuery);
-  const [searchMode, setSearchMode] = createSignal<SearchMode>(
-    initialQuery ? "fuzzy" : "doi",
-  );
+  const [tags, setTags] = createSignal<string[]>([]);
+  const [inputValue, setInputValue] = createSignal("");
+  const [searchMode, setSearchMode] = createSignal<SearchMode>("doi");
   const [results, setResults] = createSignal<Record<string, OriginalPaper>>({});
   const [selectedDoi, setSelectedDoi] = createSignal<string | null>(null);
   const [isLoading, setIsLoading] = createSignal(false);
@@ -182,9 +172,33 @@ function App() {
     }
   };
 
-  // Auto-search if params are in URL
-  if (initialTags.length > 0) doDoiSearch(initialTags);
-  else if (initialQuery) doFuzzySearch(initialQuery);
+  // React to URL changes (e.g. browser back/forward)
+  createEffect(() => {
+    const doi = String(searchParams.doi || searchParams.dois || "");
+    const q = String(searchParams.q || "");
+    const currentTags = doi
+      ? doi.split(",").map((d: string) => d.trim()).filter((d: string) => d !== "")
+      : [];
+
+    if (currentTags.length > 0) {
+      setTags(currentTags);
+      setInputValue("");
+      setSearchMode("doi");
+      doDoiSearch(currentTags);
+    } else if (q) {
+      setTags([]);
+      setInputValue(q);
+      setSearchMode("fuzzy");
+      doFuzzySearch(q);
+    } else {
+      // URL has no search params — reset to welcome state
+      setTags([]);
+      setInputValue("");
+      setResults({});
+      setSelectedDoi(null);
+      setHasSearched(false);
+    }
+  });
 
   return (
     <>

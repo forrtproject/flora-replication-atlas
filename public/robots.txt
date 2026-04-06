@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://forrt.org/fred_repl_landing_page/sitemap.xml
+Sitemap: https://forrt.org/flora-replication-atlas/sitemap.xml

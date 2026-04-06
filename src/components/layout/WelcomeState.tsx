@@ -3,10 +3,12 @@ type WelcomeStateProps = {
 };
 
 const exampleSearches = [
-  { label: "social priming", query: "social priming" },
-  { label: "ego depletion replication", query: "ego depletion replication" },
-  { label: "10.1126/science.aac4716", query: "10.1126/science.aac4716" },
-  { label: "10.1037/a0021524", query: "10.1037/a0021524" },
+  { label: "power posing", query: "power posing" },
+  { label: "marshmallow test", query: "marshmallow test" },
+  { label: "ego depletion", query: "ego depletion" },
+  { label: "growth mindset", query: "growth mindset" },
+  { label: "10.1177/0956797610383437", query: "10.1177/0956797610383437" },
+  { label: "10.1037/0022-3514.54.5.768", query: "10.1037/0022-3514.54.5.768" },
 ];
 
 export const WelcomeState = (props: WelcomeStateProps) => {
@@ -25,7 +27,7 @@ export const WelcomeState = (props: WelcomeStateProps) => {
           <path d="M21 21l-4.3-4.3" />
         </svg>
       </div>
-      <h2>Has this study been replicated?</h2>
+      <h1>Has this study been replicated?</h1>
       <p>
         Search by title, author, or DOI to see replication outcomes, related
         studies, and more.
@@ -48,6 +50,11 @@ export const WelcomeState = (props: WelcomeStateProps) => {
           </div>
         ))}
       </div>
+      <p class="welcome-footnote">
+        Powered by FORRT's Replication Database (FReD), the Replication Atlas
+        covers 1,200+ original findings paired with replication outcomes across
+        psychology and the social sciences.
+      </p>
     </div>
   );
 };
