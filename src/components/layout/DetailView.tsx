@@ -206,7 +206,8 @@ export const DetailView = (props: DetailViewProps) => {
       <div class="detail-card">
         {/* Header */}
         <div class="dh">
-          <div class="dh-top">
+          {/* Mobile: tags + share above title */}
+          <div class="dh-top dh-top-mobile">
             <div class="dh-tags">
               <Show when={(rep().replications?.length || 0) > 0}>
                 <span class="dh-tag original">Original</span>
@@ -223,7 +224,25 @@ export const DetailView = (props: DetailViewProps) => {
               <LinkIcon />
             </button>
           </div>
-          <h1 class="dh-title">{rep().title || na("Title")}</h1>
+          {/* Desktop: title with tags + share inline */}
+          <div class="dh-title-row">
+            <h1 class="dh-title">{rep().title || na("Title")}</h1>
+            <div class="dh-title-actions">
+              <Show when={(rep().replications?.length || 0) > 0}>
+                <span class="dh-tag original">Original</span>
+              </Show>
+              <Show when={(rep().originals?.length || 0) > 0}>
+                <span class="dh-tag replication">Replication</span>
+              </Show>
+              <button
+                class="dh-share-btn"
+                onClick={handleShareLink}
+                title="Copy share link"
+              >
+                <LinkIcon />
+              </button>
+            </div>
+          </div>
           <div class="dh-authors">
             {renderAuthors(rep().authors)} ({rep().year || na("Year")})
           </div>
@@ -408,7 +427,6 @@ export const DetailView = (props: DetailViewProps) => {
             </Show>
           </div>
         </Show>
-
       </div>
 
       {/* Toast */}
