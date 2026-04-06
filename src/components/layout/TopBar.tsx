@@ -166,7 +166,7 @@ export const TopBar = (props: TopBarProps) => {
             </div>
             <div class="topbar-name">
               <strong>FLoRA</strong>
-              <span>Replication Hub</span>
+              <span>Replication Atlas</span>
             </div>
           </A>
         </div>
