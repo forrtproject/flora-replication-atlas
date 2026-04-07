@@ -30,6 +30,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Generate sitemap
+        run: node scripts/generate-sitemap.js
+        env:
+          OUTPUT_PATH: public/sitemap.xml
+
       - name: Build
         run: npm run build:gh-pages
 
