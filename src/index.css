@@ -680,9 +680,9 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 3rem 2rem;
+  padding: 3rem 3rem;
   text-align: center;
-  max-width: 500px;
+  width: 100%;
   margin: 0 auto;
 }
 .welcome-icon {
@@ -708,7 +708,7 @@ body {
   font-size: 14px;
   color: var(--text-secondary);
   line-height: 1.6;
-  margin-bottom: 1.75rem;
+  margin-bottom: 1.25rem;
   max-width: 380px;
 }
 .welcome-examples {
@@ -758,6 +758,77 @@ body {
   line-height: 1.5;
   max-width: 380px;
   text-align: center;
+}
+
+/* ─── Welcome search bar ─── */
+.welcome-search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--white);
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  padding: 0.35rem 0.4rem 0.35rem 0.85rem;
+  width: 100%;
+  max-width: 480px;
+  margin-bottom: 1.75rem;
+  transition: all var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+.welcome-search:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(133, 57, 83, 0.08);
+}
+.welcome-search svg {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.welcome-search .search-mode-toggle {
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--border-light);
+}
+.welcome-search .search-mode-toggle button {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+.welcome-search .search-mode-toggle button.active {
+  background: var(--primary);
+  color: var(--white);
+}
+.welcome-search .search-mode-toggle button:hover:not(.active) {
+  color: var(--text-primary);
+  background: rgba(0, 0, 0, 0.06);
+}
+.welcome-search .tag-input-wrap input {
+  color: var(--text-primary);
+  font-size: 14px;
+}
+.welcome-search .tag-input-wrap input::placeholder {
+  color: var(--text-muted);
+}
+.welcome-search .search-tag {
+  background: rgba(133, 57, 83, 0.1);
+  border-color: rgba(133, 57, 83, 0.2);
+  color: var(--primary);
+}
+.welcome-search .search-tag-remove {
+  color: var(--primary);
+}
+.welcome-search-btn {
+  background: var(--primary);
+  color: var(--white);
+  border: none;
+  padding: 0.4rem 1.2rem;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+.welcome-search-btn:hover {
+  background: var(--primary-dark);
 }
 
 /* ─── Detail content ─── */

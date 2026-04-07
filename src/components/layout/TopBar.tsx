@@ -1,4 +1,4 @@
-import { createSignal, For } from "solid-js";
+import { createSignal, For, Show } from "solid-js";
 import { A } from "@solidjs/router";
 import forrt from "../../assets/FORRT.svg";
 
@@ -8,6 +8,7 @@ type TopBarProps = {
   tags: string[];
   inputValue: string;
   searchMode: SearchMode;
+  showSearch?: boolean;
   onInputChange: (value: string) => void;
   onAddTag: (tag: string) => void;
   onRemoveTag: (index: number) => void;
@@ -170,12 +171,14 @@ export const TopBar = (props: TopBarProps) => {
             </div>
           </A>
         </div>
-        <div
-          class="topbar-search topbar-search-desktop"
-          onClick={() => inputRef?.focus()}
-        >
-          {searchBar((el) => (inputRef = el))}
-        </div>
+        <Show when={props.showSearch !== false}>
+          <div
+            class="topbar-search topbar-search-desktop"
+            onClick={() => inputRef?.focus()}
+          >
+            {searchBar((el) => (inputRef = el))}
+          </div>
+        </Show>
         <div class="topbar-right topbar-right-desktop">
           <a
             class="topbar-link"
@@ -230,6 +233,7 @@ export const TopBar = (props: TopBarProps) => {
       </nav>
 
       {/* Mobile search row — always visible on small screens */}
+      <Show when={props.showSearch !== false}>
       <div class="topbar-mobile-search">
         <div class="mob-search-modes">
           <button
@@ -315,6 +319,7 @@ export const TopBar = (props: TopBarProps) => {
           </button>
         </div>
       </div>
+      </Show>
 
       {/* Mobile nav menu */}
       {menuOpen() && (

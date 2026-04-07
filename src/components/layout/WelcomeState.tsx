@@ -1,4 +1,15 @@
+import { For } from "solid-js";
+import type { SearchMode } from "./TopBar";
+
 type WelcomeStateProps = {
+  tags: string[];
+  inputValue: string;
+  searchMode: SearchMode;
+  onInputChange: (value: string) => void;
+  onAddTag: (tag: string) => void;
+  onRemoveTag: (index: number) => void;
+  onSearchSubmit: () => void;
+  onSearchModeChange: (mode: SearchMode) => void;
   onExampleClick: (query: string) => void;
 };
 
@@ -12,6 +23,58 @@ const exampleSearches = [
 ];
 
 export const WelcomeState = (props: WelcomeStateProps) => {
+  let inputRef: HTMLInputElement | undefined;
+
+  const fireSearch = (extraTag?: string) => {
+    const allTags = extraTag ? [...props.tags, extraTag] : [...props.tags];
+    if (props.searchMode === "fuzzy") {
+      const query = allTags[0] || props.inputValue.trim();
+      if (query) props.onSearchSubmit();
+    } else if (allTags.length > 0) {
+      if (extraTag) props.onAddTag(extraTag);
+      setTimeout(() => props.onSearchSubmit(), 0);
+    }
+  };
+
+  const handleKeyDown = (e: KeyboardEvent) => {
+    const value = props.inputValue.trim();
+
+    if (e.key === "," || e.key === "Enter") {
+      if (value && e.key === "," && props.searchMode === "doi") {
+        e.preventDefault();
+        props.onAddTag(value);
+        return;
+      }
+      if (e.key === "Enter") {
+        fireSearch(value || undefined);
+        return;
+      }
+    }
+
+    if (
+      e.key === "Backspace" &&
+      props.inputValue === "" &&
+      props.tags.length > 0
+    ) {
+      props.onRemoveTag(props.tags.length - 1);
+    }
+  };
+
+  const handlePaste = (e: ClipboardEvent) => {
+    if (props.searchMode !== "doi") return;
+    const pasted = e.clipboardData?.getData("text") || "";
+    if (pasted.includes(",")) {
+      e.preventDefault();
+      const parts = pasted
+        .split(",")
+        .map((s) => s.trim())
+        .filter((s) => s !== "");
+      for (const part of parts) {
+        props.onAddTag(part);
+      }
+    }
+  };
+
   return (
     <div class="welcome-state">
       <div class="welcome-icon">
@@ -32,10 +95,96 @@ export const WelcomeState = (props: WelcomeStateProps) => {
         Search by title, author, or DOI to see replication outcomes, related
         studies, and more.
       </p>
+
+      <div
+        class="welcome-search"
+        onClick={() => inputRef?.focus()}
+      >
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+        >
+          <circle cx="11" cy="11" r="8" />
+          <path d="M21 21l-4.3-4.3" />
+        </svg>
+        <div class="search-mode-toggle">
+          <button
+            classList={{ active: props.searchMode === "doi" }}
+            onClick={(e) => {
+              e.stopPropagation();
+              props.onSearchModeChange("doi");
+            }}
+          >
+            DOI
+          </button>
+          <button
+            classList={{ active: props.searchMode === "fuzzy" }}
+            onClick={(e) => {
+              e.stopPropagation();
+              props.onSearchModeChange("fuzzy");
+            }}
+          >
+            Author / Title / Year
+          </button>
+        </div>
+        <div class="tag-input-wrap">
+          {props.searchMode === "doi" && (
+            <For each={props.tags}>
+              {(tag, i) => (
+                <span class="search-tag">
+                  {tag}
+                  <button
+                    class="search-tag-remove"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      props.onRemoveTag(i());
+                    }}
+                  >
+                    &times;
+                  </button>
+                </span>
+              )}
+            </For>
+          )}
+          <input
+            ref={(el) => (inputRef = el)}
+            type="text"
+            placeholder={
+              props.searchMode === "doi"
+                ? props.tags.length === 0
+                  ? "Search by DOI…"
+                  : "Add another DOI…"
+                : "Search by title, author, or year…"
+            }
+            value={props.inputValue}
+            onInput={(e) => props.onInputChange(e.currentTarget.value)}
+            onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
+          />
+        </div>
+        <button
+          class="welcome-search-btn"
+          onClick={() => {
+            const value = props.inputValue.trim();
+            fireSearch(value || undefined);
+          }}
+        >
+          Search
+        </button>
+      </div>
+
       <div class="welcome-examples">
         <div class="welcome-examples-label">Example searches</div>
         {exampleSearches.map((ex) => (
-          <div class="welcome-doi" onClick={() => props.onExampleClick(ex.query)}>
+          <div
+            class="welcome-doi"
+            onClick={() => props.onExampleClick(ex.query)}
+          >
             <span>{ex.label}</span>
             <svg
               width="14"
@@ -51,9 +200,9 @@ export const WelcomeState = (props: WelcomeStateProps) => {
         ))}
       </div>
       <p class="welcome-footnote">
-        Powered by FORRT's Replication Database (FReD), the Replication Atlas
-        covers 1,200+ original findings paired with replication outcomes across
-        psychology and the social sciences.
+        Powered by FORRT's Library of Reproduction and Replication Attempts
+        (FLoRA), the Replication Atlas covers 1,600+ original findings paired
+        with replication outcomes across research disciplines.
       </p>
     </div>
   );
