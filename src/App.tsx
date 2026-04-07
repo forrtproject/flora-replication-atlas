@@ -206,6 +206,7 @@ function App() {
         tags={tags()}
         inputValue={inputValue()}
         searchMode={searchMode()}
+        showSearch={hasSearched()}
         onInputChange={(v) => {
           setInputValue(v);
           if (v.trim() === "" && searchMode() === "fuzzy" && tags().length === 0) {
@@ -250,6 +251,14 @@ function App() {
             when={Object.keys(results()).length > 0}
             fallback={
               <WelcomeState
+                tags={tags()}
+                inputValue={inputValue()}
+                searchMode={searchMode()}
+                onInputChange={(v) => setInputValue(v)}
+                onAddTag={addTag}
+                onRemoveTag={removeTag}
+                onSearchSubmit={doSearch}
+                onSearchModeChange={handleSearchModeChange}
                 onExampleClick={(query) => {
                   if (isDoi(query)) {
                     setSearchMode("doi");
