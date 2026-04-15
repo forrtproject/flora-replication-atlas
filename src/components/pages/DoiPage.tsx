@@ -12,7 +12,7 @@ export const DoiPage = () => {
   const params = useParams<{ doi: string }>();
   const navigate = useNavigate();
 
-  const doi = () => params.doi;
+  const doi = () => decodeURIComponent(params.doi);
   const [paper, setPaper] = createSignal<OriginalPaper | null>(null);
   const [isLoading, setIsLoading] = createSignal(true);
   const [hasData, setHasData] = createSignal(false);
