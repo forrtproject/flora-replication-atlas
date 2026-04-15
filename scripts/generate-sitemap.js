@@ -21,6 +21,14 @@ async function fetchAllDois() {
   return dois;
 }
 
+function encodeDoi(doi) {
+  // Percent-encode characters that are invalid in XML (and in URLs)
+  return doi
+    .replace(/&/g, "%26")
+    .replace(/</g, "%3C")
+    .replace(/>/g, "%3E");
+}
+
 function buildSitemap(dois) {
   const today = new Date().toISOString().split("T")[0];
 
@@ -35,7 +43,7 @@ function buildSitemap(dois) {
     ...dois.map(
       (doi) =>
         `  <url>
-    <loc>${SITE_URL}/doi/${doi}</loc>
+    <loc>${SITE_URL}/doi/${encodeDoi(doi)}</loc>
     <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
