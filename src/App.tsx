@@ -27,6 +27,7 @@ function App() {
   let isScrollingFromClick = false;
   let scrollClickTimer: number | undefined;
   let observer: IntersectionObserver | undefined;
+  let ignoreNextReset = false;
 
   const visibilityMap = new Map<string, number>();
 
@@ -129,7 +130,7 @@ function App() {
     setTags([]);
     setResults({});
     setSelectedDoi(null);
-    setHasSearched(false);
+    if (hasSearched()) ignoreNextReset = true;
     setSearchParams({ q: undefined, dois: undefined });
   };
 
@@ -192,11 +193,15 @@ function App() {
       doFuzzySearch(q);
     } else {
       // URL has no search params — reset to welcome state
-      setTags([]);
-      setInputValue("");
-      setResults({});
-      setSelectedDoi(null);
-      setHasSearched(false);
+      if (ignoreNextReset) {
+        ignoreNextReset = false;
+      } else {
+        setTags([]);
+        setInputValue("");
+        setResults({});
+        setSelectedDoi(null);
+        setHasSearched(false);
+      }
     }
   });
 
@@ -212,7 +217,7 @@ function App() {
           if (v.trim() === "" && searchMode() === "fuzzy" && tags().length === 0) {
             setResults({});
             setSelectedDoi(null);
-            setHasSearched(false);
+            ignoreNextReset = true;
             setSearchParams({ q: undefined, dois: undefined });
           }
         }}
@@ -250,6 +255,7 @@ function App() {
           <Show
             when={Object.keys(results()).length > 0}
             fallback={
+              <Show when={!hasSearched()}>
               <WelcomeState
                 tags={tags()}
                 inputValue={inputValue()}
@@ -275,6 +281,7 @@ function App() {
                   }
                 }}
               />
+              </Show>
             }
           >
             <For each={Object.entries(results())}>
