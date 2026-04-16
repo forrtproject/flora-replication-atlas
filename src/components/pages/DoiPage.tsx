@@ -36,15 +36,97 @@ export const DoiPage = () => {
 
       const authors =
         paper.authors?.map((a) => `${a.family}, ${a.given}`).join("; ") || "";
-      const description = `Replication data for "${paper.title}" by ${authors} (${paper.year}). ${paper.journal || ""}`;
+      const authorLastNames =
+        paper.authors?.map((a) => a.family).filter(Boolean) || [];
+
+      const stats = paper.record?.stats;
+      const replications = paper.record?.replications || [];
+      const reproductions = paper.record?.reproductions || [];
+      const allOutcomes = [
+        ...replications.map((r) => r.outcome),
+        ...reproductions.map((r) => r.outcome),
+      ].filter(Boolean);
+      const uniqueOutcomes = [...new Set(allOutcomes)] as string[];
+      const nReplications = stats?.n_replications_total ?? 0;
+      const nReproductions = stats?.n_reproductions_total ?? 0;
+
+      const formatAuthors = (a: typeof replications[0]["authors"]) => {
+        if (!a?.length) return "unknown authors";
+        if (a.length === 1) return a[0].family;
+        if (a.length === 2) return `${a[0].family} & ${a[1].family}`;
+        return `${a[0].family} et al.`;
+      };
+
+      const replicationSentences = replications.map((r) => {
+        const by = formatAuthors(r.authors);
+        const outcome = r.outcome
+          ? `described as ${r.outcome}`
+          : "outcome not recorded";
+        return `"${paper.title}" has been replicated by ${by} (${r.year}), ${outcome}.`;
+      });
+
+      const reproductionSentences = reproductions.map((r) => {
+        const by = formatAuthors(r.authors);
+        const outcome = r.outcome
+          ? `described as ${r.outcome}`
+          : "outcome not recorded";
+        return `"${paper.title}" has been reproduced by ${by} (${r.year}), ${outcome}.`;
+      });
+
+      const replicationSummary =
+        replicationSentences.length > 0 || reproductionSentences.length > 0
+          ? [...replicationSentences, ...reproductionSentences].join(" ")
+          : "No replications or reproductions recorded yet.";
+
+      const description =
+        `"${paper.title}" by ${authors} (${paper.year}${paper.journal ? `, ${paper.journal}` : ""}). ` +
+        `${replicationSummary} Indexed in the FLoRA Replication Atlas (FORRT FReD database). DOI: ${paper.doi}`;
+
+      // Keywords: author names + title terms + journal + outcomes + standard SEO terms
+      const titleKeywords = paper.title
+        ?.split(/\s+/)
+        .filter((w) => w.length > 4)
+        .slice(0, 6)
+        .map((w) => w.replace(/[^a-zA-Z0-9]/g, ""))
+        .filter(Boolean) || [];
+      const keywords = [
+        ...authorLastNames,
+        paper.journal,
+        String(paper.year),
+        ...uniqueOutcomes.map((o) => `${o} replication`),
+        ...titleKeywords,
+        "replication",
+        "reproducibility",
+        "open science",
+        "FLoRA",
+        "FReD",
+        "FORRT",
+        "replication crisis",
+        "has this study been replicated",
+      ]
+        .filter(Boolean)
+        .join(", ");
 
       setMetaTag("description", description);
+      setMetaTag("keywords", keywords);
       setMetaTag("og:title", paper.title, "property");
       setMetaTag("og:description", description, "property");
       setMetaTag("og:type", "article", "property");
       setMetaTag("og:url", window.location.href, "property");
 
-      // Schema.org structured data for Google
+      // Per-author OG tags for LLM and social parsers
+      const existingAuthorMetas = document.querySelectorAll(
+        'meta[property="article:author"]',
+      );
+      existingAuthorMetas.forEach((el) => el.remove());
+      paper.authors?.forEach((a) => {
+        const el = document.createElement("meta");
+        el.setAttribute("property", "article:author");
+        el.content = `${a.given} ${a.family}`;
+        document.head.appendChild(el);
+      });
+
+      // Schema.org structured data for search engines and LLMs
       let script = document.getElementById(
         "doi-jsonld",
       ) as HTMLScriptElement | null;
@@ -73,6 +155,39 @@ export const DoiPage = () => {
           value: paper.doi,
         },
         url: `https://doi.org/${paper.doi}`,
+        description,
+        keywords: keywords,
+        subjectOf:
+          nReplications > 0 || nReproductions > 0
+            ? [
+                ...replications.map((r) => ({
+                  "@type": "ScholarlyArticle",
+                  name: r.title,
+                  additionalType: "ReplicationStudy",
+                  ...(r.outcome && { description: `Outcome: ${r.outcome}` }),
+                  ...(r.doi && {
+                    identifier: {
+                      "@type": "PropertyValue",
+                      propertyID: "DOI",
+                      value: r.doi,
+                    },
+                  }),
+                })),
+                ...reproductions.map((r) => ({
+                  "@type": "ScholarlyArticle",
+                  name: r.title,
+                  additionalType: "ReproductionStudy",
+                  ...(r.outcome && { description: `Outcome: ${r.outcome}` }),
+                  ...(r.doi && {
+                    identifier: {
+                      "@type": "PropertyValue",
+                      propertyID: "DOI",
+                      value: r.doi,
+                    },
+                  }),
+                })),
+              ]
+            : undefined,
       });
     } else {
       document.title = `${doi()} — ${appName}`;
@@ -81,8 +196,10 @@ export const DoiPage = () => {
 
   onCleanup(() => {
     document.title = appName;
-    const jsonld = document.getElementById("doi-jsonld");
-    if (jsonld) jsonld.remove();
+    document.getElementById("doi-jsonld")?.remove();
+    document
+      .querySelectorAll('meta[property="article:author"]')
+      .forEach((el) => el.remove());
   });
 
   onMount(() => {
