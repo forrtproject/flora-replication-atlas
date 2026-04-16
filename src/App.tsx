@@ -125,8 +125,13 @@ function App() {
   };
 
   const handleSearchModeChange = (mode: SearchMode) => {
+    const currentMode = searchMode();
+    const currentInput = inputValue();
+    const looksLikeDoi = /10\.\d{4,}/.test(currentInput) || currentInput.includes("doi.org/");
     setSearchMode(mode);
-    setInputValue("");
+    if (currentMode === "doi" && looksLikeDoi) {
+      setInputValue("");
+    }
     setTags([]);
     setResults({});
     setSelectedDoi(null);
