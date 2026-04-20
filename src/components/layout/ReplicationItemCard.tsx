@@ -1,4 +1,4 @@
-import { createSignal } from "solid-js";
+import { createSignal, For } from "solid-js";
 import type { ReplicationItem } from "../../@types";
 import { renderAuthors, na } from "../../utils/formatter";
 
@@ -7,6 +7,37 @@ type ReplicationItemCardProps = {
   onCopyApa: (text: string) => void;
   onCopyBibtex: (text: string) => void;
 };
+
+type BadgeConfig = { label: string; cls: string };
+
+function parseOutcomeBadges(outcome: string): BadgeConfig[] {
+  const compMap: Record<string, BadgeConfig> = {
+    "computationally successful": { label: "Comp. Success", cls: "comp-success" },
+    "computational issues": { label: "Comp. Issues", cls: "comp-issues" },
+    "computation not checked": { label: "Comp. Not Checked", cls: "comp-unchecked" },
+  };
+  const robMap: Record<string, BadgeConfig> = {
+    "robust": { label: "Robust", cls: "robust" },
+    "robustness challenges": { label: "Rob. Challenges", cls: "rob-challenges" },
+    "robustness not checked": { label: "Not Checked", cls: "rob-unchecked" },
+  };
+
+  const lower = outcome?.toLowerCase() ?? "";
+  for (const [compKey, compBadge] of Object.entries(compMap)) {
+    for (const [robKey, robBadge] of Object.entries(robMap)) {
+      if (lower === `${compKey}, ${robKey}`) return [compBadge, robBadge];
+    }
+  }
+
+  // Fallback for standard outcomes
+  const simple: Record<string, BadgeConfig> = {
+    successful: { label: "Success", cls: "successful" },
+    failed: { label: "Failed", cls: "failed" },
+    mixed: { label: "Mixed", cls: "mixed" },
+    partial: { label: "Partial", cls: "partial" },
+  };
+  return [simple[lower] ?? { label: outcome || "N/A", cls: "" }];
+}
 
 const CopyIcon = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -25,21 +56,16 @@ const ExternalLinkIcon = () => (
 
 export const ReplicationItemCard = (props: ReplicationItemCardProps) => {
   const [expanded, setExpanded] = createSignal(false);
-
-  const badgeLabel = () => {
-    switch (props.item.outcome) {
-      case "successful": return "Success";
-      case "failed": return "Failed";
-      case "mixed": return "Mixed";
-      case "partial": return "Partial";
-      default: return props.item.outcome || "N/A";
-    }
-  };
+  const badges = () => parseOutcomeBadges(props.item.outcome);
 
   return (
     <div class="rep-item">
       <div class="rep-item-main">
-        <span class={`ri-badge ${props.item.outcome || ""}`}>{badgeLabel()}</span>
+        <div class="ri-badge-group">
+          <For each={badges()}>
+            {(b) => <span class={`ri-badge ${b.cls}`}>{b.label}</span>}
+          </For>
+        </div>
         <div class="ri-body">
           <div class="ri-title">{props.item.title || na("Title")}</div>
           <div class="ri-meta">

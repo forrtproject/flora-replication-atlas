@@ -941,6 +941,18 @@ body {
   background: #f5f3ff;
   color: #7c3aed;
 }
+.dh-tag.rob-unchecked {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+.dh-tag.rob-challenges {
+  background: #fff7ed;
+  color: #c2410c;
+}
+.dh-tag.comp-unchecked {
+  background: #f3f4f6;
+  color: #6b7280;
+}
 .dh-authors {
   font-size: 14px;
   color: var(--text-secondary);
@@ -1189,6 +1201,35 @@ body {
 .ri-badge.partial {
   background: var(--warning-bg);
   color: #9a6f00;
+}
+.ri-badge-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.ri-badge.comp-success {
+  background: var(--success-bg);
+  color: var(--success);
+}
+.ri-badge.comp-issues {
+  background: var(--error-bg);
+  color: var(--error);
+}
+.ri-badge.comp-unchecked {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+.ri-badge.robust {
+  background: #f0fdf4;
+  color: #15803d;
+}
+.ri-badge.rob-challenges {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+.ri-badge.rob-unchecked {
+  background: #f4f4f4;
+  color: #888;
 }
 .ri-body {
   min-width: 0;
