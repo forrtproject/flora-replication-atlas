@@ -7,6 +7,7 @@ type WelcomeStateProps = {
   searchMode: SearchMode;
   onInputChange: (value: string) => void;
   onAddTag: (tag: string) => void;
+  onAddTags?: (tags: string[]) => void;
   onRemoveTag: (index: number) => void;
   onSearchSubmit: () => void;
   onSearchModeChange: (mode: SearchMode) => void;
@@ -69,8 +70,12 @@ export const WelcomeState = (props: WelcomeStateProps) => {
         .split(",")
         .map((s) => s.trim())
         .filter((s) => s !== "");
-      for (const part of parts) {
-        props.onAddTag(part);
+      if (props.onAddTags) {
+        props.onAddTags(parts);
+      } else {
+        for (const part of parts) {
+          props.onAddTag(part);
+        }
       }
     }
   };
