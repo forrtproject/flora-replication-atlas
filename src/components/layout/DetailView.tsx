@@ -130,7 +130,8 @@ export const DetailView = (props: DetailViewProps) => {
     if (!hasRepOrRepro && hasOriginals) {
       setActiveTab("originals");
     } else if (hasRepOrRepro) {
-      setActiveTab("replications");
+      const hasReplications = (r.replications?.length || 0) > 0;
+      setActiveTab(hasReplications ? "replications" : "reproductions");
     }
   });
 

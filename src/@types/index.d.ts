@@ -33,7 +33,17 @@ export type ReplicationItem = {
   apa_ref: string;
   bibtex_ref: string;
   url: string | null;
-  outcome: "successful" | "failed" | "mixed" | "partial";
+  outcome: "successful" | "failed" | "mixed" | "partial"
+    | "computationally successful, robust"
+    | "computationally successful, robustness challenges"
+    | "computationally successful, robustness not checked"
+    | "computational issues, robust"
+    | "computational issues, robustness challenges"
+    | "computational issues, robustness not checked"
+    | "computation not checked, robust"
+    | "computation not checked, robustness challenges"
+    | "computation not checked, robustness not checked"
+    | string;
   outcome_quote?: string;
   outcome_quote_source?: string;
 };

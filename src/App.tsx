@@ -132,10 +132,10 @@ function App() {
     setTags(newTags);
     syncUrl(newTags);
     if (newTags.length === 0) {
+      debouncedDoiSearch.cancel();
       setResults({});
       setSelectedDoi(null);
       setHasSearched(false);
-      setSearchParams({ dois: undefined, q: undefined });
     } else {
       debouncedDoiSearch(newTags);
     }
