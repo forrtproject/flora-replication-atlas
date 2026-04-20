@@ -11,6 +11,7 @@ type TopBarProps = {
   showSearch?: boolean;
   onInputChange: (value: string) => void;
   onAddTag: (tag: string) => void;
+  onAddTags?: (tags: string[]) => void;
   onRemoveTag: (index: number) => void;
   onSearchSubmit: () => void;
   onNavigateSearch?: (tags: string[]) => void;
@@ -66,8 +67,12 @@ export const TopBar = (props: TopBarProps) => {
         .split(",")
         .map((s) => s.trim())
         .filter((s) => s !== "");
-      for (const part of parts) {
-        props.onAddTag(part);
+      if (props.onAddTags) {
+        props.onAddTags(parts);
+      } else {
+        for (const part of parts) {
+          props.onAddTag(part);
+        }
       }
     }
   };

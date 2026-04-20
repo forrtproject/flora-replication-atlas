@@ -11,6 +11,16 @@ import { Footer } from "./components/Footer";
 
 const isDoi = (s: string) => /^10\.\d{4,}\//.test(s.trim());
 
+const debounce = <T extends unknown[]>(fn: (...args: T) => void, delay: number) => {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const call = (...args: T) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), delay);
+  };
+  call.cancel = () => { clearTimeout(timer); timer = undefined; };
+  return call;
+};
+
 function App() {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -28,6 +38,8 @@ function App() {
   let scrollClickTimer: number | undefined;
   let observer: IntersectionObserver | undefined;
   let ignoreNextReset = false;
+  let skipFuzzyEffect = false;
+  let skipDoiEffect = false;
 
   const visibilityMap = new Map<string, number>();
 
@@ -88,6 +100,7 @@ function App() {
   };
 
   const syncUrl = (newTags: string[]) => {
+    skipDoiEffect = true;
     setSearchParams({
       dois: newTags.length > 0 ? newTags.join(",") : undefined,
       q: undefined,
@@ -104,6 +117,16 @@ function App() {
     setInputValue("");
   };
 
+  const addTags = (incoming: string[]) => {
+    const existing = new Set(tags());
+    const deduped = incoming.map((t) => t.trim()).filter((t) => t && !existing.has(t));
+    if (deduped.length === 0) return;
+    const newTags = [...tags(), ...deduped];
+    setTags(newTags);
+    syncUrl(newTags);
+    setInputValue("");
+  };
+
   const removeTag = (index: number) => {
     const newTags = tags().filter((_, i) => i !== index);
     setTags(newTags);
@@ -113,6 +136,8 @@ function App() {
       setSelectedDoi(null);
       setHasSearched(false);
       setSearchParams({ dois: undefined, q: undefined });
+    } else {
+      debouncedDoiSearch(newTags);
     }
   };
 
@@ -156,6 +181,7 @@ function App() {
 
   const doFuzzySearch = (query: string) => {
     if (!query) return;
+    skipFuzzyEffect = true;
     setIsLoading(true);
     setHasSearched(true);
     setResults({});
@@ -169,6 +195,9 @@ function App() {
         setResults({});
       });
   };
+
+  const debouncedFuzzySearch = debounce((query: string) => doFuzzySearch(query), 400);
+  const debouncedDoiSearch = debounce((dois: string[]) => doDoiSearch(dois), 400);
 
   const doSearch = () => {
     if (searchMode() === "fuzzy") {
@@ -187,15 +216,23 @@ function App() {
       : [];
 
     if (currentTags.length > 0) {
-      setTags(currentTags);
-      setInputValue("");
-      setSearchMode("doi");
-      doDoiSearch(currentTags);
+      if (skipDoiEffect) {
+        skipDoiEffect = false;
+      } else {
+        setTags(currentTags);
+        setInputValue("");
+        setSearchMode("doi");
+        doDoiSearch(currentTags);
+      }
     } else if (q) {
-      setTags([]);
-      setInputValue(q);
-      setSearchMode("fuzzy");
-      doFuzzySearch(q);
+      if (skipFuzzyEffect) {
+        skipFuzzyEffect = false;
+      } else {
+        setTags([]);
+        setInputValue(q);
+        setSearchMode("fuzzy");
+        doFuzzySearch(q);
+      }
     } else {
       // URL has no search params — reset to welcome state
       if (ignoreNextReset) {
@@ -219,14 +256,23 @@ function App() {
         showSearch={hasSearched()}
         onInputChange={(v) => {
           setInputValue(v);
-          if (v.trim() === "" && searchMode() === "fuzzy" && tags().length === 0) {
-            setResults({});
-            setSelectedDoi(null);
-            ignoreNextReset = true;
-            setSearchParams({ q: undefined, dois: undefined });
+          if (searchMode() === "fuzzy") {
+            const q = v.trim();
+            if (q === "") {
+              debouncedFuzzySearch.cancel();
+              if (tags().length === 0) {
+                setResults({});
+                setSelectedDoi(null);
+                ignoreNextReset = true;
+                setSearchParams({ q: undefined, dois: undefined });
+              }
+            } else {
+              debouncedFuzzySearch(q);
+            }
           }
         }}
         onAddTag={addTag}
+        onAddTags={addTags}
         onRemoveTag={removeTag}
         onSearchSubmit={doSearch}
         onSearchModeChange={handleSearchModeChange}
@@ -265,8 +311,16 @@ function App() {
                 tags={tags()}
                 inputValue={inputValue()}
                 searchMode={searchMode()}
-                onInputChange={(v) => setInputValue(v)}
+                onInputChange={(v) => {
+                  setInputValue(v);
+                  if (searchMode() === "fuzzy") {
+                    const q = v.trim();
+                    if (q === "") debouncedFuzzySearch.cancel();
+                    else debouncedFuzzySearch(q);
+                  }
+                }}
                 onAddTag={addTag}
+                onAddTags={addTags}
                 onRemoveTag={removeTag}
                 onSearchSubmit={doSearch}
                 onSearchModeChange={handleSearchModeChange}
