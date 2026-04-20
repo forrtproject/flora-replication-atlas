@@ -12,10 +12,30 @@ export const fetchDOIInfo = async (doi: string) => {
   return response.data;
 };
 
-export const fetchMultipleDOIInfo = async (dois: string[]) => {
-  const response = await backend.post<DOIResults>('/original-lookup', { dois });
-  response.data.isEmpty = replicationResponseHasNoData(response.data);
-  return response.data;
+const BATCH_SIZE = 100;
+
+export const fetchMultipleDOIInfo = async (dois: string[]): Promise<DOIResults> => {
+  if (dois.length <= BATCH_SIZE) {
+    const response = await backend.post<DOIResults>('/original-lookup', { dois });
+    response.data.isEmpty = replicationResponseHasNoData(response.data);
+    return response.data;
+  }
+
+  const batches: string[][] = [];
+  for (let i = 0; i < dois.length; i += BATCH_SIZE) {
+    batches.push(dois.slice(i, i + BATCH_SIZE));
+  }
+
+  const responses = await Promise.all(
+    batches.map((batch) => backend.post<DOIResults>('/original-lookup', { dois: batch }))
+  );
+
+  const merged: DOIResults = { results: {}, isEmpty: true };
+  for (const res of responses) {
+    Object.assign(merged.results, res.data.results ?? {});
+  }
+  merged.isEmpty = replicationResponseHasNoData(merged);
+  return merged;
 };
 
 export const fetchFuzzySearch = async (query: string, limit = 20): Promise<DOIResults> => {
