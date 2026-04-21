@@ -1204,7 +1204,8 @@ body {
 }
 .ri-badge-group {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
   gap: 0.3rem;
 }
 .ri-badge.comp-success {
