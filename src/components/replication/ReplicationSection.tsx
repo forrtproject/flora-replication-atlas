@@ -1,5 +1,20 @@
 import type { ReplicationItem } from "../../@types";
 import { Replication } from "./Replication";
+import type { ReplicationProps } from "./types";
+
+type SimpleOutcome = NonNullable<ReplicationProps["outcome"]>;
+
+function normalizeOutcome(outcome: string | undefined): SimpleOutcome {
+  const lower = (outcome ?? "").toLowerCase();
+  if (lower.includes("computationally successful")) return "successful";
+  if (lower.includes("computational issues")) return "failed";
+  if (lower.includes("computation not checked")) return "uninformative";
+  if (lower === "successful") return "successful";
+  if (lower === "failed") return "failed";
+  if (lower === "partial") return "partial";
+  if (lower === "mixed") return "mixed";
+  return "blank";
+}
 
 export const ReplicationSection = (props: { title: string; items: ReplicationItem[]; emptyMessage?: string }) => {
     if (props.items.length) {
@@ -10,7 +25,7 @@ export const ReplicationSection = (props: { title: string; items: ReplicationIte
                     {props.items.map((r) => (
                         <Replication
                             kind={r.type}
-                            outcome={r.outcome || 'blank'}
+                            outcome={normalizeOutcome(r.outcome)}
                             authors={r.authors || undefined}
                             title={r.title || ''}
                             appaRef={r.apa_ref || ''}
