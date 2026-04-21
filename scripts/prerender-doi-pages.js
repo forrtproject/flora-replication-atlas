@@ -55,7 +55,7 @@ async function fetchAllPapers(dois) {
 }
 
 function formatAuthors(authors) {
-  if (!authors?.length) return "unknown authors";
+  if (!Array.isArray(authors) || !authors.length) return "unknown authors";
   if (authors.length === 1) return authors[0].family;
   if (authors.length === 2) return `${authors[0].family} & ${authors[1].family}`;
   return `${authors[0].family} et al.`;
@@ -64,7 +64,7 @@ function formatAuthors(authors) {
 function buildPageMeta(paper) {
   const doi = paper.doi;
   const title = paper.title || doi;
-  const authors = paper.authors || [];
+  const authors = Array.isArray(paper.authors) ? paper.authors : [];
   const authorNames = authors.map((a) => `${a.family}, ${a.given}`).join("; ");
   const authorLastNames = authors.map((a) => a.family).filter(Boolean);
 
