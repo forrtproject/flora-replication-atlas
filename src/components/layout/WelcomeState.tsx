@@ -64,10 +64,10 @@ export const WelcomeState = (props: WelcomeStateProps) => {
   const handlePaste = (e: ClipboardEvent) => {
     if (props.searchMode !== "doi") return;
     const pasted = e.clipboardData?.getData("text") || "";
-    if (pasted.includes(",")) {
+    if (pasted.includes(",") || pasted.includes("\n")) {
       e.preventDefault();
       const parts = pasted
-        .split(",")
+        .split(/[\n\r,]+/)
         .map((s) => s.trim())
         .filter((s) => s !== "");
       if (props.onAddTags) {
@@ -169,7 +169,7 @@ export const WelcomeState = (props: WelcomeStateProps) => {
             value={props.inputValue}
             onInput={(e) => props.onInputChange(e.currentTarget.value)}
             onKeyDown={handleKeyDown}
-            onPaste={handlePaste}
+            on:paste={handlePaste}
           />
         </div>
         <button
