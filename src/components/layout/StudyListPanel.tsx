@@ -18,9 +18,15 @@ type OutcomeStatus = "failed" | "mixed" | "partial" | "successful" | "blank";
 const resolveOverallStatus = (rep: FormattedDOIResult): OutcomeStatus => {
   if (!rep.outcomes?.total) return "blank";
   const vals = [
-    { outcome: "successful" as OutcomeStatus, count: rep.outcomes.success || 0 },
+    {
+      outcome: "successful" as OutcomeStatus,
+      count: rep.outcomes.success || 0,
+    },
     { outcome: "failed" as OutcomeStatus, count: rep.outcomes.failed || 0 },
-    { outcome: "mixed" as OutcomeStatus, count: (rep.outcomes.mixed || 0) + (rep.outcomes.partial || 0) },
+    {
+      outcome: "mixed" as OutcomeStatus,
+      count: (rep.outcomes.mixed || 0) + (rep.outcomes.partial || 0),
+    },
   ].filter((v) => v.count > 0);
 
   if (vals.length === 1) return vals[0].outcome;
@@ -28,7 +34,14 @@ const resolveOverallStatus = (rep: FormattedDOIResult): OutcomeStatus => {
 };
 
 const PrintIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <svg
+    width="12"
+    height="12"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+  >
     <path d="M6 9V2h12v7" />
     <path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" />
     <rect x="6" y="14" width="12" height="8" />
@@ -39,17 +52,19 @@ export const StudyListPanel = (props: StudyListPanelProps) => {
   const [typeFilter, setTypeFilter] = createSignal<TypeFilter>("all");
 
   const allEntries = () =>
-    Object.entries(props.results).map(([doi, paper]) => {
-      const rep = formatReplicationResponse(paper);
-      const status = resolveOverallStatus(rep);
-      const hasData = !!(rep.title && paper.record);
-      const isOriginal = (rep.replications?.length || 0) > 0;
-      const isReplication = (rep.originals?.length || 0) > 0;
-      return { doi, paper, rep, status, hasData, isOriginal, isReplication };
-    }).sort((a, b) => {
-      if (a.hasData === b.hasData) return 0;
-      return a.hasData ? -1 : 1;
-    });
+    Object.entries(props.results)
+      .map(([doi, paper]) => {
+        const rep = formatReplicationResponse(paper);
+        const status = resolveOverallStatus(rep);
+        const hasData = !!(rep.title && paper.record);
+        const isOriginal = (rep.replications?.length || 0) > 0;
+        const isReplication = (rep.originals?.length || 0) > 0;
+        return { doi, paper, rep, status, hasData, isOriginal, isReplication };
+      })
+      .sort((a, b) => {
+        if (a.hasData === b.hasData) return 0;
+        return a.hasData ? -1 : 1;
+      });
 
   const entries = () => {
     const filter = typeFilter();
@@ -60,14 +75,21 @@ export const StudyListPanel = (props: StudyListPanelProps) => {
 
   const totalCount = () => Object.keys(props.results).length;
   const originalCount = () => allEntries().filter((e) => e.isOriginal).length;
-  const replicationCount = () => allEntries().filter((e) => e.isReplication).length;
+  const replicationCount = () =>
+    allEntries().filter((e) => e.isReplication).length;
 
   const handleExportPdf = () => {
     const visible = entries();
     if (visible.length === 0) return;
 
-    const filterLabel = typeFilter() === "all" ? "All Studies" : typeFilter() === "original" ? "Original Studies" : "Replication Studies";
-    const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const filterLabel =
+      typeFilter() === "all"
+        ? "All Studies"
+        : typeFilter() === "original"
+          ? "Original Studies"
+          : "Replication Studies";
+    const esc = (s: string) =>
+      s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
     const outcomeLabel = (o: string | undefined) => {
       if (!o) return "N/A";
@@ -75,8 +97,12 @@ export const StudyListPanel = (props: StudyListPanelProps) => {
     };
 
     const renderSubItem = (r: any) => {
-      const journal = r.journal ? `<span class="sep">&middot;</span><em>${esc(r.journal)}</em>` : "";
-      const doi = r.doi ? `<div class="si-doi"><a href="https://doi.org/${r.doi}">${esc(r.doi)}</a></div>` : "";
+      const journal = r.journal
+        ? `<span class="sep">&middot;</span><em>${esc(r.journal)}</em>`
+        : "";
+      const doi = r.doi
+        ? `<div class="si-doi"><a href="https://doi.org/${r.doi}">${esc(r.doi)}</a></div>`
+        : "";
       return `<div class="si">
         <span class="outcome ${r.outcome || ""}">${esc(outcomeLabel(r.outcome))}</span>
         <div class="si-body">
@@ -87,32 +113,41 @@ export const StudyListPanel = (props: StudyListPanelProps) => {
       </div>`;
     };
 
-    const cards = visible.map((entry) => {
-      const tags: string[] = [];
-      if (entry.isOriginal) tags.push('<span class="tag original">Original</span>');
-      if (entry.isReplication) tags.push('<span class="tag replication">Replication</span>');
+    const cards = visible
+      .map((entry) => {
+        const tags: string[] = [];
+        if (entry.isOriginal)
+          tags.push('<span class="tag original">Original</span>');
+        if (entry.isReplication)
+          tags.push('<span class="tag replication">Replication</span>');
 
-      const reps = entry.rep.replications || [];
-      const origs = entry.rep.originals || [];
+        const reps = entry.rep.replications || [];
+        const origs = entry.rep.originals || [];
 
-      const repSection = reps.length > 0 ? `
+        const repSection =
+          reps.length > 0
+            ? `
         <div class="section">
           <div class="section-head">Replications <span class="count">${reps.length}</span></div>
           ${reps.map(renderSubItem).join("")}
-        </div>` : "";
+        </div>`
+            : "";
 
-      const origSection = origs.length > 0 ? `
+        const origSection =
+          origs.length > 0
+            ? `
         <div class="section">
           <div class="section-head">Target Studies <span class="count">${origs.length}</span></div>
           ${origs.map(renderSubItem).join("")}
-        </div>` : "";
+        </div>`
+            : "";
 
-      const journal = entry.rep.data?.journal;
-      const journalStr = journal
-        ? `${esc(journal)}${entry.rep.data!.volume ? ` ${entry.rep.data!.volume}` : ""}${entry.rep.data!.issue ? `(${entry.rep.data!.issue})` : ""}`
-        : "";
+        const journal = entry.rep.data?.journal;
+        const journalStr = journal
+          ? `${esc(journal)}${entry.rep.data!.volume ? ` ${entry.rep.data!.volume}` : ""}${entry.rep.data!.issue ? `(${entry.rep.data!.issue})` : ""}`
+          : "";
 
-      return `<div class="card">
+        return `<div class="card">
         <div class="card-head">
           <div class="row">
             <div class="tags">${tags.join("")}</div>
@@ -124,12 +159,15 @@ export const StudyListPanel = (props: StudyListPanelProps) => {
         </div>
         ${repSection}${origSection}
       </div>`;
-    }).join("");
+      })
+      .join("");
 
     const totOrig = visible.filter((e) => e.isOriginal).length;
     const totRepl = visible.filter((e) => e.isReplication).length;
     const summaryParts: string[] = [];
-    summaryParts.push(`${visible.length} ${visible.length === 1 ? "study" : "studies"}`);
+    summaryParts.push(
+      `${visible.length} ${visible.length === 1 ? "study" : "studies"}`,
+    );
     if (totOrig > 0) summaryParts.push(`${totOrig} original`);
     if (totRepl > 0) summaryParts.push(`${totRepl} replication`);
 
@@ -219,7 +257,11 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
         <h3>Search Results</h3>
         <div class="lp-header-actions">
           <Show when={totalCount() > 0}>
-            <button class="lp-export-btn" onClick={handleExportPdf} title="Export to PDF">
+            <button
+              class="lp-export-btn"
+              onClick={handleExportPdf}
+              title="Export to PDF"
+            >
               <PrintIcon /> Export
             </button>
           </Show>
@@ -231,7 +273,13 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
         </div>
       </div>
 
-      <Show when={!props.isLoading && totalCount() > 0 && (originalCount() > 0 || replicationCount() > 0)}>
+      <Show
+        when={
+          !props.isLoading &&
+          totalCount() > 0 &&
+          (originalCount() > 0 || replicationCount() > 0)
+        }
+      >
         <div class="sli-filter-bar">
           <button
             class={`sli-filter-btn ${typeFilter() === "all" ? "active" : ""}`}
@@ -252,7 +300,8 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
               class={`sli-filter-btn replication ${typeFilter() === "replication" ? "active" : ""}`}
               onClick={() => setTypeFilter("replication")}
             >
-              Replication <span class="sli-filter-count">{replicationCount()}</span>
+              Replication{" "}
+              <span class="sli-filter-count">{replicationCount()}</span>
             </button>
           </Show>
         </div>
@@ -266,13 +315,17 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
           </div>
         </Show>
 
-        <Show when={!props.isLoading && totalCount() === 0 && props.hasSearched}>
+        <Show
+          when={!props.isLoading && totalCount() === 0 && props.hasSearched}
+        >
           <div class="lp-empty">
             <p>No results found. Check the DOI and try again.</p>
           </div>
         </Show>
 
-        <Show when={!props.isLoading && totalCount() === 0 && !props.hasSearched}>
+        <Show
+          when={!props.isLoading && totalCount() === 0 && !props.hasSearched}
+        >
           <div class="lp-empty">
             <p>Enter a DOI above to search for replication studies.</p>
           </div>
@@ -286,7 +339,10 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
                 ref={(el) => {
                   createEffect(() => {
                     if (props.selectedDoi === entry.doi) {
-                      el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                      el.scrollIntoView({
+                        behavior: "smooth",
+                        block: "nearest",
+                      });
                     }
                   });
                 }}
@@ -296,31 +352,49 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
                 <div class="sli-body">
                   <div class="sli-title">{entry.rep.title || entry.doi}</div>
                   <div class="sli-meta">
-                    {renderAuthors(entry.rep.authors)} &middot; {entry.rep.year || na("Year")}
+                    {renderAuthors(entry.rep.authors)} &middot;{" "}
+                    {entry.rep.year || na("Year")}
                   </div>
                   <div class="sli-pills">
                     <Show when={(entry.rep.replications?.length || 0) > 0}>
-                      <span class="sli-pill sli-type-tag original">Original</span>
+                      <span class="sli-pill sli-type-tag original">
+                        Original
+                      </span>
                     </Show>
-                    <Show when={(entry.rep.originals?.length || 0) > 0}>
+                    {/* <Show when={(entry.rep.originals?.length || 0) > 0}>
                       <span class="sli-pill sli-type-tag replication">Replication</span>
-                    </Show>
-                    <Show when={
-                      ((entry.rep.replications?.length || 0) > 0 || (entry.rep.originals?.length || 0) > 0) &&
-                      (entry.rep.outcomes?.total || 0) > 0
-                    }>
+                    </Show> */}
+                    <Show
+                      when={
+                        ((entry.rep.replications?.length || 0) > 0 ||
+                          (entry.rep.originals?.length || 0) > 0) &&
+                        (entry.rep.outcomes?.total || 0) > 0
+                      }
+                    >
                       <span class="sli-pills-sep" />
                     </Show>
                     <Show when={(entry.rep.outcomes?.success || 0) > 0}>
-                      <span class="sli-pill s">{entry.rep.outcomes!.success} successful</span>
+                      <span class="sli-pill s">
+                        {entry.rep.outcomes!.success} successful
+                      </span>
                     </Show>
-                    <Show when={((entry.rep.outcomes?.mixed || 0) + (entry.rep.outcomes?.partial || 0)) > 0}>
+                    <Show
+                      when={
+                        (entry.rep.outcomes?.mixed || 0) +
+                          (entry.rep.outcomes?.partial || 0) >
+                        0
+                      }
+                    >
                       <span class="sli-pill m">
-                        {(entry.rep.outcomes!.mixed || 0) + (entry.rep.outcomes!.partial || 0)} mixed
+                        {(entry.rep.outcomes!.mixed || 0) +
+                          (entry.rep.outcomes!.partial || 0)}{" "}
+                        mixed
                       </span>
                     </Show>
                     <Show when={(entry.rep.outcomes?.failed || 0) > 0}>
-                      <span class="sli-pill f">{entry.rep.outcomes!.failed} failed</span>
+                      <span class="sli-pill f">
+                        {entry.rep.outcomes!.failed} failed
+                      </span>
                     </Show>
                   </div>
                 </div>

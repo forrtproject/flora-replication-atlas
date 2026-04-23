@@ -213,9 +213,9 @@ export const DetailView = (props: DetailViewProps) => {
               <Show when={(rep().replications?.length || 0) > 0}>
                 <span class="dh-tag original">Original</span>
               </Show>
-              <Show when={(rep().originals?.length || 0) > 0}>
+              {/* <Show when={(rep().originals?.length || 0) > 0}>
                 <span class="dh-tag replication">Replication</span>
-              </Show>
+              </Show> */}
             </div>
             <button
               class="dh-share-btn"
@@ -232,9 +232,9 @@ export const DetailView = (props: DetailViewProps) => {
               <Show when={(rep().replications?.length || 0) > 0}>
                 <span class="dh-tag original">Original</span>
               </Show>
-              <Show when={(rep().originals?.length || 0) > 0}>
+              {/* <Show when={(rep().originals?.length || 0) > 0}>
                 <span class="dh-tag replication">Replication</span>
-              </Show>
+              </Show> */}
               <button
                 class="dh-share-btn"
                 onClick={handleShareLink}
