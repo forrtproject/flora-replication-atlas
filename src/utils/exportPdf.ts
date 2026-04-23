@@ -15,7 +15,7 @@ const FOOTER_Y = 289;
 const SAFE_BOTTOM = 270;
 const BADGE_COL = 23;
 const CONTENT_X = MARGIN + BADGE_COL;
-const CONTENT_W = CW - BADGE_COL - 2; // -2mm safety margin against charSpace overflow
+const CONTENT_W = CW - BADGE_COL - 8; // generous margin to prevent jsPDF justify overflow
 
 // Website brand colors
 const COLOR_BRAND: [number, number, number] = [133, 57, 83];   // #853953
@@ -37,8 +37,11 @@ export async function exportStudyListPdf(
   const { default: jsPDF } = await import("jspdf");
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
-  // Reset text state that leaks between jsPDF operations (charSpace in particular)
-  const resetText = () => doc.setCharSpace(0);
+  // Force charSpace to zero — cycle through non-zero first so jsPDF always emits the PDF command
+  const resetText = () => {
+    doc.setCharSpace(0.001);
+    doc.setCharSpace(0);
+  };
 
   const totalStudies = entries.length;
   const totalOriginal = entries.filter((e) => e.isOriginal).length;
@@ -83,7 +86,7 @@ export async function exportStudyListPdf(
     doc.roundedRect(bx, baselineY - 3.3, bw, 4.5, 1, 1, "F");
     doc.setTextColor(...color);
     resetText();
-    doc.text(label, bx + 2, baselineY);
+    doc.text(label, bx + 2, baselineY, { align: "left" });
     resetText();
     return bw;
   };
@@ -102,14 +105,14 @@ export async function exportStudyListPdf(
   doc.setFontSize(16);
   doc.setTextColor(...COLOR_BRAND);
   resetText();
-  doc.text(`FLoRA Replication Atlas — ${filterLabel}`, MARGIN, y);
+  doc.text(`FLoRA Replication Atlas — ${filterLabel}`, MARGIN, y, { align: "left" });
   y += 8;
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(...COLOR_MUTED);
   resetText();
-  doc.text(summaryParts.join(" · "), MARGIN, y);
+  doc.text(summaryParts.join(" · "), MARGIN, y, { align: "left" });
   y += 5;
 
   doc.setDrawColor(220, 220, 220);
@@ -125,7 +128,7 @@ export async function exportStudyListPdf(
     doc.setFontSize(8);
     doc.setTextColor(...COLOR_SUBTLE);
     resetText();
-    doc.text(`${sectionLabel.toUpperCase()} ${items.length}`, MARGIN, y);
+    doc.text(`${sectionLabel.toUpperCase()} ${items.length}`, MARGIN, y, { align: "left" });
     y += 5;
 
     for (const item of items) {
@@ -153,7 +156,7 @@ export async function exportStudyListPdf(
       const titleStartY = y;
       for (let i = 0; i < subTitleLines.length; i++) {
         resetText();
-        doc.text(subTitleLines[i], CONTENT_X, titleStartY + i * 5.5);
+        doc.text(subTitleLines[i], CONTENT_X, titleStartY + i * 5.5, { align: "left" });
       }
       y += subTitleLines.length * 5.5;
 
@@ -167,7 +170,7 @@ export async function exportStudyListPdf(
       const metaLines: string[] = doc.splitTextToSize(meta, CONTENT_W);
       for (let i = 0; i < metaLines.length; i++) {
         resetText();
-        doc.text(metaLines[i], CONTENT_X, y + i * 4.5);
+        doc.text(metaLines[i], CONTENT_X, y + i * 4.5, { align: "left" });
       }
       y += metaLines.length * 4.5;
 
@@ -221,7 +224,7 @@ export async function exportStudyListPdf(
     const titleLines: string[] = doc.splitTextToSize(entry.rep.title || entry.doi, CW);
     for (let i = 0; i < titleLines.length; i++) {
       resetText();
-      doc.text(titleLines[i], MARGIN, y + i * 7);
+      doc.text(titleLines[i], MARGIN, y + i * 7, { align: "left" });
     }
     y += titleLines.length * 7;
 
@@ -231,7 +234,7 @@ export async function exportStudyListPdf(
     doc.setFontSize(10);
     doc.setTextColor(...COLOR_BODY);
     resetText();
-    doc.text(authorStr, MARGIN, y);
+    doc.text(authorStr, MARGIN, y, { align: "left" });
     y += 5;
 
     // Journal
@@ -243,7 +246,7 @@ export async function exportStudyListPdf(
       doc.setFontSize(10);
       doc.setTextColor(...COLOR_MUTED);
       resetText();
-      doc.text(`${journal}${vol}${iss}`, MARGIN, y);
+      doc.text(`${journal}${vol}${iss}`, MARGIN, y, { align: "left" });
       y += 5;
     }
 
