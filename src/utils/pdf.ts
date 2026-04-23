@@ -40,6 +40,8 @@ export const downloadElementAsPdf = (element: HTMLElement, options: PdfOptions =
 </style>
 `;
 
+  printWindow.history.replaceState(null, "", window.location.href);
+
   const doc = printWindow.document;
   doc.title = title;
 
