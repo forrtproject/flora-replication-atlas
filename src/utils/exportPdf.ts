@@ -13,6 +13,9 @@ const MARGIN = 15;
 const CW = PAGE_W - 2 * MARGIN;
 const FOOTER_Y = 289;
 const SAFE_BOTTOM = 270;
+const BADGE_COL = 23; // fixed mm reserved for outcome badge column
+const CONTENT_X = MARGIN + BADGE_COL;
+const CONTENT_W = CW - BADGE_COL;
 
 const outcomeLabel = (o: string | null | undefined): string => {
   if (!o) return "N/A";
@@ -54,6 +57,37 @@ export async function exportStudyListPdf(
     if (y + needed > SAFE_BOTTOM) addPage();
   };
 
+  // Draw a filled pill badge at (bx, baselineY) and return its pixel width
+  const drawBadge = (
+    label: string,
+    bx: number,
+    baselineY: number,
+    fill: [number, number, number],
+    color: [number, number, number],
+  ): number => {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7);
+    const tw = doc.getTextWidth(label);
+    const bw = tw + 4;
+    const bh = 4.5;
+    doc.setFillColor(...fill);
+    doc.roundedRect(bx, baselineY - 3.3, bw, bh, 1, 1, "F");
+    doc.setTextColor(...color);
+    doc.text(label, bx + 2, baselineY);
+    return bw;
+  };
+
+  const outcomeBadgeColors = (
+    outcome: string | null | undefined,
+  ): { fill: [number, number, number]; color: [number, number, number] } => {
+    const lc = outcome?.toLowerCase() ?? "";
+    if (lc === "successful")
+      return { fill: [236, 253, 245], color: [22, 163, 74] };
+    if (lc === "failed")
+      return { fill: [254, 240, 238], color: [180, 35, 24] };
+    return { fill: [254, 248, 232], color: [184, 134, 11] };
+  };
+
   // ── Header ──────────────────────────────────────────────
   doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
@@ -79,48 +113,54 @@ export async function exportStudyListPdf(
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8);
     doc.setTextColor(160, 160, 160);
-    doc.text(`${sectionLabel.toUpperCase()} (${items.length})`, MARGIN, y);
+    doc.text(`${sectionLabel.toUpperCase()} ${items.length}`, MARGIN, y);
     y += 5;
 
     for (const item of items) {
       checkPageBreak(18);
 
-      const label = outcomeLabel(item.outcome);
+      // Outcome badge — centered in the badge column
+      const { fill, color } = outcomeBadgeColors(item.outcome);
+      const label = outcomeLabel(item.outcome).toUpperCase();
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(7.5);
-      const lc = item.outcome?.toLowerCase() ?? "";
-      if (lc === "successful") {
-        doc.setTextColor(22, 163, 74);
-      } else if (lc === "failed") {
-        doc.setTextColor(180, 35, 24);
-      } else {
-        doc.setTextColor(184, 134, 11);
-      }
-      const badge = `[${label}]`;
-      doc.text(badge, MARGIN, y);
-      const badgeW = doc.getTextWidth(badge) + 2;
+      doc.setFontSize(7);
+      const tw = doc.getTextWidth(label);
+      const bw = tw + 4;
+      const bx = MARGIN + (BADGE_COL - bw) / 2;
+      drawBadge(label, bx, y, fill, color);
 
+      // Sub-item title — render each line individually to avoid stretch bug
       doc.setFont("helvetica", "bold");
       doc.setFontSize(10);
       doc.setTextColor(34, 34, 34);
-      const subTitleLines = doc.splitTextToSize(item.title || "Untitled", CW - badgeW);
-      doc.text(subTitleLines, MARGIN + badgeW, y);
+      const subTitleLines: string[] = doc.splitTextToSize(
+        item.title || "Untitled",
+        CONTENT_W,
+      );
+      const titleStartY = y;
+      for (let i = 0; i < subTitleLines.length; i++) {
+        doc.text(subTitleLines[i], CONTENT_X, titleStartY + i * 5);
+      }
       y += subTitleLines.length * 5;
 
+      // Meta line
       const authors = formatAuthors(item.authors);
       const meta = `${authors} (${item.year || "N/A"})${item.journal ? ` · ${item.journal}` : ""}`;
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.setTextColor(110, 110, 110);
-      const metaLines = doc.splitTextToSize(meta, CW);
-      doc.text(metaLines, MARGIN, y);
+      const metaLines: string[] = doc.splitTextToSize(meta, CONTENT_W);
+      for (let i = 0; i < metaLines.length; i++) {
+        doc.text(metaLines[i], CONTENT_X, y + i * 4.5);
+      }
       y += metaLines.length * 4.5;
 
+      // DOI
       if (item.doi) {
         doc.setFont("helvetica", "normal");
         doc.setFontSize(8);
         doc.setTextColor(37, 99, 235);
-        doc.textWithLink(item.doi, MARGIN, y, {
+        doc.textWithLink(item.doi, CONTENT_X, y, {
           url: `https://doi.org/${item.doi}`,
         });
         y += 4.5;
@@ -136,7 +176,7 @@ export async function exportStudyListPdf(
     const origs = entry.rep.originals ?? [];
 
     let est = 0;
-    if (entry.isOriginal || entry.isReplication) est += 5;
+    if (entry.isOriginal || entry.isReplication) est += 6;
     est += 14;
     if (entry.rep.data?.journal) est += 5;
     est += 5;
@@ -145,24 +185,30 @@ export async function exportStudyListPdf(
     est += 8;
     checkPageBreak(Math.min(est, 45));
 
-    const tags: string[] = [];
-    if (entry.isOriginal) tags.push("ORIGINAL");
-    if (entry.isReplication) tags.push("REPLICATION");
-    if (tags.length > 0) {
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(7);
-      doc.setTextColor(100, 100, 100);
-      doc.text(tags.join("   "), MARGIN, y);
-      y += 4.5;
+    // Type tags (ORIGINAL / REPLICATION) as styled pills
+    let tagX = MARGIN;
+    if (entry.isOriginal) {
+      tagX += drawBadge("ORIGINAL", tagX, y, [239, 246, 255], [37, 99, 235]) + 2;
     }
+    if (entry.isReplication) {
+      drawBadge("REPLICATION", tagX, y, [245, 243, 255], [124, 58, 237]);
+    }
+    if (entry.isOriginal || entry.isReplication) y += 6;
 
+    // Card title
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
     doc.setTextColor(17, 17, 17);
-    const titleLines = doc.splitTextToSize(entry.rep.title || entry.doi, CW);
-    doc.text(titleLines, MARGIN, y);
+    const titleLines: string[] = doc.splitTextToSize(
+      entry.rep.title || entry.doi,
+      CW,
+    );
+    for (let i = 0; i < titleLines.length; i++) {
+      doc.text(titleLines[i], MARGIN, y + i * 6);
+    }
     y += titleLines.length * 6;
 
+    // Authors + Year
     const authorStr = `${formatAuthors(entry.rep.authors)} (${entry.rep.year ?? "N/A"})`;
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
@@ -170,6 +216,7 @@ export async function exportStudyListPdf(
     doc.text(authorStr, MARGIN, y);
     y += 5;
 
+    // Journal
     const journal = entry.rep.data?.journal;
     if (journal) {
       const vol = entry.rep.data?.volume ? ` ${entry.rep.data.volume}` : "";
@@ -181,6 +228,7 @@ export async function exportStudyListPdf(
       y += 5;
     }
 
+    // DOI
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     doc.setTextColor(37, 99, 235);
@@ -192,6 +240,7 @@ export async function exportStudyListPdf(
     drawSubItems(reps, "Replications");
     drawSubItems(origs, "Target Studies");
 
+    // Card separator
     y += 3;
     doc.setDrawColor(229, 231, 235);
     doc.line(MARGIN, y, PAGE_W - MARGIN, y);
