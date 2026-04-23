@@ -11,13 +11,19 @@ import { Footer } from "./components/Footer";
 
 const isDoi = (s: string) => /^10\.\d{4,}\//.test(s.trim());
 
-const debounce = <T extends unknown[]>(fn: (...args: T) => void, delay: number) => {
+const debounce = <T extends unknown[]>(
+  fn: (...args: T) => void,
+  delay: number,
+) => {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const call = (...args: T) => {
     clearTimeout(timer);
     timer = setTimeout(() => fn(...args), delay);
   };
-  call.cancel = () => { clearTimeout(timer); timer = undefined; };
+  call.cancel = () => {
+    clearTimeout(timer);
+    timer = undefined;
+  };
   return call;
 };
 
@@ -92,7 +98,9 @@ function App() {
     setSelectedDoi(doi);
     isScrollingFromClick = true;
     if (scrollClickTimer) window.clearTimeout(scrollClickTimer);
-    scrollClickTimer = window.setTimeout(() => { isScrollingFromClick = false; }, 800);
+    scrollClickTimer = window.setTimeout(() => {
+      isScrollingFromClick = false;
+    }, 800);
     const el = paperRefs[doi];
     if (el && rightPanelRef) {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -119,7 +127,9 @@ function App() {
 
   const addTags = (incoming: string[]) => {
     const existing = new Set(tags());
-    const deduped = incoming.map((t) => t.trim()).filter((t) => t && !existing.has(t));
+    const deduped = incoming
+      .map((t) => t.trim())
+      .filter((t) => t && !existing.has(t));
     if (deduped.length === 0) return;
     const newTags = [...tags(), ...deduped];
     setTags(newTags);
@@ -152,7 +162,8 @@ function App() {
   const handleSearchModeChange = (mode: SearchMode) => {
     const currentMode = searchMode();
     const currentInput = inputValue();
-    const looksLikeDoi = /10\.\d{4,}/.test(currentInput) || currentInput.includes("doi.org/");
+    const looksLikeDoi =
+      /10\.\d{4,}/.test(currentInput) || currentInput.includes("doi.org/");
     setSearchMode(mode);
     if (currentMode === "doi" && looksLikeDoi) {
       setInputValue("");
@@ -196,8 +207,14 @@ function App() {
       });
   };
 
-  const debouncedFuzzySearch = debounce((query: string) => doFuzzySearch(query), 400);
-  const debouncedDoiSearch = debounce((dois: string[]) => doDoiSearch(dois), 400);
+  const debouncedFuzzySearch = debounce(
+    (query: string) => doFuzzySearch(query),
+    2000,
+  );
+  const debouncedDoiSearch = debounce(
+    (dois: string[]) => doDoiSearch(dois),
+    2000,
+  );
 
   const doSearch = () => {
     if (searchMode() === "fuzzy") {
@@ -212,7 +229,10 @@ function App() {
     const doi = String(searchParams.doi || searchParams.dois || "");
     const q = String(searchParams.q || "");
     const currentTags = doi
-      ? doi.split(",").map((d: string) => d.trim()).filter((d: string) => d !== "")
+      ? doi
+          .split(",")
+          .map((d: string) => d.trim())
+          .filter((d: string) => d !== "")
       : [];
 
     if (currentTags.length > 0) {
@@ -307,39 +327,39 @@ function App() {
             when={Object.keys(results()).length > 0}
             fallback={
               <Show when={!hasSearched()}>
-              <WelcomeState
-                tags={tags()}
-                inputValue={inputValue()}
-                searchMode={searchMode()}
-                onInputChange={(v) => {
-                  setInputValue(v);
-                  if (searchMode() === "fuzzy") {
-                    const q = v.trim();
-                    if (q === "") debouncedFuzzySearch.cancel();
-                    else debouncedFuzzySearch(q);
-                  }
-                }}
-                onAddTag={addTag}
-                onAddTags={addTags}
-                onRemoveTag={removeTag}
-                onSearchSubmit={doSearch}
-                onSearchModeChange={handleSearchModeChange}
-                onExampleClick={(query) => {
-                  if (isDoi(query)) {
-                    setSearchMode("doi");
-                    setInputValue("");
-                    const newTags = [query.trim()];
-                    setTags(newTags);
-                    syncUrl(newTags);
-                    doDoiSearch(newTags);
-                  } else {
-                    setSearchMode("fuzzy");
-                    setTags([]);
-                    setInputValue(query);
-                    doFuzzySearch(query);
-                  }
-                }}
-              />
+                <WelcomeState
+                  tags={tags()}
+                  inputValue={inputValue()}
+                  searchMode={searchMode()}
+                  onInputChange={(v) => {
+                    setInputValue(v);
+                    if (searchMode() === "fuzzy") {
+                      const q = v.trim();
+                      if (q === "") debouncedFuzzySearch.cancel();
+                      else debouncedFuzzySearch(q);
+                    }
+                  }}
+                  onAddTag={addTag}
+                  onAddTags={addTags}
+                  onRemoveTag={removeTag}
+                  onSearchSubmit={doSearch}
+                  onSearchModeChange={handleSearchModeChange}
+                  onExampleClick={(query) => {
+                    if (isDoi(query)) {
+                      setSearchMode("doi");
+                      setInputValue("");
+                      const newTags = [query.trim()];
+                      setTags(newTags);
+                      syncUrl(newTags);
+                      doDoiSearch(newTags);
+                    } else {
+                      setSearchMode("fuzzy");
+                      setTags([]);
+                      setInputValue(query);
+                      doFuzzySearch(query);
+                    }
+                  }}
+                />
               </Show>
             }
           >
@@ -347,7 +367,10 @@ function App() {
               {([doi, paper]) => (
                 <div
                   data-doi={doi}
-                  ref={(el) => { paperRefs[doi] = el; setupObserver(); }}
+                  ref={(el) => {
+                    paperRefs[doi] = el;
+                    setupObserver();
+                  }}
                   class={`scroll-paper-section ${selectedDoi() === doi ? "highlighted" : ""}`}
                 >
                   <Show
