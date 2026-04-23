@@ -172,7 +172,7 @@ export const StudyListPanel = (props: StudyListPanelProps) => {
     if (totRepl > 0) summaryParts.push(`${totRepl} replication`);
 
     const html = `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>FReD Export — ${esc(filterLabel)}</title>
+<html><head><meta charset="utf-8"><title>FLoRA Replication Atlas Export — ${esc(filterLabel)}</title>
 <style>
 @page { margin: 1.5cm; }
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -237,11 +237,11 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
 </style></head>
 <body>
   <header>
-    <h1>FReD &mdash; ${esc(filterLabel)}</h1>
+    <h1>FLoRA Replication Atlas &mdash; ${esc(filterLabel)}</h1>
     <div class="sub">${summaryParts.join(" <span>&middot;</span> ")} <span>&middot;</span> ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</div>
   </header>
   ${cards}
-  <footer>FORRT Replication Database &middot; forrt.org</footer>
+  <footer>FLoRA Library &middot; <a href="https://forrt.org/flora-replication-atlas/" style="color:#bbb;">forrt.org/flora-replication-atlas/</a></footer>
 </body></html>`;
 
     const printWin = window.open("", "_blank");
