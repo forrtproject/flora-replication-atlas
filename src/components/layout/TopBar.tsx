@@ -16,6 +16,7 @@ type TopBarProps = {
   onSearchSubmit: () => void;
   onNavigateSearch?: (tags: string[]) => void;
   onSearchModeChange: (mode: SearchMode) => void;
+  onInputRef?: (el: HTMLInputElement) => void;
 };
 
 export const TopBar = (props: TopBarProps) => {
@@ -181,7 +182,7 @@ export const TopBar = (props: TopBarProps) => {
             class="topbar-search topbar-search-desktop"
             onClick={() => inputRef?.focus()}
           >
-            {searchBar((el) => (inputRef = el))}
+            {searchBar((el) => { inputRef = el; props.onInputRef?.(el); })}
           </div>
         </Show>
         <div class="topbar-right topbar-right-desktop">

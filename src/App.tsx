@@ -40,6 +40,7 @@ function App() {
 
   const paperRefs: Record<string, HTMLDivElement> = {};
   let rightPanelRef: HTMLDivElement | undefined;
+  let topbarInputRef: HTMLInputElement | undefined;
   let isScrollingFromClick = false;
   let scrollClickTimer: number | undefined;
   let observer: IntersectionObserver | undefined;
@@ -267,6 +268,12 @@ function App() {
     }
   });
 
+  createEffect(() => {
+    if (hasSearched()) {
+      setTimeout(() => topbarInputRef?.focus(), 0);
+    }
+  });
+
   return (
     <>
       <TopBar
@@ -274,6 +281,7 @@ function App() {
         inputValue={inputValue()}
         searchMode={searchMode()}
         showSearch={hasSearched()}
+        onInputRef={(el) => (topbarInputRef = el)}
         onInputChange={(v) => {
           setInputValue(v);
           if (searchMode() === "fuzzy") {
