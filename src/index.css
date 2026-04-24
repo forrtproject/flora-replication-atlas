@@ -306,6 +306,9 @@ body {
   grid-template-columns: 360px 1fr;
   overflow: hidden;
 }
+.main-layout.no-sidebar {
+  grid-template-columns: 1fr;
+}
 
 /* ─── Full-page DOI layout ─── */
 .doi-page-layout {
@@ -670,6 +673,15 @@ body {
   gap: 0.5rem;
   flex-wrap: wrap;
   justify-content: center;
+}
+
+/* ─── Suggestions pane (shown after mode switch with no results) ─── */
+.suggestions-pane {
+  padding: 2rem 2.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
 }
 
 /* ─── Welcome state ─── */

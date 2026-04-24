@@ -14,7 +14,7 @@ type WelcomeStateProps = {
   onExampleClick: (query: string) => void;
 };
 
-const exampleSearches = [
+export const exampleSearches = [
   { label: "power posing", query: "power posing" },
   { label: "marshmallow test", query: "marshmallow test" },
   { label: "ego depletion", query: "ego depletion" },
@@ -101,10 +101,7 @@ export const WelcomeState = (props: WelcomeStateProps) => {
         studies, and more.
       </p>
 
-      <div
-        class="welcome-search"
-        onClick={() => inputRef?.focus()}
-      >
+      <div class="welcome-search" onClick={() => inputRef?.focus()}>
         <svg
           width="15"
           height="15"
@@ -120,6 +117,7 @@ export const WelcomeState = (props: WelcomeStateProps) => {
           <button
             classList={{ active: props.searchMode === "doi" }}
             onClick={(e) => {
+              inputRef?.focus();
               e.stopPropagation();
               props.onSearchModeChange("doi");
             }}
@@ -129,6 +127,7 @@ export const WelcomeState = (props: WelcomeStateProps) => {
           <button
             classList={{ active: props.searchMode === "fuzzy" }}
             onClick={(e) => {
+              inputRef?.focus();
               e.stopPropagation();
               props.onSearchModeChange("fuzzy");
             }}
@@ -157,7 +156,10 @@ export const WelcomeState = (props: WelcomeStateProps) => {
             </For>
           )}
           <input
-            ref={(el) => (inputRef = el)}
+            ref={(el) => {
+              inputRef = el;
+              el.focus();
+            }}
             type="text"
             placeholder={
               props.searchMode === "doi"

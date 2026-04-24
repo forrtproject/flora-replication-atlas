@@ -315,22 +315,6 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
           </div>
         </Show>
 
-        <Show
-          when={!props.isLoading && totalCount() === 0 && props.hasSearched}
-        >
-          <div class="lp-empty">
-            <p>No results found. Check the DOI and try again.</p>
-          </div>
-        </Show>
-
-        <Show
-          when={!props.isLoading && totalCount() === 0 && !props.hasSearched}
-        >
-          <div class="lp-empty">
-            <p>Enter a DOI above to search for replication studies.</p>
-          </div>
-        </Show>
-
         <Show when={!props.isLoading && entries().length > 0}>
           <For each={entries()}>
             {(entry) => (
