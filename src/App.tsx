@@ -40,6 +40,7 @@ function App() {
   const [selectedDoi, setSelectedDoi] = createSignal<string | null>(null);
   const [isLoading, setIsLoading] = createSignal(false);
   const [hasSearched, setHasSearched] = createSignal(false);
+  const [hasEverSearched, setHasEverSearched] = createSignal(false);
 
   const paperRefs: Record<string, HTMLDivElement> = {};
   let rightPanelRef: HTMLDivElement | undefined;
@@ -149,6 +150,7 @@ function App() {
       debouncedDoiSearch.cancel();
       setResults({});
       setSelectedDoi(null);
+      setHasSearched(false);
     } else {
       debouncedDoiSearch(newTags);
     }
@@ -174,7 +176,8 @@ function App() {
     setTags([]);
     setResults({});
     setSelectedDoi(null);
-    if (hasSearched()) ignoreNextReset = true;
+    setHasSearched(false);
+    ignoreNextReset = true;
     setSearchParams({ q: undefined, dois: undefined });
   };
 
@@ -182,6 +185,7 @@ function App() {
     if (dois.length === 0) return;
     setIsLoading(true);
     setHasSearched(true);
+    setHasEverSearched(true);
     setResults({});
     setSelectedDoi(null);
     fetchMultipleDOIInfo(dois)
@@ -198,6 +202,7 @@ function App() {
     skipFuzzyEffect = true;
     setIsLoading(true);
     setHasSearched(true);
+    setHasEverSearched(true);
     setResults({});
     setSelectedDoi(null);
     setSearchParams({ q: query, dois: undefined });
@@ -281,6 +286,7 @@ function App() {
         setInputValue("");
         setResults({});
         setSelectedDoi(null);
+        setHasSearched(false);
       }
     }
   });
@@ -296,7 +302,7 @@ function App() {
         tags={tags()}
         inputValue={inputValue()}
         searchMode={searchMode()}
-        showSearch={hasSearched()}
+        showSearch={hasEverSearched()}
         onInputRef={(el) => (topbarInputRef = el)}
         onInputChange={(v) => {
           setInputValue(v);
@@ -307,6 +313,7 @@ function App() {
               if (tags().length === 0) {
                 setResults({});
                 setSelectedDoi(null);
+                setHasSearched(false);
                 ignoreNextReset = true;
                 setSearchParams({ q: undefined, dois: undefined });
               }
@@ -340,10 +347,13 @@ function App() {
       <div
         classList={{
           "main-layout": true,
-          "no-sidebar": Object.keys(results()).length === 0,
+          "no-sidebar":
+            !isLoading() &&
+            !hasSearched() &&
+            Object.keys(results()).length === 0,
         }}
       >
-        <Show when={hasSearched() && Object.keys(results()).length > 0}>
+        <Show when={isLoading() || hasSearched()}>
           <StudyListPanel
             results={results()}
             selectedDoi={selectedDoi()}
@@ -358,51 +368,101 @@ function App() {
             when={Object.keys(results()).length > 0}
             fallback={
               <Show
-                when={hasSearched()}
+                when={isLoading()}
                 fallback={
-                  <WelcomeState
-                    tags={tags()}
-                    inputValue={inputValue()}
-                    searchMode={searchMode()}
-                    onInputChange={(v) => {
-                      setInputValue(v);
-                      if (searchMode() === "fuzzy") {
-                        const q = v.trim();
-                        if (q === "") debouncedFuzzySearch.cancel();
-                        else debouncedFuzzySearch(q);
-                      }
-                    }}
-                    onAddTag={addTag}
-                    onAddTags={addTags}
-                    onRemoveTag={removeTag}
-                    onSearchSubmit={doSearch}
-                    onSearchModeChange={handleSearchModeChange}
-                    onExampleClick={handleExampleClick}
-                  />
-                }
-              >
-                <div class="suggestions-pane">
-                  <div class="welcome-examples">
-                    <div class="welcome-examples-label">Example searches</div>
-                    {exampleSearches.map((ex) => (
-                      <div
-                        class="welcome-doi"
-                        onClick={() => handleExampleClick(ex.query)}
+                  <Show
+                    when={hasSearched()}
+                    fallback={
+                      <Show
+                        when={hasEverSearched()}
+                        fallback={
+                          <WelcomeState
+                            tags={tags()}
+                            inputValue={inputValue()}
+                            searchMode={searchMode()}
+                            onInputChange={(v) => {
+                              setInputValue(v);
+                              if (searchMode() === "fuzzy") {
+                                const q = v.trim();
+                                if (q === "") debouncedFuzzySearch.cancel();
+                                else debouncedFuzzySearch(q);
+                              }
+                            }}
+                            onAddTag={addTag}
+                            onAddTags={addTags}
+                            onRemoveTag={removeTag}
+                            onSearchSubmit={doSearch}
+                            onSearchModeChange={handleSearchModeChange}
+                            onExampleClick={handleExampleClick}
+                          />
+                        }
                       >
-                        <span>{ex.label}</span>
+                        <div class="no-results-pane">
+                          <div class="welcome-examples">
+                            <div class="welcome-examples-label">Example searches</div>
+                            {exampleSearches.map((ex) => (
+                              <div
+                                class="welcome-doi"
+                                onClick={() => handleExampleClick(ex.query)}
+                              >
+                                <span>{ex.label}</span>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                  <polyline points="9,18 15,12 9,6" />
+                                </svg>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </Show>
+                    }
+                  >
+                    <div class="no-results-pane">
+                      <div class="no-results-icon">
                         <svg
-                          width="14"
-                          height="14"
+                          width="32"
+                          height="32"
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
-                          stroke-width="2"
+                          stroke-width="1.5"
                         >
-                          <polyline points="9,18 15,12 9,6" />
+                          <circle cx="11" cy="11" r="8" />
+                          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                          <line x1="8" y1="11" x2="14" y2="11" />
                         </svg>
                       </div>
-                    ))}
-                  </div>
+                      <div class="no-results-title">No results found</div>
+                      <div class="no-results-sub">
+                        Try a different search term or DOI
+                      </div>
+                      <div class="welcome-examples" style="margin-top: 1.5rem">
+                        <div class="welcome-examples-label">Try an example</div>
+                        {exampleSearches.map((ex) => (
+                          <div
+                            class="welcome-doi"
+                            onClick={() => handleExampleClick(ex.query)}
+                          >
+                            <span>{ex.label}</span>
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                            >
+                              <polyline points="9,18 15,12 9,6" />
+                            </svg>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </Show>
+                }
+              >
+                <div class="loading-pane">
+                  <div class="loading-spinner loading-spinner--lg" />
+                  <span class="loading-pane-text">Searching…</span>
                 </div>
               </Show>
             }
