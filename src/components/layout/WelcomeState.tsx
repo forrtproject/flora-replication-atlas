@@ -14,7 +14,7 @@ type WelcomeStateProps = {
   onExampleClick: (query: string) => void;
 };
 
-const exampleSearches = [
+export const exampleSearches = [
   { label: "power posing", query: "power posing" },
   { label: "marshmallow test", query: "marshmallow test" },
   { label: "ego depletion", query: "ego depletion" },
@@ -157,7 +157,7 @@ export const WelcomeState = (props: WelcomeStateProps) => {
             </For>
           )}
           <input
-            ref={(el) => (inputRef = el)}
+            ref={(el) => { inputRef = el; el.focus(); }}
             type="text"
             placeholder={
               props.searchMode === "doi"

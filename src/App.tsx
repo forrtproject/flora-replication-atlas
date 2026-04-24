@@ -4,7 +4,7 @@ import type { DOIResults, OriginalPaper } from "./@types";
 import { fetchMultipleDOIInfo, fetchFuzzySearch } from "./api/backend";
 import { TopBar, type SearchMode } from "./components/layout/TopBar";
 import { StudyListPanel } from "./components/layout/StudyListPanel";
-import { WelcomeState } from "./components/layout/WelcomeState";
+import { WelcomeState, exampleSearches } from "./components/layout/WelcomeState";
 import { DetailView } from "./components/layout/DetailView";
 import { NoDataState } from "./components/layout/NoDataState";
 import { Footer } from "./components/Footer";
@@ -225,6 +225,22 @@ function App() {
     }
   };
 
+  const handleExampleClick = (query: string) => {
+    if (isDoi(query)) {
+      setSearchMode("doi");
+      setInputValue("");
+      const newTags = [query.trim()];
+      setTags(newTags);
+      syncUrl(newTags);
+      doDoiSearch(newTags);
+    } else {
+      setSearchMode("fuzzy");
+      setTags([]);
+      setInputValue(query);
+      doFuzzySearch(query);
+    }
+  };
+
   // React to URL changes (e.g. browser back/forward)
   createEffect(() => {
     const doi = String(searchParams.doi || searchParams.dois || "");
@@ -269,9 +285,8 @@ function App() {
   });
 
   createEffect(() => {
-    if (hasSearched()) {
-      setTimeout(() => topbarInputRef?.focus(), 0);
-    }
+    hasSearched();
+    setTimeout(() => topbarInputRef?.focus(), 0);
   });
 
   return (
@@ -321,53 +336,61 @@ function App() {
         }}
       />
 
-      <div class="main-layout">
-        <StudyListPanel
-          results={results()}
-          selectedDoi={selectedDoi()}
-          onSelect={(doi) => scrollToPaper(doi)}
-          isLoading={isLoading()}
-          hasSearched={hasSearched()}
-        />
+      <div classList={{ "main-layout": true, "no-sidebar": Object.keys(results()).length === 0 }}>
+        <Show when={hasSearched() && Object.keys(results()).length > 0}>
+          <StudyListPanel
+            results={results()}
+            selectedDoi={selectedDoi()}
+            onSelect={(doi) => scrollToPaper(doi)}
+            isLoading={isLoading()}
+            hasSearched={hasSearched()}
+          />
+        </Show>
 
         <div class="right-panel" ref={rightPanelRef}>
           <Show
             when={Object.keys(results()).length > 0}
             fallback={
-              <Show when={!hasSearched()}>
-                <WelcomeState
-                  tags={tags()}
-                  inputValue={inputValue()}
-                  searchMode={searchMode()}
-                  onInputChange={(v) => {
-                    setInputValue(v);
-                    if (searchMode() === "fuzzy") {
-                      const q = v.trim();
-                      if (q === "") debouncedFuzzySearch.cancel();
-                      else debouncedFuzzySearch(q);
-                    }
-                  }}
-                  onAddTag={addTag}
-                  onAddTags={addTags}
-                  onRemoveTag={removeTag}
-                  onSearchSubmit={doSearch}
-                  onSearchModeChange={handleSearchModeChange}
-                  onExampleClick={(query) => {
-                    if (isDoi(query)) {
-                      setSearchMode("doi");
-                      setInputValue("");
-                      const newTags = [query.trim()];
-                      setTags(newTags);
-                      syncUrl(newTags);
-                      doDoiSearch(newTags);
-                    } else {
-                      setSearchMode("fuzzy");
-                      setTags([]);
-                      setInputValue(query);
-                      doFuzzySearch(query);
-                    }
-                  }}
-                />
+              <Show
+                when={hasSearched()}
+                fallback={
+                  <WelcomeState
+                    tags={tags()}
+                    inputValue={inputValue()}
+                    searchMode={searchMode()}
+                    onInputChange={(v) => {
+                      setInputValue(v);
+                      if (searchMode() === "fuzzy") {
+                        const q = v.trim();
+                        if (q === "") debouncedFuzzySearch.cancel();
+                        else debouncedFuzzySearch(q);
+                      }
+                    }}
+                    onAddTag={addTag}
+                    onAddTags={addTags}
+                    onRemoveTag={removeTag}
+                    onSearchSubmit={doSearch}
+                    onSearchModeChange={handleSearchModeChange}
+                    onExampleClick={handleExampleClick}
+                  />
+                }
+              >
+                <div class="suggestions-pane">
+                  <div class="welcome-examples">
+                    <div class="welcome-examples-label">Example searches</div>
+                    {exampleSearches.map((ex) => (
+                      <div
+                        class="welcome-doi"
+                        onClick={() => handleExampleClick(ex.query)}
+                      >
+                        <span>{ex.label}</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <polyline points="9,18 15,12 9,6" />
+                        </svg>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </Show>
             }
           >
