@@ -315,7 +315,6 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
           </div>
         </Show>
 
-
         <Show when={!props.isLoading && entries().length > 0}>
           <For each={entries()}>
             {(entry) => (

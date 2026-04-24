@@ -4,7 +4,10 @@ import type { DOIResults, OriginalPaper } from "./@types";
 import { fetchMultipleDOIInfo, fetchFuzzySearch } from "./api/backend";
 import { TopBar, type SearchMode } from "./components/layout/TopBar";
 import { StudyListPanel } from "./components/layout/StudyListPanel";
-import { WelcomeState, exampleSearches } from "./components/layout/WelcomeState";
+import {
+  WelcomeState,
+  exampleSearches,
+} from "./components/layout/WelcomeState";
 import { DetailView } from "./components/layout/DetailView";
 import { NoDataState } from "./components/layout/NoDataState";
 import { Footer } from "./components/Footer";
@@ -146,7 +149,6 @@ function App() {
       debouncedDoiSearch.cancel();
       setResults({});
       setSelectedDoi(null);
-      setHasSearched(false);
     } else {
       debouncedDoiSearch(newTags);
     }
@@ -210,11 +212,11 @@ function App() {
 
   const debouncedFuzzySearch = debounce(
     (query: string) => doFuzzySearch(query),
-    2000,
+    1000,
   );
   const debouncedDoiSearch = debounce(
     (dois: string[]) => doDoiSearch(dois),
-    2000,
+    1000,
   );
 
   const doSearch = () => {
@@ -279,7 +281,6 @@ function App() {
         setInputValue("");
         setResults({});
         setSelectedDoi(null);
-        setHasSearched(false);
       }
     }
   });
@@ -336,7 +337,12 @@ function App() {
         }}
       />
 
-      <div classList={{ "main-layout": true, "no-sidebar": Object.keys(results()).length === 0 }}>
+      <div
+        classList={{
+          "main-layout": true,
+          "no-sidebar": Object.keys(results()).length === 0,
+        }}
+      >
         <Show when={hasSearched() && Object.keys(results()).length > 0}>
           <StudyListPanel
             results={results()}
@@ -384,7 +390,14 @@ function App() {
                         onClick={() => handleExampleClick(ex.query)}
                       >
                         <span>{ex.label}</span>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                        >
                           <polyline points="9,18 15,12 9,6" />
                         </svg>
                       </div>

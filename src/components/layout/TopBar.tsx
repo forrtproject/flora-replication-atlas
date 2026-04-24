@@ -95,6 +95,7 @@ export const TopBar = (props: TopBarProps) => {
         <button
           classList={{ active: props.searchMode === "doi" }}
           onClick={(e) => {
+            inputRef?.focus();
             e.stopPropagation();
             props.onSearchModeChange("doi");
           }}
@@ -104,6 +105,7 @@ export const TopBar = (props: TopBarProps) => {
         <button
           classList={{ active: props.searchMode === "fuzzy" }}
           onClick={(e) => {
+            inputRef?.focus();
             e.stopPropagation();
             props.onSearchModeChange("fuzzy");
           }}
@@ -182,7 +184,10 @@ export const TopBar = (props: TopBarProps) => {
             class="topbar-search topbar-search-desktop"
             onClick={() => inputRef?.focus()}
           >
-            {searchBar((el) => { inputRef = el; props.onInputRef?.(el); })}
+            {searchBar((el) => {
+              inputRef = el;
+              props.onInputRef?.(el);
+            })}
           </div>
         </Show>
         <div class="topbar-right topbar-right-desktop">
@@ -240,78 +245,24 @@ export const TopBar = (props: TopBarProps) => {
 
       {/* Mobile search row — always visible on small screens */}
       <Show when={props.showSearch !== false}>
-      <div class="topbar-mobile-search">
-        <div class="mob-search-modes">
-          <button
-            classList={{ active: props.searchMode === "doi" }}
-            onClick={() => props.onSearchModeChange("doi")}
-          >
-            DOI
-          </button>
-          <button
-            classList={{ active: props.searchMode === "fuzzy" }}
-            onClick={() => props.onSearchModeChange("fuzzy")}
-          >
-            Author / Title / Year
-          </button>
-        </div>
-        <div class="mob-search-row" onClick={() => mobileInputRef?.focus()}>
-          <svg
-            class="mob-search-icon"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.5"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <path d="M21 21l-4.3-4.3" />
-          </svg>
-          <div class="mob-search-input-wrap">
-            {props.searchMode === "doi" && (
-              <For each={props.tags}>
-                {(tag, i) => (
-                  <span class="search-tag">
-                    {tag}
-                    <button
-                      class="search-tag-remove"
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        props.onRemoveTag(i());
-                      }}
-                    >
-                      &times;
-                    </button>
-                  </span>
-                )}
-              </For>
-            )}
-            <input
-              ref={(el) => (mobileInputRef = el)}
-              type="text"
-              placeholder={
-                props.searchMode === "doi"
-                  ? props.tags.length === 0
-                    ? "Search by DOI…"
-                    : "Add another DOI…"
-                  : "Search by title, author, or year…"
-              }
-              value={props.inputValue}
-              onInput={(e) => props.onInputChange(e.currentTarget.value)}
-              onKeyDown={handleKeyDown}
-              on:paste={handlePaste}
-            />
+        <div class="topbar-mobile-search">
+          <div class="mob-search-modes">
+            <button
+              classList={{ active: props.searchMode === "doi" }}
+              onClick={() => props.onSearchModeChange("doi")}
+            >
+              DOI
+            </button>
+            <button
+              classList={{ active: props.searchMode === "fuzzy" }}
+              onClick={() => props.onSearchModeChange("fuzzy")}
+            >
+              Author / Title / Year
+            </button>
           </div>
-          <button
-            class="mob-search-btn"
-            onClick={() => {
-              const value = props.inputValue.trim();
-              fireSearch(value || undefined);
-            }}
-          >
+          <div class="mob-search-row" onClick={() => mobileInputRef?.focus()}>
             <svg
+              class="mob-search-icon"
               width="16"
               height="16"
               viewBox="0 0 24 24"
@@ -322,9 +273,63 @@ export const TopBar = (props: TopBarProps) => {
               <circle cx="11" cy="11" r="8" />
               <path d="M21 21l-4.3-4.3" />
             </svg>
-          </button>
+            <div class="mob-search-input-wrap">
+              {props.searchMode === "doi" && (
+                <For each={props.tags}>
+                  {(tag, i) => (
+                    <span class="search-tag">
+                      {tag}
+                      <button
+                        class="search-tag-remove"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          props.onRemoveTag(i());
+                        }}
+                      >
+                        &times;
+                      </button>
+                    </span>
+                  )}
+                </For>
+              )}
+              <input
+                ref={(el) => (mobileInputRef = el)}
+                type="text"
+                placeholder={
+                  props.searchMode === "doi"
+                    ? props.tags.length === 0
+                      ? "Search by DOI…"
+                      : "Add another DOI…"
+                    : "Search by title, author, or year…"
+                }
+                value={props.inputValue}
+                onInput={(e) => props.onInputChange(e.currentTarget.value)}
+                onKeyDown={handleKeyDown}
+                on:paste={handlePaste}
+              />
+            </div>
+            <button
+              class="mob-search-btn"
+              onClick={() => {
+                const value = props.inputValue.trim();
+                fireSearch(value || undefined);
+              }}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="M21 21l-4.3-4.3" />
+              </svg>
+            </button>
+          </div>
         </div>
-      </div>
       </Show>
 
       {/* Mobile nav menu */}

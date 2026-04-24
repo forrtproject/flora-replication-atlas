@@ -50,7 +50,7 @@ export const DoiPage = () => {
       const nReplications = stats?.n_replications_total ?? 0;
       const nReproductions = stats?.n_reproductions_total ?? 0;
 
-      const formatAuthors = (a: typeof replications[0]["authors"]) => {
+      const formatAuthors = (a: (typeof replications)[0]["authors"]) => {
         if (!a?.length) return "unknown authors";
         if (a.length === 1) return a[0].family;
         if (a.length === 2) return `${a[0].family} & ${a[1].family}`;
@@ -83,12 +83,13 @@ export const DoiPage = () => {
         `${replicationSummary} Indexed in the FLoRA Replication Atlas (FORRT FReD database). DOI: ${paper.doi}`;
 
       // Keywords: author names + title terms + journal + outcomes + standard SEO terms
-      const titleKeywords = paper.title
-        ?.split(/\s+/)
-        .filter((w) => w.length > 4)
-        .slice(0, 6)
-        .map((w) => w.replace(/[^a-zA-Z0-9]/g, ""))
-        .filter(Boolean) || [];
+      const titleKeywords =
+        paper.title
+          ?.split(/\s+/)
+          .filter((w) => w.length > 4)
+          .slice(0, 6)
+          .map((w) => w.replace(/[^a-zA-Z0-9]/g, ""))
+          .filter(Boolean) || [];
       const keywords = [
         ...authorLastNames,
         paper.journal,
@@ -247,6 +248,7 @@ export const DoiPage = () => {
   };
 
   const removeTag = (index: number) => {
+    debugger;
     const newTags = tags().filter((_, i) => i !== index);
     if (newTags.length === 0) {
       navigate("/");
