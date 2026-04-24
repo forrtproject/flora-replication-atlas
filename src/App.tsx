@@ -115,6 +115,7 @@ function App() {
   const syncUrl = (newTags: string[]) => {
     skipDoiEffect = true;
     setSearchParams({
+      doi: undefined,
       dois: newTags.length > 0 ? newTags.join(",") : undefined,
       q: undefined,
     });
