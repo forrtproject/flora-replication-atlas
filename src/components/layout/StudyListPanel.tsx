@@ -311,8 +311,12 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
         <Show when={props.isLoading}>
           <div class="loading-panel">
             <div class="loading-spinner" />
-            <span>Searching...</span>
+            <span>Searching…</span>
           </div>
+        </Show>
+
+        <Show when={!props.isLoading && props.hasSearched && totalCount() === 0}>
+          <div class="sli-empty">No results found</div>
         </Show>
 
         <Show when={!props.isLoading && entries().length > 0}>
