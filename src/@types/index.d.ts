@@ -68,6 +68,7 @@ export type OriginalPaper = {
   apa_ref: string;
   bibtex_ref: string;
   url: string | null;
+  types?: string[];
   record: RecordData;
 };
 
