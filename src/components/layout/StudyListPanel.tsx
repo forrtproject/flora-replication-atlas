@@ -115,11 +115,9 @@ export const StudyListPanel = (props: StudyListPanelProps) => {
 
     const cards = visible
       .map((entry) => {
-        const tags: string[] = [];
-        if (entry.isOriginal)
-          tags.push('<span class="tag original">Original</span>');
-        if (entry.isReplication)
-          tags.push('<span class="tag replication">Replication</span>');
+        const tags = (entry.paper.types || []).map(
+          (type) => `<span class="tag ${type.toLowerCase()}">${esc(type.charAt(0).toUpperCase() + type.slice(1))}</span>`
+        );
 
         const reps = entry.rep.replications || [];
         const origs = entry.rep.originals || [];
@@ -344,18 +342,16 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
                     {entry.rep.year || na("Year")}
                   </div>
                   <div class="sli-pills">
-                    <Show when={(entry.rep.replications?.length || 0) > 0}>
-                      <span class="sli-pill sli-type-tag original">
-                        Original
-                      </span>
-                    </Show>
-                    {/* <Show when={(entry.rep.originals?.length || 0) > 0}>
-                      <span class="sli-pill sli-type-tag replication">Replication</span>
-                    </Show> */}
+                    <For each={entry.paper.types || []}>
+                      {(type) => (
+                        <span class={`sli-pill sli-type-tag ${type.toLowerCase()}`}>
+                          {type.charAt(0).toUpperCase() + type.slice(1)}
+                        </span>
+                      )}
+                    </For>
                     <Show
                       when={
-                        ((entry.rep.replications?.length || 0) > 0 ||
-                          (entry.rep.originals?.length || 0) > 0) &&
+                        (entry.paper.types?.length || 0) > 0 &&
                         (entry.rep.outcomes?.total || 0) > 0
                       }
                     >

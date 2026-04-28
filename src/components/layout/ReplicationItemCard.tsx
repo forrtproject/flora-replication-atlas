@@ -72,7 +72,7 @@ export const ReplicationItemCard = (props: ReplicationItemCardProps) => {
             {renderAuthors(props.item.authors)} ({props.item.year || na("Year")}) &middot;{" "}
             {props.item.journal || na("Journal")}
           </div>
-          {props.item.doi && (
+          {props.item.doi ? (
             <a
               class="ri-doi"
               href={`https://doi.org/${props.item.doi}`}
@@ -81,7 +81,16 @@ export const ReplicationItemCard = (props: ReplicationItemCardProps) => {
             >
               {props.item.doi}
             </a>
-          )}
+          ) : props.item.url ? (
+            <a
+              class="ri-doi"
+              href={props.item.url}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {props.item.url}
+            </a>
+          ) : null}
         </div>
         <div class="ri-actions">
           {props.item.apa_ref && (
@@ -102,10 +111,10 @@ export const ReplicationItemCard = (props: ReplicationItemCardProps) => {
               <CopyIcon /> BibTeX
             </button>
           )}
-          {props.item.doi && (
+          {(props.item.doi || props.item.url) && (
             <a
               class="ri-action"
-              href={`https://doi.org/${props.item.doi}`}
+              href={props.item.doi ? `https://doi.org/${props.item.doi}` : props.item.url!}
               target="_blank"
               rel="noreferrer"
               title="View paper"
