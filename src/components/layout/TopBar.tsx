@@ -191,6 +191,9 @@ export const TopBar = (props: TopBarProps) => {
           </div>
         </Show>
         <div class="topbar-right topbar-right-desktop">
+          <A class="topbar-link" href="/browse">
+            Browse
+          </A>
           <a
             class="topbar-link"
             href="https://forrt.org/replication-hub/"
@@ -335,6 +338,9 @@ export const TopBar = (props: TopBarProps) => {
       {/* Mobile nav menu */}
       {menuOpen() && (
         <div class="topbar-mobile-menu">
+          <A class="topbar-mobile-link" href="/browse" onClick={() => setMenuOpen(false)}>
+            Browse
+          </A>
           <a
             class="topbar-mobile-link"
             href="https://forrt.org/replication-hub/"

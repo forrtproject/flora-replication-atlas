@@ -4,6 +4,7 @@ import { Router, Route } from '@solidjs/router'
 import './index.css'
 import App from './App'
 import { DoiPage } from './components/pages/DoiPage'
+import { BrowsePage } from './components/pages/BrowsePage'
 
 const base = import.meta.env.BASE_URL
 
@@ -13,6 +14,7 @@ render(
   () => (
     <Router base={base.endsWith('/') ? base.slice(0, -1) : base}>
       <Route path="/" component={App} />
+      <Route path="/browse" component={BrowsePage} />
       <Route path="/doi/*doi" component={DoiPage} />
     </Router>
   ),
