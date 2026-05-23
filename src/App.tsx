@@ -1,7 +1,9 @@
-import { createSignal, createEffect, Show, For, onCleanup } from "solid-js";
+import { createSignal, createEffect, createMemo, Show, For, onCleanup } from "solid-js";
 import { useSearchParams } from "@solidjs/router";
 import type { DOIResults, OriginalPaper } from "./@types";
 import { fetchMultipleDOIInfo, fetchFuzzySearch } from "./api/backend";
+import { formatReplicationResponse } from "./api/formatter";
+import { SearchOutcomesBanner } from "./components/replication/SearchOutcomesBanner";
 import { TopBar, type SearchMode } from "./components/layout/TopBar";
 import { StudyListPanel } from "./components/layout/StudyListPanel";
 import {
@@ -41,6 +43,27 @@ function App() {
   const [isLoading, setIsLoading] = createSignal(false);
   const [hasSearched, setHasSearched] = createSignal(false);
   const [hasEverSearched, setHasEverSearched] = createSignal(false);
+
+  const aggregateOutcomes = createMemo(() => {
+    const res = results();
+    const counts = Object.values(res).reduce(
+      (acc, paper) => {
+        const rep = formatReplicationResponse(paper);
+        acc.success += rep.outcomes?.success ?? 0;
+        acc.failed  += rep.outcomes?.failed  ?? 0;
+        acc.mixed   += rep.outcomes?.mixed   ?? 0;
+        acc.partial += rep.outcomes?.partial ?? 0;
+        acc.total   += rep.outcomes?.total   ?? 0;
+        return acc;
+      },
+      { success: 0, failed: 0, mixed: 0, partial: 0, total: 0 }
+    );
+    return { ...counts, categorizedTotal: counts.success + counts.failed + counts.mixed + counts.partial };
+  });
+
+  const paperCount = createMemo(() =>
+    Object.values(results()).filter(p => p.record != null).length
+  );
 
   const paperRefs: Record<string, HTMLDivElement> = {};
   let rightPanelRef: HTMLDivElement | undefined;
@@ -468,7 +491,13 @@ function App() {
               </Show>
             }
           >
-            <For each={Object.entries(results())}>
+            <>
+              <Show when={aggregateOutcomes().total > 0}>
+                <div class="p-4 pb-0">
+                  <SearchOutcomesBanner outcomes={aggregateOutcomes()} paperCount={paperCount()} />
+                </div>
+              </Show>
+              <For each={Object.entries(results())}>
               {([doi, paper]) => (
                 <div
                   data-doi={doi}
@@ -487,6 +516,7 @@ function App() {
                 </div>
               )}
             </For>
+            </>
           </Show>
         </div>
       </div>
