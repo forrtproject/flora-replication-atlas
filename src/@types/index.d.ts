@@ -69,7 +69,7 @@ export type OriginalPaper = {
   bibtex_ref: string;
   url: string | null;
   types?: string[];
-  record: RecordData;
+  record: RecordData | null;
 };
 
 export type DOIResults = {
