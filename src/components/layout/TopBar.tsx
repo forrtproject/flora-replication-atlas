@@ -1,6 +1,8 @@
 import { createSignal, For, Show } from "solid-js";
 import { A } from "@solidjs/router";
 import forrt from "../../assets/FORRT.svg";
+import { parseDoiPaste } from "../../utils/doi";
+import { AlertDialog } from "./AlertDialog";
 
 export type SearchMode = "doi" | "fuzzy";
 
@@ -19,21 +21,13 @@ type TopBarProps = {
   onInputRef?: (el: HTMLInputElement) => void;
 };
 
-// DOIs never contain whitespace, commas, or semicolons, so any of these
-// (plus newlines/tabs) safely delimit one DOI from the next.
-const DOI_DELIMITER_RE = /[\s,;]+/;
 const DOI_DELIMITER_KEYS = new Set([",", ";", " ", "Tab"]);
-
-const splitDoiInput = (raw: string) =>
-  raw
-    .split(DOI_DELIMITER_RE)
-    .map((s) => s.trim())
-    .filter((s) => s !== "");
 
 export const TopBar = (props: TopBarProps) => {
   let inputRef: HTMLInputElement | undefined;
   let mobileInputRef: HTMLInputElement | undefined;
   const [menuOpen, setMenuOpen] = createSignal(false);
+  const [alertMessage, setAlertMessage] = createSignal<string | null>(null);
 
   const fireSearch = (extraTag?: string) => {
     const allTags = extraTag ? [...props.tags, extraTag] : [...props.tags];
@@ -76,14 +70,18 @@ export const TopBar = (props: TopBarProps) => {
   const handlePaste = (e: ClipboardEvent) => {
     if (props.searchMode !== "doi") return;
     const pasted = e.clipboardData?.getData("text") || "";
-    if (!DOI_DELIMITER_RE.test(pasted)) return;
+    const result = parseDoiPaste(pasted);
+    if (result.kind === "none") return;
     e.preventDefault();
-    const parts = splitDoiInput(pasted);
-    if (parts.length === 0) return;
+    if (result.kind === "reject") {
+      setAlertMessage(result.reason);
+      return;
+    }
+    const toAdd = result.kind === "single" ? [result.doi] : result.dois;
     if (props.onAddTags) {
-      props.onAddTags(parts);
+      props.onAddTags(toAdd);
     } else {
-      for (const part of parts) {
+      for (const part of toAdd) {
         props.onAddTag(part);
       }
     }
@@ -372,6 +370,21 @@ export const TopBar = (props: TopBarProps) => {
           </a>
         </div>
       )}
+
+      <AlertDialog
+        open={alertMessage() !== null}
+        title="Can't split that paste"
+        message={alertMessage() ?? ""}
+        variant="warning"
+        hint={
+          <>
+            Try separating DOIs with a comma, semicolon, or newline — e.g.
+            {" "}
+            <code>10.1371/journal.pone.0335330, 10.1075/target.18159.ola</code>
+          </>
+        }
+        onClose={() => setAlertMessage(null)}
+      />
     </div>
   );
 };

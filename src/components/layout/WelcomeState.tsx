@@ -1,14 +1,9 @@
-import { For } from "solid-js";
+import { createSignal, For } from "solid-js";
 import type { SearchMode } from "./TopBar";
+import { parseDoiPaste } from "../../utils/doi";
+import { AlertDialog } from "./AlertDialog";
 
-const DOI_DELIMITER_RE = /[\s,;]+/;
 const DOI_DELIMITER_KEYS = new Set([",", ";", " ", "Tab"]);
-
-const splitDoiInput = (raw: string) =>
-  raw
-    .split(DOI_DELIMITER_RE)
-    .map((s) => s.trim())
-    .filter((s) => s !== "");
 
 type WelcomeStateProps = {
   tags: string[];
@@ -34,6 +29,7 @@ export const exampleSearches = [
 
 export const WelcomeState = (props: WelcomeStateProps) => {
   let inputRef: HTMLInputElement | undefined;
+  const [alertMessage, setAlertMessage] = createSignal<string | null>(null);
 
   const fireSearch = (extraTag?: string) => {
     const allTags = extraTag ? [...props.tags, extraTag] : [...props.tags];
@@ -76,14 +72,18 @@ export const WelcomeState = (props: WelcomeStateProps) => {
   const handlePaste = (e: ClipboardEvent) => {
     if (props.searchMode !== "doi") return;
     const pasted = e.clipboardData?.getData("text") || "";
-    if (!DOI_DELIMITER_RE.test(pasted)) return;
+    const result = parseDoiPaste(pasted);
+    if (result.kind === "none") return;
     e.preventDefault();
-    const parts = splitDoiInput(pasted);
-    if (parts.length === 0) return;
+    if (result.kind === "reject") {
+      setAlertMessage(result.reason);
+      return;
+    }
+    const toAdd = result.kind === "single" ? [result.doi] : result.dois;
     if (props.onAddTags) {
-      props.onAddTags(parts);
+      props.onAddTags(toAdd);
     } else {
-      for (const part of parts) {
+      for (const part of toAdd) {
         props.onAddTag(part);
       }
     }
@@ -220,6 +220,21 @@ export const WelcomeState = (props: WelcomeStateProps) => {
         (FLoRA), the Replication Atlas covers 1,600+ original findings paired
         with replication outcomes across research disciplines.
       </p>
+
+      <AlertDialog
+        open={alertMessage() !== null}
+        title="Can't split that paste"
+        message={alertMessage() ?? ""}
+        variant="warning"
+        hint={
+          <>
+            Try separating DOIs with a comma, semicolon, or newline — e.g.
+            {" "}
+            <code>10.1371/journal.pone.0335330, 10.1075/target.18159.ola</code>
+          </>
+        }
+        onClose={() => setAlertMessage(null)}
+      />
     </div>
   );
 };
