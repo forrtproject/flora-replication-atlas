@@ -19,6 +19,17 @@ type TopBarProps = {
   onInputRef?: (el: HTMLInputElement) => void;
 };
 
+// DOIs never contain whitespace, commas, or semicolons, so any of these
+// (plus newlines/tabs) safely delimit one DOI from the next.
+const DOI_DELIMITER_RE = /[\s,;]+/;
+const DOI_DELIMITER_KEYS = new Set([",", ";", " ", "Tab"]);
+
+const splitDoiInput = (raw: string) =>
+  raw
+    .split(DOI_DELIMITER_RE)
+    .map((s) => s.trim())
+    .filter((s) => s !== "");
+
 export const TopBar = (props: TopBarProps) => {
   let inputRef: HTMLInputElement | undefined;
   let mobileInputRef: HTMLInputElement | undefined;
@@ -37,16 +48,19 @@ export const TopBar = (props: TopBarProps) => {
   const handleKeyDown = (e: KeyboardEvent) => {
     const value = props.inputValue.trim();
 
-    if (e.key === "," || e.key === "Enter") {
-      if (value && e.key === "," && props.searchMode === "doi") {
-        e.preventDefault();
-        props.onAddTag(value);
-        return;
-      }
-      if (e.key === "Enter") {
-        fireSearch(value || undefined);
-        return;
-      }
+    if (
+      props.searchMode === "doi" &&
+      value &&
+      DOI_DELIMITER_KEYS.has(e.key)
+    ) {
+      e.preventDefault();
+      props.onAddTag(value);
+      return;
+    }
+
+    if (e.key === "Enter") {
+      fireSearch(value || undefined);
+      return;
     }
 
     // Backspace on empty input removes the last tag
@@ -62,18 +76,15 @@ export const TopBar = (props: TopBarProps) => {
   const handlePaste = (e: ClipboardEvent) => {
     if (props.searchMode !== "doi") return;
     const pasted = e.clipboardData?.getData("text") || "";
-    if (pasted.includes(",") || pasted.includes("\n")) {
-      e.preventDefault();
-      const parts = pasted
-        .split(/[\n\r,]+/)
-        .map((s) => s.trim())
-        .filter((s) => s !== "");
-      if (props.onAddTags) {
-        props.onAddTags(parts);
-      } else {
-        for (const part of parts) {
-          props.onAddTag(part);
-        }
+    if (!DOI_DELIMITER_RE.test(pasted)) return;
+    e.preventDefault();
+    const parts = splitDoiInput(pasted);
+    if (parts.length === 0) return;
+    if (props.onAddTags) {
+      props.onAddTags(parts);
+    } else {
+      for (const part of parts) {
+        props.onAddTag(part);
       }
     }
   };
