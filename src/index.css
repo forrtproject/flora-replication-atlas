@@ -1542,6 +1542,168 @@ body {
   animation: slideUp 0.2s ease-out;
 }
 
+/* Alert dialog */
+.alert-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.5);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 1100;
+  animation: alertFadeIn 0.18s ease-out;
+}
+
+.alert-dialog {
+  position: relative;
+  background: var(--white);
+  border-radius: 14px;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 12px 36px rgba(17, 24, 39, 0.18);
+  max-width: 420px;
+  width: 100%;
+  padding: 1.75rem 1.5rem 1.25rem;
+  text-align: center;
+  font-family: var(--font-body);
+  animation: alertPopIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.alert-dialog-close {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.alert-dialog-close:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text);
+}
+
+.alert-dialog-close:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.alert-dialog-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  background: var(--warning-bg);
+  color: var(--warning);
+  box-shadow: 0 0 0 6px rgba(184, 134, 11, 0.08);
+}
+
+.alert-dialog-error .alert-dialog-icon {
+  background: var(--error-bg);
+  color: var(--error);
+  box-shadow: 0 0 0 6px rgba(180, 35, 24, 0.08);
+}
+
+.alert-dialog-info .alert-dialog-icon {
+  background: var(--primary-faint);
+  color: var(--primary);
+  box-shadow: 0 0 0 6px rgba(133, 57, 83, 0.08);
+}
+
+.alert-dialog-title {
+  margin: 0 0 0.4rem;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.alert-dialog-message {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.alert-dialog-hint {
+  margin-top: 0.85rem;
+  padding: 0.65rem 0.85rem;
+  background: var(--primary-faint);
+  border-radius: 8px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text);
+  text-align: left;
+}
+
+.alert-dialog-hint code {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  background: var(--white);
+  padding: 0.05rem 0.35rem;
+  border-radius: 4px;
+  border: 1px solid var(--primary-faint);
+  color: var(--primary-dark);
+}
+
+.alert-dialog-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.25rem;
+}
+
+.alert-dialog-confirm {
+  background: var(--primary);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.4rem;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+  min-width: 110px;
+}
+
+.alert-dialog-confirm:hover {
+  background: var(--primary-dark);
+}
+
+.alert-dialog-confirm:active {
+  transform: scale(0.98);
+}
+
+.alert-dialog-confirm:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+@keyframes alertFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes alertPopIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 /* ═══════════════════════════════
    TOPBAR WRAPPER & MOBILE ELEMENTS
 ═══════════════════════════════ */
