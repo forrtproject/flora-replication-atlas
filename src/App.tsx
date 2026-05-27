@@ -493,9 +493,7 @@ function App() {
           >
             <>
               <Show when={aggregateOutcomes().total > 0}>
-                <div class="p-4 pb-0">
-                  <SearchOutcomesBanner outcomes={aggregateOutcomes()} paperCount={paperCount()} />
-                </div>
+                <SearchOutcomesBanner outcomes={aggregateOutcomes()} paperCount={paperCount()} />
               </Show>
               <For each={Object.entries(results())}>
               {([doi, paper]) => (

@@ -21,10 +21,10 @@ type Segment = {
 };
 
 const SEGMENTS: Segment[] = [
-    { key: "success", label: "Successful", color: "var(--success)"  },
-    { key: "failed",  label: "Failed",     color: "var(--error)"    },
-    { key: "mixed",   label: "Mixed",      color: "var(--warning)"  },
-    { key: "partial", label: "Partial",    color: "var(--primary)"  },
+    { key: "success", label: "Successful", color: "var(--success-light)" },
+    { key: "failed",  label: "Failed",     color: "var(--error)"         },
+    { key: "mixed",   label: "Mixed",      color: "var(--warning)"       },
+    { key: "partial", label: "Partial",    color: "var(--primary)"       },
 ];
 
 export const SearchOutcomesBanner = (props: SearchOutcomesBannerProps) => {
@@ -38,11 +38,8 @@ export const SearchOutcomesBanner = (props: SearchOutcomesBannerProps) => {
 
     return (
         <div style={{
-            background: "var(--white)",
-            border: "1px solid var(--border-light)",
-            "border-radius": "var(--radius)",
-            padding: "12px 16px 10px",
-            "margin-bottom": "12px",
+            padding: "14px 20px 12px",
+            "border-bottom": "1px solid var(--border-light)",
             "font-family": "var(--font-body)",
         }}>
             <p style={{
