@@ -722,6 +722,84 @@ body {
   margin-bottom: 1.25rem;
   max-width: 380px;
 }
+.welcome-import-or-divider {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 480px;
+  gap: 10px;
+  color: var(--text-faint);
+  font-size: 12px;
+  margin: -8px 0 0;
+}
+.welcome-import-or-divider::before,
+.welcome-import-or-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border-light);
+}
+
+.welcome-import-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  max-width: 480px;
+  background: var(--white);
+  border: 1.5px dashed var(--info-border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-body);
+  margin-bottom: 1.75rem;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+.welcome-import-card:hover {
+  border-style: solid;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-faint);
+}
+.welcome-import-card-icon {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  background: var(--primary-faint);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+}
+.welcome-import-card-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.welcome-import-card-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text);
+}
+.welcome-import-card-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+.welcome-import-card-arrow {
+  flex-shrink: 0;
+  color: var(--text-faint);
+  transition: color var(--transition-fast), transform var(--transition-fast);
+}
+.welcome-import-card:hover .welcome-import-card-arrow {
+  color: var(--primary);
+  transform: translateX(2px);
+}
+
 .welcome-examples {
   display: flex;
   flex-direction: column;
@@ -782,7 +860,7 @@ body {
   padding: 0.35rem 0.4rem 0.35rem 0.85rem;
   width: 100%;
   max-width: 480px;
-  margin-bottom: 1.75rem;
+  margin-bottom: 0.75rem;
   transition: all var(--transition);
   box-shadow: var(--shadow-sm);
 }
@@ -2224,4 +2302,449 @@ body {
   font-style: italic;
   opacity: 0.8;
   font-size: 0.85em;
+}
+
+/* ─── Reference Import Modal ─────────────────────────────────────────────── */
+
+.rim-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.rim-modal {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 640px;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.rim-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 20px 20px 0;
+  flex-shrink: 0;
+}
+
+.rim-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 3px;
+}
+
+.rim-subtitle {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.rim-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 2px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  transition: color var(--transition-fast);
+}
+.rim-close:hover { color: var(--text); }
+
+/* Tabs */
+.rim-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 14px 20px 0;
+  flex-shrink: 0;
+}
+
+.rim-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  color: var(--text-muted);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.rim-tab:hover { background: var(--surface); color: var(--text-secondary); }
+.rim-tab.active {
+  background: var(--primary-faint);
+  color: var(--primary);
+  border-color: var(--info-border);
+}
+
+/* Body */
+.rim-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 20px;
+  min-height: 0;
+}
+
+.rim-body-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+}
+
+.rim-textarea {
+  width: 100%;
+  height: 240px;
+  resize: vertical;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  font-family: "Menlo", "Consolas", monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--surface);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+.rim-textarea:focus { border-color: var(--primary); background: var(--white); }
+.rim-textarea::placeholder { color: var(--text-faint); }
+
+/* Drop zone */
+.rim-dropzone {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-lg);
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.rim-dropzone:hover,
+.rim-dropzone.drag-over {
+  border-color: var(--primary);
+  background: var(--primary-faint);
+}
+.rim-dropzone.has-file { border-style: solid; border-color: var(--primary); background: var(--primary-faint); }
+.rim-drop-icon { color: var(--text-faint); }
+.rim-drop-icon-ok { color: var(--primary); }
+.rim-drop-label { font-size: 13px; color: var(--text-secondary); margin: 0; }
+.rim-drop-link { color: var(--primary); text-decoration: underline; }
+.rim-drop-filename { font-size: 13px; font-weight: 700; color: var(--primary); margin: 0; }
+.rim-drop-change { font-size: 11.5px; color: var(--text-muted); margin: 0; }
+
+.rim-file-preview-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin: 12px 0 4px;
+}
+.rim-file-preview {
+  font-family: "Menlo", "Consolas", monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 100px;
+  overflow: hidden;
+}
+
+.rim-error {
+  font-size: 12.5px;
+  color: var(--error);
+  background: var(--error-bg);
+  border: 1px solid var(--error-border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  margin-top: 10px;
+}
+
+/* Processing */
+.rim-progress-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  max-width: 340px;
+}
+.rim-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: rim-spin 0.7s linear infinite;
+}
+@keyframes rim-spin { to { transform: rotate(360deg); } }
+
+.rim-progress-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+.rim-progress-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+}
+.rim-progress-bar-track {
+  width: 100%;
+  height: 4px;
+  background: var(--border-light);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.rim-progress-bar-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 2px;
+  transition: width 0.2s ease;
+}
+
+/* Results */
+.rim-results-summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  background: var(--surface);
+  border-top: 1px solid var(--border-light);
+  flex-shrink: 0;
+  font-size: 12px;
+}
+.rim-sum-item { font-weight: 700; }
+.rim-sum-found { color: var(--success); }
+.rim-sum-none  { color: var(--text-muted); }
+.rim-sum-sep   { color: var(--border); }
+.rim-sum-hint  { color: var(--text-faint); font-weight: 400; }
+
+.rim-results-list {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding: 8px 0;
+}
+
+.rim-result-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 20px;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  border-bottom: 1px solid var(--border-light);
+}
+.rim-result-row:last-child { border-bottom: none; }
+.rim-result-row:hover:not(.rim-row-none) { background: var(--surface); }
+.rim-row-none { opacity: 0.55; cursor: default; }
+
+.rim-row-check {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+  color: var(--text-muted);
+}
+
+.rim-checkbox {
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--white);
+  transition: all var(--transition-fast);
+}
+.rim-checkbox.checked {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+.rim-row-body { flex: 1; min-width: 0; }
+
+.rim-row-top {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-bottom: 3px;
+}
+
+.rim-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 1px 6px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.rim-badge-direct   { background: var(--success-bg); color: var(--success); }
+.rim-badge-crossref { background: var(--primary-faint); color: var(--primary); }
+.rim-badge-openalex { background: var(--warning-bg); color: var(--warning); }
+.rim-badge-none     { background: var(--surface-alt); color: var(--text-muted); }
+
+.rim-row-doi {
+  font-family: "Menlo", "Consolas", monospace;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+}
+
+.rim-row-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rim-row-raw {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rim-row-unresolved {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  font-size: 11.5px;
+  color: var(--warning);
+  background: var(--warning-bg);
+  border: 1px solid var(--warning-border);
+  border-radius: var(--radius);
+  padding: 5px 8px;
+  margin-top: 5px;
+  line-height: 1.45;
+}
+.rim-row-unresolved svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.rim-row-unresolved a {
+  color: var(--warning);
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+/* Footer */
+.rim-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--border-light);
+  flex-shrink: 0;
+}
+
+.rim-btn-ghost {
+  padding: 7px 14px;
+  font-size: 13px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.rim-btn-ghost:hover { background: var(--surface); border-color: var(--border); }
+
+.rim-btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  color: var(--white);
+  background: var(--primary);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+.rim-btn-primary:hover:not(:disabled) { background: var(--primary-dark); }
+.rim-btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Import refs button + search group in TopBar */
+.topbar-search-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.topbar-import-sep {
+  width: 1px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.15);
+  flex-shrink: 0;
+}
+
+.topbar-import-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0.35rem 0.6rem;
+  font-size: 12px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.topbar-import-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9);
 }

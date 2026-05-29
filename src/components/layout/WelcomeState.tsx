@@ -16,6 +16,7 @@ type WelcomeStateProps = {
   onSearchSubmit: () => void;
   onSearchModeChange: (mode: SearchMode) => void;
   onExampleClick: (query: string) => void;
+  onImportClick?: () => void;
 };
 
 export const exampleSearches = [
@@ -193,6 +194,31 @@ export const WelcomeState = (props: WelcomeStateProps) => {
           Search
         </button>
       </div>
+
+      {props.onImportClick && (
+        <>
+          <div class="welcome-import-or-divider">
+            <span>or</span>
+          </div>
+          <button class="welcome-import-card" onClick={props.onImportClick} type="button">
+          <div class="welcome-import-card-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="8" y1="13" x2="16" y2="13" />
+              <line x1="8" y1="17" x2="16" y2="17" />
+            </svg>
+          </div>
+          <div class="welcome-import-card-body">
+            <span class="welcome-import-card-title">Import a reference list</span>
+            <span class="welcome-import-card-sub">Paste or upload a .txt file — DOIs extracted &amp; resolved automatically</span>
+          </div>
+          <svg class="welcome-import-card-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+          </button>
+        </>
+      )}
 
       <div class="welcome-examples">
         <div class="welcome-examples-label">Example searches</div>

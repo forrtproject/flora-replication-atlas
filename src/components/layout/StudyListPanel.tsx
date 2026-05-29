@@ -1,9 +1,9 @@
-import { createSignal, createEffect, For, Show } from "solid-js";
+import { createEffect, For, Show } from "solid-js";
 import type { OriginalPaper, FormattedDOIResult } from "../../@types";
 import { formatReplicationResponse } from "../../api/formatter";
 import { formatAuthors, renderAuthors, na } from "../../utils/formatter";
 
-type TypeFilter = "all" | "original" | "replication";
+type TypeFilter = "original" | "replication";
 
 type StudyListPanelProps = {
   results: Record<string, OriginalPaper>;
@@ -11,6 +11,8 @@ type StudyListPanelProps = {
   onSelect: (doi: string) => void;
   isLoading: boolean;
   hasSearched: boolean;
+  typeFilter: TypeFilter;
+  onTypeFilterChange: (f: TypeFilter) => void;
 };
 
 type OutcomeStatus = "failed" | "mixed" | "partial" | "successful" | "blank";
@@ -49,8 +51,6 @@ const PrintIcon = () => (
 );
 
 export const StudyListPanel = (props: StudyListPanelProps) => {
-  const [typeFilter, setTypeFilter] = createSignal<TypeFilter>("all");
-
   const allEntries = () =>
     Object.entries(props.results)
       .map(([doi, paper]) => {
@@ -67,8 +67,7 @@ export const StudyListPanel = (props: StudyListPanelProps) => {
       });
 
   const entries = () => {
-    const filter = typeFilter();
-    if (filter === "all") return allEntries();
+    const filter = props.typeFilter;
     if (filter === "original") return allEntries().filter((e) => e.isOriginal);
     return allEntries().filter((e) => e.isReplication);
   };
@@ -83,11 +82,7 @@ export const StudyListPanel = (props: StudyListPanelProps) => {
     if (visible.length === 0) return;
 
     const filterLabel =
-      typeFilter() === "all"
-        ? "All Studies"
-        : typeFilter() === "original"
-          ? "Original Studies"
-          : "Replication Studies";
+      props.typeFilter === "original" ? "Original Studies" : "Replication Studies";
     const esc = (s: string) =>
       s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
@@ -279,24 +274,18 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
         }
       >
         <div class="sli-filter-bar">
-          <button
-            class={`sli-filter-btn ${typeFilter() === "all" ? "active" : ""}`}
-            onClick={() => setTypeFilter("all")}
-          >
-            All <span class="sli-filter-count">{totalCount()}</span>
-          </button>
           <Show when={originalCount() > 0}>
             <button
-              class={`sli-filter-btn original ${typeFilter() === "original" ? "active" : ""}`}
-              onClick={() => setTypeFilter("original")}
+              class={`sli-filter-btn original ${props.typeFilter === "original" ? "active" : ""}`}
+              onClick={() => props.onTypeFilterChange("original")}
             >
               Original <span class="sli-filter-count">{originalCount()}</span>
             </button>
           </Show>
           <Show when={replicationCount() > 0}>
             <button
-              class={`sli-filter-btn replication ${typeFilter() === "replication" ? "active" : ""}`}
-              onClick={() => setTypeFilter("replication")}
+              class={`sli-filter-btn replication ${props.typeFilter === "replication" ? "active" : ""}`}
+              onClick={() => props.onTypeFilterChange("replication")}
             >
               Replication{" "}
               <span class="sli-filter-count">{replicationCount()}</span>
