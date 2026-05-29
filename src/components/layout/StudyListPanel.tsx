@@ -57,8 +57,8 @@ export const StudyListPanel = (props: StudyListPanelProps) => {
         const rep = formatReplicationResponse(paper);
         const status = resolveOverallStatus(rep);
         const hasData = !!(rep.title && paper.record);
-        const isOriginal = (rep.replications?.length || 0) > 0;
-        const isReplication = (rep.originals?.length || 0) > 0;
+        const isOriginal = (rep.replications?.length || 0) > 0 || (rep.reproductions?.length || 0) > 0;
+        const isReplication = (rep.originals?.length || 0) > 0 || (paper.types?.includes("reproduction") ?? false);
         return { doi, paper, rep, status, hasData, isOriginal, isReplication };
       })
       .sort((a, b) => {

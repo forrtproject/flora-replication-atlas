@@ -51,8 +51,8 @@ function App() {
     const filter = typeFilter();
     return Object.entries(results()).filter(([, paper]) => {
       const rep = formatReplicationResponse(paper);
-      const isOriginal = (rep.replications?.length || 0) > 0;
-      const isReplication = (rep.originals?.length || 0) > 0;
+      const isOriginal = (rep.replications?.length || 0) > 0 || (rep.reproductions?.length || 0) > 0;
+      const isReplication = (rep.originals?.length || 0) > 0 || (paper.types?.includes("reproduction") ?? false);
       if (filter === "original") return isOriginal;
       return isReplication;
     });
@@ -64,8 +64,8 @@ function App() {
     const counts = Object.values(res).reduce(
       (acc, paper) => {
         const rep = formatReplicationResponse(paper);
-        const isOriginal = (rep.replications?.length || 0) > 0;
-        const isReplication = (rep.originals?.length || 0) > 0;
+        const isOriginal = (rep.replications?.length || 0) > 0 || (rep.reproductions?.length || 0) > 0;
+        const isReplication = (rep.originals?.length || 0) > 0 || (paper.types?.includes("reproduction") ?? false);
         if (filter === "original" && !isOriginal) return acc;
         if (filter === "replication" && !isReplication) return acc;
         acc.success += rep.outcomes?.success ?? 0;
@@ -214,8 +214,14 @@ function App() {
 
     // Auto-switch filter if the current one has no matches
     const papers = Object.values(data);
-    const hasOriginals = papers.some(p => (formatReplicationResponse(p).replications?.length || 0) > 0);
-    const hasReplications = papers.some(p => (formatReplicationResponse(p).originals?.length || 0) > 0);
+    const hasOriginals = papers.some(p => {
+      const rep = formatReplicationResponse(p);
+      return (rep.replications?.length || 0) > 0 || (rep.reproductions?.length || 0) > 0;
+    });
+    const hasReplications = papers.some(p => {
+      const rep = formatReplicationResponse(p);
+      return (rep.originals?.length || 0) > 0 || (p.types?.includes("reproduction") ?? false);
+    });
     if (typeFilter() === "original" && !hasOriginals && hasReplications) {
       setTypeFilter("replication");
     } else if (typeFilter() === "replication" && !hasReplications && hasOriginals) {
