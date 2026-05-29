@@ -13,6 +13,7 @@ import {
 import { DetailView } from "./components/layout/DetailView";
 import { NoDataState } from "./components/layout/NoDataState";
 import { Footer } from "./components/Footer";
+import { ReferenceImportModal } from "./components/layout/ReferenceImportModal";
 
 const isDoi = (s: string) => /^10\.\d{4,}\//.test(s.trim());
 
@@ -43,12 +44,30 @@ function App() {
   const [isLoading, setIsLoading] = createSignal(false);
   const [hasSearched, setHasSearched] = createSignal(false);
   const [hasEverSearched, setHasEverSearched] = createSignal(false);
+  const [typeFilter, setTypeFilter] = createSignal<"original" | "replication">("original");
+  const [showImportModal, setShowImportModal] = createSignal(false);
+
+  const filteredResults = createMemo(() => {
+    const filter = typeFilter();
+    return Object.entries(results()).filter(([, paper]) => {
+      const rep = formatReplicationResponse(paper);
+      const isOriginal = (rep.replications?.length || 0) > 0;
+      const isReplication = (rep.originals?.length || 0) > 0;
+      if (filter === "original") return isOriginal;
+      return isReplication;
+    });
+  });
 
   const aggregateOutcomes = createMemo(() => {
     const res = results();
+    const filter = typeFilter();
     const counts = Object.values(res).reduce(
       (acc, paper) => {
         const rep = formatReplicationResponse(paper);
+        const isOriginal = (rep.replications?.length || 0) > 0;
+        const isReplication = (rep.originals?.length || 0) > 0;
+        if (filter === "original" && !isOriginal) return acc;
+        if (filter === "replication" && !isReplication) return acc;
         acc.success += rep.outcomes?.success ?? 0;
         acc.failed  += rep.outcomes?.failed  ?? 0;
         acc.mixed   += rep.outcomes?.mixed   ?? 0;
@@ -61,9 +80,18 @@ function App() {
     return { ...counts, categorizedTotal: counts.success + counts.failed + counts.mixed + counts.partial };
   });
 
-  const paperCount = createMemo(() =>
-    Object.values(results()).filter(p => p.record != null).length
-  );
+  const paperCount = createMemo(() => {
+    const filter = typeFilter();
+    return Object.values(results()).filter(p => {
+      if (!p.record) return false;
+      const rep = formatReplicationResponse(p);
+      const isOriginal = (rep.replications?.length || 0) > 0;
+      const isReplication = (rep.originals?.length || 0) > 0;
+      if (filter === "original") return isOriginal;
+      if (filter === "replication") return isReplication;
+      return true;
+    }).length;
+  });
 
   const paperRefs: Record<string, HTMLDivElement> = {};
   let rightPanelRef: HTMLDivElement | undefined;
@@ -366,6 +394,7 @@ function App() {
             doDoiSearch(allTags);
           }
         }}
+        onImportClick={() => setShowImportModal(true)}
       />
 
       <div
@@ -384,6 +413,8 @@ function App() {
             onSelect={(doi) => scrollToPaper(doi)}
             isLoading={isLoading()}
             hasSearched={hasSearched()}
+            typeFilter={typeFilter()}
+            onTypeFilterChange={setTypeFilter}
           />
         </Show>
 
@@ -418,6 +449,7 @@ function App() {
                             onSearchSubmit={doSearch}
                             onSearchModeChange={handleSearchModeChange}
                             onExampleClick={handleExampleClick}
+                            onImportClick={() => setShowImportModal(true)}
                           />
                         }
                       >
@@ -495,7 +527,7 @@ function App() {
               <Show when={aggregateOutcomes().total > 0}>
                 <SearchOutcomesBanner outcomes={aggregateOutcomes()} paperCount={paperCount()} />
               </Show>
-              <For each={Object.entries(results())}>
+              <For each={filteredResults()}>
               {([doi, paper]) => (
                 <div
                   data-doi={doi}
@@ -518,6 +550,18 @@ function App() {
           </Show>
         </div>
       </div>
+
+      <ReferenceImportModal
+        open={showImportModal()}
+        onClose={() => setShowImportModal(false)}
+        onSearch={(dois) => {
+          setSearchMode("doi");
+          setTags(dois);
+          setInputValue("");
+          syncUrl(dois);
+          doDoiSearch(dois);
+        }}
+      />
 
       <Footer />
     </>

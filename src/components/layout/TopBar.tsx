@@ -19,6 +19,7 @@ type TopBarProps = {
   onNavigateSearch?: (tags: string[]) => void;
   onSearchModeChange: (mode: SearchMode) => void;
   onInputRef?: (el: HTMLInputElement) => void;
+  onImportClick?: () => void;
 };
 
 const DOI_DELIMITER_KEYS = new Set([",", ";", " ", "Tab"]);
@@ -189,14 +190,34 @@ export const TopBar = (props: TopBarProps) => {
           </A>
         </div>
         <Show when={props.showSearch !== false}>
-          <div
-            class="topbar-search topbar-search-desktop"
-            onClick={() => inputRef?.focus()}
-          >
-            {searchBar((el) => {
-              inputRef = el;
-              props.onInputRef?.(el);
-            })}
+          <div class="topbar-search-group topbar-search-desktop">
+            <div
+              class="topbar-search"
+              onClick={() => inputRef?.focus()}
+            >
+              {searchBar((el) => {
+                inputRef = el;
+                props.onInputRef?.(el);
+              })}
+            </div>
+            <Show when={!!props.onImportClick}>
+              <span class="topbar-import-sep" aria-hidden="true" />
+              <button
+                class="topbar-import-btn"
+                onClick={() => props.onImportClick!()}
+                title="Import references from text or file"
+                type="button"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="8" y1="13" x2="16" y2="13" />
+                  <line x1="8" y1="17" x2="16" y2="17" />
+                  <polyline points="10 9 9 9 8 9" />
+                </svg>
+                Import refs
+              </button>
+            </Show>
           </div>
         </Show>
         <div class="topbar-right topbar-right-desktop">
