@@ -211,6 +211,17 @@ function App() {
   const handleResults = (res: DOIResults) => {
     const data = res.results || {};
     setResults(data);
+
+    // Auto-switch filter if the current one has no matches
+    const papers = Object.values(data);
+    const hasOriginals = papers.some(p => (formatReplicationResponse(p).replications?.length || 0) > 0);
+    const hasReplications = papers.some(p => (formatReplicationResponse(p).originals?.length || 0) > 0);
+    if (typeFilter() === "original" && !hasOriginals && hasReplications) {
+      setTypeFilter("replication");
+    } else if (typeFilter() === "replication" && !hasReplications && hasOriginals) {
+      setTypeFilter("original");
+    }
+
     const keys = Object.keys(data);
     if (keys.length > 0) setSelectedDoi(keys[0]);
     setIsLoading(false);
