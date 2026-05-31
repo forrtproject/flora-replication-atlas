@@ -10,6 +10,7 @@ import {
   WelcomeState,
   exampleSearches,
 } from "./components/layout/WelcomeState";
+import { AdvancedSearchPanel } from "./components/layout/AdvancedSearchPanel";
 import { DetailView } from "./components/layout/DetailView";
 import { NoDataState } from "./components/layout/NoDataState";
 import { Footer } from "./components/Footer";
@@ -46,6 +47,16 @@ function App() {
   const [hasEverSearched, setHasEverSearched] = createSignal(false);
   const [typeFilter, setTypeFilter] = createSignal<"original" | "replication">("original");
   const [showImportModal, setShowImportModal] = createSignal(false);
+
+  const [showAdvancedModal, setShowAdvancedModal] = createSignal(false);
+
+  // Advanced search state
+  const [advMustAll, setAdvMustAll] = createSignal<string[]>([]);
+  const [advMustAny, setAdvMustAny] = createSignal<string[]>([]);
+  const [advMustNone, setAdvMustNone] = createSignal<string[]>([]);
+  const [advYearFrom, setAdvYearFrom] = createSignal(1950);
+  const [advYearTo, setAdvYearTo] = createSignal(new Date().getFullYear());
+  const [advOutcomes, setAdvOutcomes] = createSignal<string[]>([]);
 
   const filteredResults = createMemo(() => {
     const filter = typeFilter();
@@ -284,6 +295,78 @@ function App() {
       });
   };
 
+  const applyAdvancedFilters = (
+    data: Record<string, OriginalPaper>,
+  ): Record<string, OriginalPaper> => {
+    const mustNone = advMustNone();
+    const yearFrom = advYearFrom();
+    const yearTo = advYearTo();
+    const outcomes = advOutcomes();
+
+    return Object.fromEntries(
+      Object.entries(data).filter(([, paper]) => {
+        if (mustNone.length > 0) {
+          const text =
+            `${paper.title} ${paper.authors?.map((a) => `${a.given} ${a.family}`).join(" ")} ${paper.journal}`.toLowerCase();
+          if (mustNone.some((term) => text.includes(term.toLowerCase())))
+            return false;
+        }
+        if (paper.year && paper.year < yearFrom) return false;
+        if (paper.year && paper.year > yearTo) return false;
+        if (outcomes.length > 0) {
+          const rep = formatReplicationResponse(paper);
+          const allReps = [
+            ...(rep.replications ?? []),
+            ...(rep.reproductions ?? []),
+          ];
+          if (!allReps.some((r) =>
+            outcomes.some((o) => r.outcome?.toLowerCase().includes(o)),
+          )) return false;
+        }
+        return true;
+      }),
+    );
+  };
+
+  const doAdvancedSearch = () => {
+    const mustAll = advMustAll();
+    const mustAny = advMustAny();
+    const query =
+      mustAll.length > 0
+        ? mustAll.join(" ")
+        : mustAny.length > 0
+          ? mustAny.join(" ")
+          : "";
+    if (!query) return;
+
+    setShowAdvancedModal(false);
+    setIsLoading(true);
+    setHasSearched(true);
+    setHasEverSearched(true);
+    setResults({});
+    setSelectedDoi(null);
+
+    fetchFuzzySearch(query)
+      .then((res) => {
+        const filtered = applyAdvancedFilters(res.results ?? {});
+        handleResults({ results: filtered, isEmpty: Object.keys(filtered).length === 0 });
+      })
+      .catch((error) => {
+        console.error("Error in advanced search:", error);
+        setIsLoading(false);
+        setResults({});
+      });
+  };
+
+  const clearAdvancedSearch = () => {
+    setAdvMustAll([]);
+    setAdvMustAny([]);
+    setAdvMustNone([]);
+    setAdvYearFrom(1950);
+    setAdvYearTo(new Date().getFullYear());
+    setAdvOutcomes([]);
+  };
+
   const debouncedFuzzySearch = debounce(
     (query: string) => doFuzzySearch(query),
     1000,
@@ -412,6 +495,7 @@ function App() {
           }
         }}
         onImportClick={() => setShowImportModal(true)}
+        onAdvancedClick={() => setShowAdvancedModal(true)}
       />
 
       <div
@@ -435,7 +519,11 @@ function App() {
           />
         </Show>
 
-        <div class="right-panel" ref={rightPanelRef}>
+        <div
+          class="right-panel"
+          classList={{ "right-panel--scrollable": Object.keys(results()).length > 0 }}
+          ref={rightPanelRef}
+        >
           <Show
             when={Object.keys(results()).length > 0}
             fallback={
@@ -467,6 +555,7 @@ function App() {
                             onSearchModeChange={handleSearchModeChange}
                             onExampleClick={handleExampleClick}
                             onImportClick={() => setShowImportModal(true)}
+                            onAdvancedClick={() => setShowAdvancedModal(true)}
                           />
                         }
                       >
@@ -578,6 +667,27 @@ function App() {
           syncUrl(dois);
           doDoiSearch(dois);
         }}
+      />
+
+      <AdvancedSearchPanel
+        open={showAdvancedModal()}
+        state={{
+          mustAll: advMustAll(),
+          mustAny: advMustAny(),
+          mustNone: advMustNone(),
+          yearFrom: advYearFrom(),
+          yearTo: advYearTo(),
+          outcomes: advOutcomes(),
+        }}
+        onMustAllChange={setAdvMustAll}
+        onMustAnyChange={setAdvMustAny}
+        onMustNoneChange={setAdvMustNone}
+        onYearFromChange={setAdvYearFrom}
+        onYearToChange={setAdvYearTo}
+        onOutcomesChange={setAdvOutcomes}
+        onSearch={doAdvancedSearch}
+        onClear={clearAdvancedSearch}
+        onClose={() => setShowAdvancedModal(false)}
       />
 
       <Footer />
