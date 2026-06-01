@@ -1,0 +1,46 @@
+name: Refresh Citation Impact Data
+
+on:
+  schedule:
+    - cron: "0 3 * * 1" # Every Monday at 03:00 UTC
+  workflow_dispatch: # Manual trigger
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330 # 5.5 hours — leaves buffer before the 6-hour GH limit
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Restore OpenCitations cache
+        uses: actions/cache@v4
+        with:
+          path: cache/
+          key: oc-cache-${{ runner.os }}-${{ hashFiles('refresh_data.py') }}
+          restore-keys: |
+            oc-cache-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: pip install boto3 numpy pandas requests statsmodels tqdm
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION || 'eu-central-1' }}
+
+      - name: Run refresh
+        env:
+          ORIGINAL_TABLE: ${{ vars.ORIGINAL_TABLE }}
+          STATS_TABLE: ${{ vars.STATS_TABLE }}
+          AWS_REGION: ${{ vars.AWS_REGION || 'eu-central-1' }}
+          OC_API_KEY: ${{ secrets.OC_API_KEY }}
+          MY_EMAIL: ${{ secrets.MY_EMAIL }}
+          MAX_RUNTIME_SECONDS: "18000"
+        run: python scripts/refresh_data.py
