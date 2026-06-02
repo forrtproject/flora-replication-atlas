@@ -299,7 +299,7 @@ type Props = {
 
 export const AdvancedSearchPanel = (props: Props) => {
   const canSearch = () =>
-    props.state.mustAll.length > 0 || props.state.mustAny.length > 0;
+    props.state.mustAll.length > 0 || props.state.mustAny.length > 0 || props.state.mustNone.length > 0;
 
   const handleKey = (e: KeyboardEvent) => {
     if (e.key === "Escape" && props.open) props.onClose();

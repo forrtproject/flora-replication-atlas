@@ -3258,6 +3258,176 @@ body {
   color: rgba(255, 255, 255, 0.9);
 }
 
+.topbar-adv-btn--active {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(133, 57, 83, 0.35);
+}
+.topbar-adv-btn--active:hover {
+  background: rgba(133, 57, 83, 0.5);
+}
+
+/* ─── Advanced search active bar (inside .topbar-search) ─── */
+.topbar-search--advanced {
+  cursor: default;
+  width: 520px;
+}
+.topbar-search--advanced:focus-within {
+  width: 520px;
+  box-shadow: none;
+}
+
+.topbar-adv-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  background: rgba(133, 57, 83, 0.4);
+  border: 1px solid rgba(133, 57, 83, 0.6);
+  border-radius: 4px;
+  padding: 0.15rem 0.4rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.topbar-adv-chips {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  min-width: 0;
+}
+.topbar-adv-chips::-webkit-scrollbar { display: none; }
+
+.topbar-adv-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  border-radius: 4px;
+  border: 1px solid;
+  padding: 0.1rem 0.35rem;
+  font-size: 11.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+.topbar-adv-chip--green {
+  background: rgba(22, 163, 74, 0.2);
+  color: #86efac;
+  border-color: rgba(22, 163, 74, 0.4);
+}
+.topbar-adv-chip--amber {
+  background: rgba(217, 119, 6, 0.2);
+  color: #fcd34d;
+  border-color: rgba(217, 119, 6, 0.4);
+}
+.topbar-adv-chip--red {
+  background: rgba(180, 35, 24, 0.2);
+  color: #fca5a5;
+  border-color: rgba(180, 35, 24, 0.4);
+}
+.topbar-adv-chip--gray {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.65);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+.topbar-adv-chip--primary {
+  background: rgba(133, 57, 83, 0.3);
+  color: rgba(255, 255, 255, 0.85);
+  border-color: rgba(133, 57, 83, 0.5);
+}
+.topbar-adv-chip-pre {
+  font-size: 10px;
+  font-weight: 700;
+  opacity: 0.65;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-right: 0.1rem;
+}
+
+.topbar-adv-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+  padding: 0;
+}
+.topbar-adv-clear:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* ─── Mobile: advanced active row ─── */
+.mob-adv-active-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--neutral);
+  color: rgba(255, 255, 255, 0.6);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.mob-adv-active-chips {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  min-width: 0;
+}
+.mob-adv-active-chips::-webkit-scrollbar { display: none; }
+.mob-adv-edit-btn {
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius);
+  padding: 0.25rem 0.6rem;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+}
+.mob-adv-edit-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: var(--white);
+}
+.mob-adv-active-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  transition: all var(--transition-fast);
+}
+.mob-adv-active-clear:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--white);
+}
+
 .mob-adv-btn {
   display: flex;
   align-items: center;
