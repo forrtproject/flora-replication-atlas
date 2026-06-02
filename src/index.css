@@ -2277,6 +2277,189 @@ body {
   }
 }
 
+/* ═══════════════════════════════
+   CITATION IMPACT MODAL
+═══════════════════════════════ */
+.cim-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 1200;
+  animation: alertFadeIn 0.15s ease-out;
+}
+
+.cim-modal {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 0 0 1px rgba(133,57,83,0.08),
+    0 8px 32px rgba(17,24,39,0.14),
+    0 2px 8px rgba(17,24,39,0.08);
+  width: 100%;
+  max-width: 920px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-top: 3px solid var(--primary);
+  animation: alertPopIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Header ── */
+.cim-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1.5rem 0.8rem;
+  border-bottom: 1px solid var(--border-light);
+  flex-shrink: 0;
+}
+
+.cim-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--primary);
+}
+
+.cim-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.cim-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 15px;
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast), color var(--transition-fast);
+  flex-shrink: 0;
+}
+.cim-close:hover {
+  background: var(--primary-faint);
+  color: var(--primary);
+}
+
+/* ── Empty state ── */
+.cim-empty {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  justify-content: center;
+  padding: 3.5rem 2rem;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* ── KPI band ── */
+.cim-kpi-band {
+  display: flex;
+  align-items: center;
+  background: var(--primary-faint);
+  border-bottom: 1px solid rgba(133,57,83,0.1);
+  padding: 0.85rem 1.5rem;
+  flex-shrink: 0;
+  gap: 0;
+}
+
+.cim-kpi {
+  flex: 1;
+  text-align: center;
+}
+
+.cim-kpi-div {
+  width: 1px;
+  height: 32px;
+  background: rgba(133,57,83,0.18);
+  flex-shrink: 0;
+}
+
+.cim-kpi-val {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--primary);
+  line-height: 1.1;
+}
+
+.cim-kpi-lbl {
+  font-size: 10.5px;
+  color: var(--primary-light);
+  margin-top: 3px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ── Chart ── */
+.cim-chart-area {
+  padding: 0.25rem 1rem 0;
+  overflow: hidden;
+}
+
+/* ── Footer ── */
+.cim-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  padding: 0.75rem 1.5rem 0.9rem;
+  border-top: 1px solid var(--border-light);
+  flex-shrink: 0;
+}
+
+.cim-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+}
+
+.cim-leg-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.cim-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.cim-footnote {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 0;
+  white-space: nowrap;
+}
+.cim-footnote a {
+  color: var(--primary-light);
+  text-decoration: none;
+}
+.cim-footnote a:hover {
+  text-decoration: underline;
+}
+
 /* Academic reference styling */
 .reference {
   font-family: var(--font-display);

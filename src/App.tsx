@@ -209,7 +209,9 @@ function App() {
   };
 
   const handleResults = (res: DOIResults) => {
-    const data = res.results || {};
+    const data = Object.fromEntries(
+      Object.entries(res.results || {}).filter(([, v]) => v != null)
+    ) as Record<string, OriginalPaper>;
     setResults(data);
 
     // Auto-switch filter if the current one has no matches

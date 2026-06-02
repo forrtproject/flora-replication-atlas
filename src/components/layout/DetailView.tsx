@@ -4,6 +4,7 @@ import { formatReplicationResponse } from "../../api/formatter";
 import { renderAuthors, na } from "../../utils/formatter";
 import { ReplicationItemCard } from "./ReplicationItemCard";
 import { fetchPdfUrl } from "../../api/unpaywall";
+import { CitationImpactModal } from "./CitationImpactModal";
 
 type DetailViewProps = {
   paper: OriginalPaper;
@@ -87,6 +88,7 @@ export const DetailView = (props: DetailViewProps) => {
   const [activeTab, setActiveTab] = createSignal<TabId>("replications");
   const [toastMessage, setToastMessage] = createSignal<string | null>(null);
   const [pdfUrl, setPdfUrl] = createSignal<string | null>(null);
+  const [showCitations, setShowCitations] = createSignal(false);
   let toastTimer: number | undefined;
   let wrapRef: HTMLDivElement | undefined;
   let pdfFetched = false;
@@ -320,6 +322,16 @@ export const DetailView = (props: DetailViewProps) => {
             >
               <ExternalLinkIcon /> PubPeer
             </a>
+            <button
+              class="ab-btn"
+              onClick={() => setShowCitations(true)}
+              title="View citation timeline"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="12" width="4" height="9" /><rect x="10" y="7" width="4" height="14" /><rect x="17" y="3" width="4" height="18" />
+              </svg>
+              Citations
+            </button>
           </div>
           <div class="ab-sep" />
           <div class="ab-group">
@@ -435,6 +447,14 @@ export const DetailView = (props: DetailViewProps) => {
       {/* Toast */}
       <Show when={toastMessage()}>
         <div class="toast-msg">{toastMessage()}</div>
+      </Show>
+
+      {/* Citation Impact Modal */}
+      <Show when={showCitations()}>
+        <CitationImpactModal
+          paper={props.paper}
+          onClose={() => setShowCitations(false)}
+        />
       </Show>
     </div>
   );
