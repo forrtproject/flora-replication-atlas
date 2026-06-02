@@ -21,7 +21,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: cache/
-          key: oc-cache-${{ runner.os }}-${{ hashFiles('refresh_data.py') }}
+          key: oc-cache-${{ runner.os }}-${{ hashFiles('scripts/refresh_data.py') }}
           restore-keys: |
             oc-cache-${{ runner.os }}-
 
@@ -38,7 +38,6 @@ jobs:
       - name: Run refresh
         env:
           ORIGINAL_TABLE: ${{ vars.ORIGINAL_TABLE }}
-          STATS_TABLE: ${{ vars.STATS_TABLE }}
           AWS_REGION: ${{ vars.AWS_REGION || 'eu-central-1' }}
           OC_API_KEY: ${{ secrets.OC_API_KEY }}
           MY_EMAIL: ${{ secrets.MY_EMAIL }}

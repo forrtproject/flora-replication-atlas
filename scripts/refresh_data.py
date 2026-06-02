@@ -25,7 +25,7 @@ from decimal import Decimal
 from tqdm import tqdm
 
 # ------------------------------------------------------------------ config
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT / "data"
 CACHE_DIR = ROOT / "cache"
 DATA_DIR.mkdir(exist_ok=True)
@@ -47,7 +47,6 @@ BASE_DELAY = 0.7
 OUTCOMES_KEEP = {"successful", "failed", "mixed"}
 
 ORIGINAL_TABLE = os.environ.get("ORIGINAL_TABLE", "").strip()
-STATS_TABLE    = os.environ.get("STATS_TABLE", "").strip()
 AWS_REGION     = os.environ.get("AWS_REGION", "eu-central-1").strip()
 
 session = requests.Session()
@@ -582,13 +581,12 @@ def _to_ddb(obj):
 
 
 def write_to_dynamodb(studies: dict, aggregate: dict, meta: dict) -> None:
-    if not ORIGINAL_TABLE or not STATS_TABLE:
-        print("ORIGINAL_TABLE / STATS_TABLE not set — skipping DynamoDB writes.")
+    if not ORIGINAL_TABLE:
+        print("ORIGINAL_TABLE not set — skipping DynamoDB writes.")
         return
 
     ddb = boto3.resource("dynamodb", region_name=AWS_REGION)
-    orig_table  = ddb.Table(ORIGINAL_TABLE)
-    stats_table = ddb.Table(STATS_TABLE)
+    orig_table = ddb.Table(ORIGINAL_TABLE)
 
     print(f"Updating {len(studies)} original records in DynamoDB…")
     for doi, s in studies.items():
@@ -600,13 +598,6 @@ def write_to_dynamodb(studies: dict, aggregate: dict, meta: dict) -> None:
                 ":ct": _to_ddb(s["timeline"]),
             },
         )
-
-    print("Writing Stats table…")
-    with stats_table.batch_writer(overwrite_by_pkeys=["pk"]) as batch:
-        batch.put_item(Item=_to_ddb({"pk": "meta#citation_impact", **meta}))
-        for group, data in aggregate.items():
-            if data:
-                batch.put_item(Item=_to_ddb({"pk": f"aggregate#{group}", **data}))
 
     print("DynamoDB writes complete.")
 
