@@ -46,9 +46,8 @@ START_TIME = time.time()
 BASE_DELAY = 0.7
 OUTCOMES_KEEP = {"successful", "failed", "mixed"}
 
-ORIGINAL_TABLE = os.environ.get("ORIGINAL_TABLE", "").strip()
-STATS_TABLE    = os.environ.get("STATS_TABLE", "").strip()
-AWS_REGION     = os.environ.get("AWS_REGION", "eu-central-1").strip()
+DATA_TABLE = os.environ.get("DATA_TABLE", "").strip()
+AWS_REGION = os.environ.get("AWS_REGION", "eu-central-1").strip()
 
 session = requests.Session()
 session.headers.update({"User-Agent": f"FLoRA-Explorer/1.0 ({EMAIL})"})
@@ -170,47 +169,70 @@ def clean_for_json(obj):
 
 # ------------------------------------------------------------------ FLoRA
 def load_flora() -> pd.DataFrame:
+    """
+    Parse the new FReD schema: one row per paper, with a 'doi' column and a
+    'record' JSON column containing types, authors, and nested replications.
+    """
     print("Fetching FLoRA…")
     df = pd.read_csv(FLORA_URL, low_memory=False)
-    print(f"  {len(df)} rows; columns: {list(df.columns)[:14]}…")
+    print(f"  {len(df)} rows; columns: {list(df.columns)}")
 
-    def find_col(names, required=True, default=None):
-        for n in names:
-            for c in df.columns:
-                if c.lower() == n.lower():
-                    return c
-        if required:
-            raise KeyError(f"None of {names} found in FLoRA columns")
-        return default
+    rows = []
+    n_skipped = 0
 
-    col_doi_o   = find_col(["doi_o"])
-    col_doi_r   = find_col(["doi_r"])
-    col_outcome = find_col(["result", "outcome", "result_class"], required=False)
-    col_type    = find_col(["type", "study_type", "ref_type"], required=False)
+    for _, row in df.iterrows():
+        doi_o = doi_clean(str(row.get("doi", "") or ""))
+        if not doi_o:
+            n_skipped += 1
+            continue
 
-    col_title_o = find_col(["title_o", "ref_o"], required=False)
-    col_auth_o  = find_col(["author_o"], required=False)
-    col_year_o  = find_col(["year_o"], required=False)
-    col_journal_o = find_col(["journal_o"], required=False)
+        raw_record = row.get("record", "")
+        if not isinstance(raw_record, str) or not raw_record.strip():
+            n_skipped += 1
+            continue
 
-    col_title_r = find_col(["title_r", "ref_r"], required=False)
-    col_auth_r  = find_col(["author_r"], required=False)
-    col_year_r  = find_col(["year_r"], required=False)
+        try:
+            rec = json.loads(raw_record)
+        except Exception:
+            n_skipped += 1
+            continue
 
-    out = pd.DataFrame({
-        "doi_o":     df[col_doi_o].map(doi_clean),
-        "doi_r":     df[col_doi_r].map(doi_clean),
-        "outcome":   df[col_outcome].astype(str).str.lower().str.strip() if col_outcome else "unknown",
-        "type":      df[col_type].astype(str).str.lower().str.strip() if col_type else "replication",
-        "title_o":   df[col_title_o] if col_title_o else "",
-        "author_o":  df[col_auth_o] if col_auth_o else "",
-        "year_o":    df[col_year_o] if col_year_o else None,
-        "journal_o": df[col_journal_o] if col_journal_o else "",
-        "title_r":   df[col_title_r] if col_title_r else "",
-        "author_r":  df[col_auth_r] if col_auth_r else "",
-        "year_r":    df[col_year_r] if col_year_r else None,
-    })
+        types = rec.get("types") or []
+        if "original" not in types:
+            continue
 
+        title_o   = str(rec.get("title") or "")[:300]
+        authors_o = rec.get("authors") or []
+        year_o    = rec.get("year")
+        journal_o = str(rec.get("journal") or "")[:200]
+
+        inner = rec.get("record") or {}
+        replications = inner.get("replications") or []
+
+        for rep in replications:
+            doi_r = doi_clean(str(rep.get("doi") or ""))
+            if not doi_r:
+                continue
+            rows.append({
+                "doi_o":     doi_o,
+                "doi_r":     doi_r,
+                "outcome":   str(rep.get("outcome") or "").lower().strip(),
+                "type":      str(rep.get("type") or "replication").lower().strip(),
+                "title_o":   title_o,
+                "author_o":  json.dumps(authors_o) if authors_o else "",
+                "year_o":    year_o,
+                "journal_o": journal_o,
+                "title_r":   str(rep.get("title") or "")[:300],
+                "author_r":  json.dumps(rep.get("authors") or []),
+                "year_r":    rep.get("year"),
+            })
+
+    if n_skipped:
+        print(f"  Skipped {n_skipped} rows (missing DOI or unparseable record)")
+    if not rows:
+        raise RuntimeError("No replication pairs found in FLoRA data — check FLORA_URL or schema.")
+
+    out = pd.DataFrame(rows)
     n0 = len(out)
     out = out[out["type"].str.contains("replication", na=False)
               & ~out["type"].str.contains("reproduc", na=False)]
@@ -582,17 +604,16 @@ def _to_ddb(obj):
 
 
 def write_to_dynamodb(studies: dict, aggregate: dict, meta: dict) -> None:
-    if not ORIGINAL_TABLE or not STATS_TABLE:
-        print("ORIGINAL_TABLE / STATS_TABLE not set — skipping DynamoDB writes.")
+    if not DATA_TABLE:
+        print("DATA_TABLE not set — skipping DynamoDB writes.")
         return
 
     ddb = boto3.resource("dynamodb", region_name=AWS_REGION)
-    orig_table  = ddb.Table(ORIGINAL_TABLE)
-    stats_table = ddb.Table(STATS_TABLE)
+    table = ddb.Table(DATA_TABLE)
 
     print(f"Updating {len(studies)} original records in DynamoDB…")
     for doi, s in studies.items():
-        orig_table.update_item(
+        table.update_item(
             Key={"doi": doi},
             UpdateExpression="SET n_citations = :nc, citation_timeline = :ct",
             ExpressionAttributeValues={
@@ -601,12 +622,12 @@ def write_to_dynamodb(studies: dict, aggregate: dict, meta: dict) -> None:
             },
         )
 
-    print("Writing Stats table…")
-    with stats_table.batch_writer(overwrite_by_pkeys=["pk"]) as batch:
-        batch.put_item(Item=_to_ddb({"pk": "meta#citation_impact", **meta}))
+    print("Writing aggregate + meta records…")
+    with table.batch_writer(overwrite_by_pkeys=["doi"]) as batch:
+        batch.put_item(Item=_to_ddb({"doi": "meta#citation_impact", **meta}))
         for group, data in aggregate.items():
             if data:
-                batch.put_item(Item=_to_ddb({"pk": f"aggregate#{group}", **data}))
+                batch.put_item(Item=_to_ddb({"doi": f"aggregate#{group}", **data}))
 
     print("DynamoDB writes complete.")
 
