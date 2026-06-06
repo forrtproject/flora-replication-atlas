@@ -590,7 +590,8 @@ def write_to_dynamodb(studies: dict, aggregate: dict, meta: dict) -> None:
     for doi, s in studies.items():
         table.update_item(
             Key={"doi": doi},
-            UpdateExpression="SET n_citations = :nc, citation_timeline = :ct",
+            UpdateExpression="SET #rec.n_citations = :nc, #rec.citation_timeline = :ct",
+            ExpressionAttributeNames={"#rec": "record"},
             ExpressionAttributeValues={
                 ":nc": s["n_citations"],
                 ":ct": _to_ddb(s["timeline"]),
