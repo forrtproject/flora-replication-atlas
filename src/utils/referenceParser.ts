@@ -183,6 +183,21 @@ function extractBibField(block: string, name: string): string {
   }
 }
 
+export function extractDoisDirect(text: string): ParsedReference[] {
+  const re = /\b(10\.\d{4,}\/[^\s"'<>[\]{}|\\^`\x00-\x1f]+)/g;
+  const seen = new Set<string>();
+  const refs: ParsedReference[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    const doi = m[1].replace(/[.,;)\]>]+$/, "");
+    if (doi.length > 7 && !seen.has(doi)) {
+      seen.add(doi);
+      refs.push({ raw: doi, doi, queryText: doi });
+    }
+  }
+  return refs;
+}
+
 export function parseBibFile(text: string): ParsedReference[] {
   const entries: ParsedReference[] = [];
   let i = 0;
