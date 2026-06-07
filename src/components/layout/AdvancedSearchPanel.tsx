@@ -149,7 +149,6 @@ const OUTCOMES = [
   { value: "successful", label: "Successful", dot: "#16a34a" },
   { value: "failed",     label: "Failed",     dot: "#b42318" },
   { value: "mixed",      label: "Mixed",      dot: "#b8860b" },
-  { value: "partial",    label: "Partial",    dot: "#853953" },
 ] as const;
 
 type OutcomePillsProps = {

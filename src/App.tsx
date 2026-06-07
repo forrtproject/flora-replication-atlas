@@ -134,6 +134,7 @@ function App() {
   let ignoreNextReset = false;
   let skipFuzzyEffect = false;
   let skipDoiEffect = false;
+  let skipAdvancedEffect = false;
 
   const visibilityMap = new Map<string, number>();
 
@@ -294,7 +295,7 @@ function App() {
     setSelectedDoi(null);
     setHasSearched(false);
     ignoreNextReset = true;
-    setSearchParams({ q: undefined, dois: undefined });
+    setSearchParams({ q: undefined, dois: undefined, mustAll: undefined, mustAny: undefined, mustNone: undefined, yearFrom: undefined, yearTo: undefined, outcomes: undefined });
   };
 
   const doDoiSearch = (dois: string[]) => {
@@ -337,8 +338,22 @@ function App() {
     const mustNone = advMustNone();
     if (!mustAll.length && !mustAny.length && !mustNone.length) return;
 
+    const yearFrom = advYearFrom();
+    const yearTo = advYearTo();
+    const outcomes = advOutcomes();
+
     setShowAdvancedModal(false);
     setSearchMode("advanced");
+    skipAdvancedEffect = true;
+    setSearchParams({
+      doi: undefined, dois: undefined, q: undefined,
+      mustAll: mustAll.length ? mustAll.join("|") : undefined,
+      mustAny: mustAny.length ? mustAny.join("|") : undefined,
+      mustNone: mustNone.length ? mustNone.join("|") : undefined,
+      yearFrom: yearFrom !== 1950 ? String(yearFrom) : undefined,
+      yearTo: yearTo !== new Date().getFullYear() ? String(yearTo) : undefined,
+      outcomes: outcomes.length ? outcomes.join("|") : undefined,
+    }, { replace: true });
     setIsLoading(true);
     setHasSearched(true);
     setHasEverSearched(true);
@@ -349,9 +364,9 @@ function App() {
       mustHave: mustAll.length ? mustAll : undefined,
       anyOf: mustAny.length ? mustAny : undefined,
       exclude: mustNone.length ? mustNone : undefined,
-      yearFrom: advYearFrom(),
-      yearTo: advYearTo(),
-      outcomes: advOutcomes().length ? advOutcomes() : undefined,
+      yearFrom,
+      yearTo,
+      outcomes: outcomes.length ? outcomes : undefined,
     })
       .then(handleResults)
       .catch((error) => {
@@ -407,6 +422,9 @@ function App() {
   createEffect(() => {
     const doi = String(searchParams.doi || searchParams.dois || "");
     const q = String(searchParams.q || "");
+    const advMustAllParam = searchParams.mustAll || "";
+    const advMustAnyParam = searchParams.mustAny || "";
+    const advMustNoneParam = searchParams.mustNone || "";
     const currentTags = doi
       ? doi
           .split(",")
@@ -431,6 +449,39 @@ function App() {
         setInputValue(q);
         setSearchMode("fuzzy");
         doFuzzySearch(q);
+      }
+    } else if (advMustAllParam || advMustAnyParam || advMustNoneParam) {
+      if (skipAdvancedEffect) {
+        skipAdvancedEffect = false;
+      } else {
+        const mustAll = advMustAllParam ? advMustAllParam.split("|") : [];
+        const mustAny = advMustAnyParam ? advMustAnyParam.split("|") : [];
+        const mustNone = advMustNoneParam ? advMustNoneParam.split("|") : [];
+        const yearFrom = searchParams.yearFrom ? parseInt(searchParams.yearFrom) : 1950;
+        const yearTo = searchParams.yearTo ? parseInt(searchParams.yearTo) : new Date().getFullYear();
+        const outcomes = searchParams.outcomes ? searchParams.outcomes.split("|") : [];
+        setAdvMustAll(mustAll);
+        setAdvMustAny(mustAny);
+        setAdvMustNone(mustNone);
+        setAdvYearFrom(yearFrom);
+        setAdvYearTo(yearTo);
+        setAdvOutcomes(outcomes);
+        setTags([]);
+        setInputValue("");
+        setSearchMode("advanced");
+        setIsLoading(true);
+        setHasSearched(true);
+        setHasEverSearched(true);
+        setResults({});
+        setSelectedDoi(null);
+        fetchAdvancedSearch({
+          mustHave: mustAll.length ? mustAll : undefined,
+          anyOf: mustAny.length ? mustAny : undefined,
+          exclude: mustNone.length ? mustNone : undefined,
+          yearFrom,
+          yearTo,
+          outcomes: outcomes.length ? outcomes : undefined,
+        }).then(handleResults).catch(() => { setIsLoading(false); setResults({}); });
       }
     } else {
       // URL has no search params — reset to welcome state
@@ -650,6 +701,20 @@ function App() {
             }
           >
             <>
+              <Show when={
+                searchMode() === "advanced" &&
+                advMustAll().length === 0 &&
+                advMustAny().length === 0 &&
+                advMustNone().length > 0
+              }>
+                <div class="exclude-only-warning">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                  Exclude-only searches are limited to 50 results.
+                </div>
+              </Show>
               <Show when={aggregateOutcomes().total > 0}>
                 <SearchOutcomesBanner
                   outcomes={aggregateOutcomes()}

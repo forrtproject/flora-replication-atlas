@@ -144,7 +144,7 @@ export const TopBar = (props: TopBarProps) => {
           type="button"
           title="Clear advanced search"
           onMouseDown={(e) => e.preventDefault()}
-          onClick={() => props.onSearchModeChange("fuzzy")}
+          onClick={(e) => { e.stopPropagation(); props.onSearchModeChange("fuzzy"); }}
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
             <path d="M18 6L6 18M6 6l12 12" />
@@ -260,7 +260,7 @@ export const TopBar = (props: TopBarProps) => {
             <div
               class="topbar-search"
               classList={{ "topbar-search--advanced": props.searchMode === "advanced" }}
-              onClick={() => props.searchMode !== "advanced" && inputRef?.focus()}
+              onClick={() => props.searchMode === "advanced" ? props.onAdvancedClick?.() : inputRef?.focus()}
             >
               {props.searchMode === "advanced"
                 ? advancedBar()
