@@ -46,8 +46,8 @@ START_TIME = time.time()
 BASE_DELAY = 0.7
 OUTCOMES_KEEP = {"successful", "failed", "mixed"}
 
-ORIGINAL_TABLE = os.environ.get("ORIGINAL_TABLE", "").strip()
-AWS_REGION     = os.environ.get("AWS_REGION", "eu-central-1").strip()
+DATA_TABLE = os.environ.get("DATA_TABLE", "").strip()
+AWS_REGION = os.environ.get("AWS_REGION", "eu-central-1").strip()
 
 session = requests.Session()
 session.headers.update({"User-Agent": f"FLoRA-Explorer/1.0 ({EMAIL})"})
@@ -182,19 +182,17 @@ def load_flora() -> pd.DataFrame:
             raise KeyError(f"None of {names} found in FLoRA columns")
         return default
 
-    col_doi_o   = find_col(["doi_o"])
-    col_doi_r   = find_col(["doi_r"])
-    col_outcome = find_col(["result", "outcome", "result_class"], required=False)
-    col_type    = find_col(["type", "study_type", "ref_type"], required=False)
-
-    col_title_o = find_col(["title_o", "ref_o"], required=False)
-    col_auth_o  = find_col(["author_o"], required=False)
-    col_year_o  = find_col(["year_o"], required=False)
+    col_doi_o     = find_col(["doi_o"])
+    col_doi_r     = find_col(["doi_r"])
+    col_outcome   = find_col(["outcome", "result", "result_class"], required=False)
+    col_type      = find_col(["type", "study_type", "ref_type"], required=False)
+    col_title_o   = find_col(["title_o", "ref_o"], required=False)
+    col_auth_o    = find_col(["author_o"], required=False)
+    col_year_o    = find_col(["year_o"], required=False)
     col_journal_o = find_col(["journal_o"], required=False)
-
-    col_title_r = find_col(["title_r", "ref_r"], required=False)
-    col_auth_r  = find_col(["author_r"], required=False)
-    col_year_r  = find_col(["year_r"], required=False)
+    col_title_r   = find_col(["title_r", "ref_r"], required=False)
+    col_auth_r    = find_col(["author_r"], required=False)
+    col_year_r    = find_col(["year_r"], required=False)
 
     out = pd.DataFrame({
         "doi_o":     df[col_doi_o].map(doi_clean),
@@ -581,25 +579,65 @@ def _to_ddb(obj):
 
 
 def write_to_dynamodb(studies: dict, aggregate: dict, meta: dict) -> None:
-    if not ORIGINAL_TABLE:
-        print("ORIGINAL_TABLE not set — skipping DynamoDB writes.")
+    if not DATA_TABLE:
+        print("DATA_TABLE not set — skipping DynamoDB writes.")
         return
 
-    ddb = boto3.resource("dynamodb", region_name=AWS_REGION)
-    orig_table = ddb.Table(ORIGINAL_TABLE)
+    ddb_resource = boto3.resource("dynamodb", region_name=AWS_REGION)
+    ddb_client   = boto3.client("dynamodb", region_name=AWS_REGION)
+    table = ddb_resource.Table(DATA_TABLE)
+
+    # record is stored as a JSON string — batch-fetch existing values so we can
+    # merge citation fields in without overwriting the rest of the object.
+    all_dois = list(studies.keys())
+    print(f"Fetching existing records for {len(all_dois)} DOIs…")
+    existing: dict[str, str | None] = {}
+    for i in range(0, len(all_dois), 100):
+        chunk = all_dois[i : i + 100]
+        resp = ddb_client.batch_get_item(
+            RequestItems={
+                DATA_TABLE: {
+                    "Keys": [{"doi": {"S": d}} for d in chunk],
+                    "ProjectionExpression": "doi, #rec",
+                    "ExpressionAttributeNames": {"#rec": "record"},
+                }
+            }
+        )
+        for item in resp.get("Responses", {}).get(DATA_TABLE, []):
+            existing[item["doi"]["S"]] = item.get("record", {}).get("S")
 
     print(f"Updating {len(studies)} original records in DynamoDB…")
+    n_updated = n_skipped = 0
     for doi, s in studies.items():
-        orig_table.update_item(
+        raw = existing.get(doi)
+        if raw is None:
+            n_skipped += 1
+            continue
+        try:
+            rec = json.loads(raw)
+        except Exception:
+            rec = {}
+        rec["n_citations"] = s["n_citations"]
+        rec["citation_timeline"] = clean_for_json(s["timeline"])
+        table.update_item(
             Key={"doi": doi},
-            UpdateExpression="SET n_citations = :nc, citation_timeline = :ct",
-            ExpressionAttributeValues={
-                ":nc": s["n_citations"],
-                ":ct": _to_ddb(s["timeline"]),
-            },
+            UpdateExpression="SET #rec = :r",
+            ExpressionAttributeNames={"#rec": "record"},
+            ExpressionAttributeValues={":r": json.dumps(clean_for_json(rec), allow_nan=False)},
         )
+        n_updated += 1
 
-    print("DynamoDB writes complete.")
+    if n_skipped:
+        print(f"  {n_skipped} DOIs not in table — skipped.")
+
+    print("Writing aggregate + meta records…")
+    with table.batch_writer(overwrite_by_pkeys=["doi"]) as batch:
+        batch.put_item(Item=_to_ddb({"doi": "meta#citation_impact", **meta}))
+        for group, data in aggregate.items():
+            if data:
+                batch.put_item(Item=_to_ddb({"doi": f"aggregate#{group}", **data}))
+
+    print(f"DynamoDB writes complete ({n_updated} updated).")
 
 
 # ------------------------------------------------------------------ main

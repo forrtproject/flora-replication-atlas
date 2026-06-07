@@ -37,7 +37,7 @@ jobs:
 
       - name: Run refresh
         env:
-          ORIGINAL_TABLE: ${{ vars.ORIGINAL_TABLE }}
+          DATA_TABLE: ${{ vars.DATA_TABLE }}
           AWS_REGION: ${{ vars.AWS_REGION || 'eu-central-1' }}
           OC_API_KEY: ${{ secrets.OC_API_KEY }}
           MY_EMAIL: ${{ secrets.MY_EMAIL }}

@@ -55,6 +55,14 @@ export type RecordData = {
   reproductions: ReplicationItem[];
 };
 
+export type CitationTimelineEntry = {
+  year: number;
+  only: number;
+  with_successful: number;
+  with_failed: number;
+  with_mixed: number;
+};
+
 export type OriginalPaper = {
   doi: string;
   doi_hash: string;
@@ -70,6 +78,8 @@ export type OriginalPaper = {
   url: string | null;
   types?: string[];
   record: RecordData | null;
+  citation_timeline?: CitationTimelineEntry[];
+  n_citations?: number;
 };
 
 export type DOIResults = {
