@@ -1,4 +1,11 @@
-import { createSignal, createEffect, createMemo, Show, For, onCleanup } from "solid-js";
+import {
+  createSignal,
+  createEffect,
+  createMemo,
+  Show,
+  For,
+  onCleanup,
+} from "solid-js";
 import { useSearchParams } from "@solidjs/router";
 import type { DOIResults, OriginalPaper } from "./@types";
 import { fetchMultipleDOIInfo, fetchFuzzySearch } from "./api/backend";
@@ -44,15 +51,21 @@ function App() {
   const [isLoading, setIsLoading] = createSignal(false);
   const [hasSearched, setHasSearched] = createSignal(false);
   const [hasEverSearched, setHasEverSearched] = createSignal(false);
-  const [typeFilter, setTypeFilter] = createSignal<"original" | "replication">("original");
+  const [typeFilter, setTypeFilter] = createSignal<"original" | "replication">(
+    "original",
+  );
   const [showImportModal, setShowImportModal] = createSignal(false);
 
   const filteredResults = createMemo(() => {
     const filter = typeFilter();
     return Object.entries(results()).filter(([, paper]) => {
       const rep = formatReplicationResponse(paper);
-      const isOriginal = (rep.replications?.length || 0) > 0 || (rep.reproductions?.length || 0) > 0;
-      const isReplication = (rep.originals?.length || 0) > 0 || (paper.types?.includes("reproduction") ?? false);
+      const isOriginal =
+        (rep.replications?.length || 0) > 0 ||
+        (rep.reproductions?.length || 0) > 0;
+      const isReplication =
+        (rep.originals?.length || 0) > 0 ||
+        (paper.types?.includes("reproduction") ?? false);
       if (filter === "original") return isOriginal;
       return isReplication;
     });
@@ -64,25 +77,33 @@ function App() {
     const counts = Object.values(res).reduce(
       (acc, paper) => {
         const rep = formatReplicationResponse(paper);
-        const isOriginal = (rep.replications?.length || 0) > 0 || (rep.reproductions?.length || 0) > 0;
-        const isReplication = (rep.originals?.length || 0) > 0 || (paper.types?.includes("reproduction") ?? false);
+        const isOriginal =
+          (rep.replications?.length || 0) > 0 ||
+          (rep.reproductions?.length || 0) > 0;
+        const isReplication =
+          (rep.originals?.length || 0) > 0 ||
+          (paper.types?.includes("reproduction") ?? false);
         if (filter === "original" && !isOriginal) return acc;
         if (filter === "replication" && !isReplication) return acc;
         acc.success += rep.outcomes?.success ?? 0;
-        acc.failed  += rep.outcomes?.failed  ?? 0;
-        acc.mixed   += rep.outcomes?.mixed   ?? 0;
+        acc.failed += rep.outcomes?.failed ?? 0;
+        acc.mixed += rep.outcomes?.mixed ?? 0;
         acc.partial += rep.outcomes?.partial ?? 0;
-        acc.total   += rep.outcomes?.total   ?? 0;
+        acc.total += rep.outcomes?.total ?? 0;
         return acc;
       },
-      { success: 0, failed: 0, mixed: 0, partial: 0, total: 0 }
+      { success: 0, failed: 0, mixed: 0, partial: 0, total: 0 },
     );
-    return { ...counts, categorizedTotal: counts.success + counts.failed + counts.mixed + counts.partial };
+    return {
+      ...counts,
+      categorizedTotal:
+        counts.success + counts.failed + counts.mixed + counts.partial,
+    };
   });
 
   const paperCount = createMemo(() => {
     const filter = typeFilter();
-    return Object.values(results()).filter(p => {
+    return Object.values(results()).filter((p) => {
       if (!p.record) return false;
       const rep = formatReplicationResponse(p);
       const isOriginal = (rep.replications?.length || 0) > 0;
@@ -209,23 +230,34 @@ function App() {
   };
 
   const handleResults = (res: DOIResults) => {
-    const raw = res.results || {};
-    const data = Object.fromEntries(Object.entries(raw).filter(([, v]) => v != null)) as Record<string, OriginalPaper>;
+    const data = Object.fromEntries(
+      Object.entries(res.results || {}).filter(([, v]) => v != null),
+    ) as Record<string, OriginalPaper>;
     setResults(data);
 
     // Auto-switch filter if the current one has no matches
     const papers = Object.values(data);
-    const hasOriginals = papers.some(p => {
+    const hasOriginals = papers.some((p) => {
       const rep = formatReplicationResponse(p);
-      return (rep.replications?.length || 0) > 0 || (rep.reproductions?.length || 0) > 0;
+      return (
+        (rep.replications?.length || 0) > 0 ||
+        (rep.reproductions?.length || 0) > 0
+      );
     });
-    const hasReplications = papers.some(p => {
+    const hasReplications = papers.some((p) => {
       const rep = formatReplicationResponse(p);
-      return (rep.originals?.length || 0) > 0 || (p.types?.includes("reproduction") ?? false);
+      return (
+        (rep.originals?.length || 0) > 0 ||
+        (p.types?.includes("reproduction") ?? false)
+      );
     });
     if (typeFilter() === "original" && !hasOriginals && hasReplications) {
       setTypeFilter("replication");
-    } else if (typeFilter() === "replication" && !hasReplications && hasOriginals) {
+    } else if (
+      typeFilter() === "replication" &&
+      !hasReplications &&
+      hasOriginals
+    ) {
       setTypeFilter("original");
     }
 
@@ -473,14 +505,23 @@ function App() {
                       >
                         <div class="no-results-pane">
                           <div class="welcome-examples">
-                            <div class="welcome-examples-label">Example searches</div>
+                            <div class="welcome-examples-label">
+                              Example searches
+                            </div>
                             {exampleSearches.map((ex) => (
                               <div
                                 class="welcome-doi"
                                 onClick={() => handleExampleClick(ex.query)}
                               >
                                 <span>{ex.label}</span>
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <svg
+                                  width="14"
+                                  height="14"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  stroke-width="2"
+                                >
                                   <polyline points="9,18 15,12 9,6" />
                                 </svg>
                               </div>
@@ -543,27 +584,30 @@ function App() {
           >
             <>
               <Show when={aggregateOutcomes().total > 0}>
-                <SearchOutcomesBanner outcomes={aggregateOutcomes()} paperCount={paperCount()} />
+                <SearchOutcomesBanner
+                  outcomes={aggregateOutcomes()}
+                  paperCount={paperCount()}
+                />
               </Show>
               <For each={filteredResults()}>
-              {([doi, paper]) => (
-                <div
-                  data-doi={doi}
-                  ref={(el) => {
-                    paperRefs[doi] = el;
-                    setupObserver();
-                  }}
-                  class={`scroll-paper-section ${selectedDoi() === doi ? "highlighted" : ""}`}
-                >
-                  <Show
-                    when={paper?.record}
-                    fallback={<NoDataState doi={doi} />}
+                {([doi, paper]) => (
+                  <div
+                    data-doi={doi}
+                    ref={(el) => {
+                      paperRefs[doi] = el;
+                      setupObserver();
+                    }}
+                    class={`scroll-paper-section ${selectedDoi() === doi ? "highlighted" : ""}`}
                   >
-                    <DetailView paper={paper!} />
-                  </Show>
-                </div>
-              )}
-            </For>
+                    <Show
+                      when={paper?.record}
+                      fallback={<NoDataState doi={doi} />}
+                    >
+                      <DetailView paper={paper!} />
+                    </Show>
+                  </div>
+                )}
+              </For>
             </>
           </Show>
         </div>
