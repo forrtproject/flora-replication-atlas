@@ -422,9 +422,9 @@ function App() {
   createEffect(() => {
     const doi = String(searchParams.doi || searchParams.dois || "");
     const q = String(searchParams.q || "");
-    const advMustAllParam = searchParams.mustAll || "";
-    const advMustAnyParam = searchParams.mustAny || "";
-    const advMustNoneParam = searchParams.mustNone || "";
+    const advMustAllParam = String(searchParams.mustAll || "");
+    const advMustAnyParam = String(searchParams.mustAny || "");
+    const advMustNoneParam = String(searchParams.mustNone || "");
     const currentTags = doi
       ? doi
           .split(",")
@@ -457,9 +457,9 @@ function App() {
         const mustAll = advMustAllParam ? advMustAllParam.split("|") : [];
         const mustAny = advMustAnyParam ? advMustAnyParam.split("|") : [];
         const mustNone = advMustNoneParam ? advMustNoneParam.split("|") : [];
-        const yearFrom = searchParams.yearFrom ? parseInt(searchParams.yearFrom) : 1950;
-        const yearTo = searchParams.yearTo ? parseInt(searchParams.yearTo) : new Date().getFullYear();
-        const outcomes = searchParams.outcomes ? searchParams.outcomes.split("|") : [];
+        const yearFrom = searchParams.yearFrom ? parseInt(String(searchParams.yearFrom)) : 1950;
+        const yearTo = searchParams.yearTo ? parseInt(String(searchParams.yearTo)) : new Date().getFullYear();
+        const outcomes = searchParams.outcomes ? String(searchParams.outcomes).split("|") : [];
         setAdvMustAll(mustAll);
         setAdvMustAny(mustAny);
         setAdvMustNone(mustNone);
