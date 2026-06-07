@@ -7,7 +7,7 @@ type Props = {
 };
 
 const COLORS = {
-  only:       "rgba(133,57,83,0.28)",
+  only:       "rgba(180,180,180,0.6)",
   failed:     "#b42318",
   mixed:      "#b8860b",
   successful: "#16a34a",
@@ -184,7 +184,7 @@ const LEGEND = [
   { color: COLORS.successful, label: "Co-cites successful rep" },
   { color: COLORS.mixed,      label: "Co-cites mixed rep" },
   { color: COLORS.failed,     label: "Co-cites failed rep" },
-  { color: "#853953",         label: "Cites original only" },
+  { color: COLORS.only,       label: "Cites original only" },
 ] as const;
 
 export const CitationImpactModal = (props: Props) => {
