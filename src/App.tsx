@@ -8,7 +8,7 @@ import {
 } from "solid-js";
 import { useSearchParams } from "@solidjs/router";
 import type { DOIResults, OriginalPaper } from "./@types";
-import { fetchMultipleDOIInfo, fetchFuzzySearch } from "./api/backend";
+import { fetchMultipleDOIInfo, fetchFuzzySearch, fetchAdvancedSearch } from "./api/backend";
 import { formatReplicationResponse } from "./api/formatter";
 import { SearchOutcomesBanner } from "./components/replication/SearchOutcomesBanner";
 import { TopBar, type SearchMode } from "./components/layout/TopBar";
@@ -17,6 +17,7 @@ import {
   WelcomeState,
   exampleSearches,
 } from "./components/layout/WelcomeState";
+import { AdvancedSearchPanel } from "./components/layout/AdvancedSearchPanel";
 import { DetailView } from "./components/layout/DetailView";
 import { NoDataState } from "./components/layout/NoDataState";
 import { Footer } from "./components/Footer";
@@ -55,6 +56,16 @@ function App() {
     "original",
   );
   const [showImportModal, setShowImportModal] = createSignal(false);
+
+  const [showAdvancedModal, setShowAdvancedModal] = createSignal(false);
+
+  // Advanced search state
+  const [advMustAll, setAdvMustAll] = createSignal<string[]>([]);
+  const [advMustAny, setAdvMustAny] = createSignal<string[]>([]);
+  const [advMustNone, setAdvMustNone] = createSignal<string[]>([]);
+  const [advYearFrom, setAdvYearFrom] = createSignal(1950);
+  const [advYearTo, setAdvYearTo] = createSignal(new Date().getFullYear());
+  const [advOutcomes, setAdvOutcomes] = createSignal<string[]>([]);
 
   const filteredResults = createMemo(() => {
     const filter = typeFilter();
@@ -123,6 +134,7 @@ function App() {
   let ignoreNextReset = false;
   let skipFuzzyEffect = false;
   let skipDoiEffect = false;
+  let skipAdvancedEffect = false;
 
   const visibilityMap = new Map<string, number>();
 
@@ -275,12 +287,15 @@ function App() {
     if (currentMode === "doi" && looksLikeDoi) {
       setInputValue("");
     }
+    if (currentMode === "advanced") {
+      clearAdvancedSearch();
+    }
     setTags([]);
     setResults({});
     setSelectedDoi(null);
     setHasSearched(false);
     ignoreNextReset = true;
-    setSearchParams({ q: undefined, dois: undefined });
+    setSearchParams({ q: undefined, dois: undefined, mustAll: undefined, mustAny: undefined, mustNone: undefined, yearFrom: undefined, yearTo: undefined, outcomes: undefined });
   };
 
   const doDoiSearch = (dois: string[]) => {
@@ -315,6 +330,59 @@ function App() {
         setIsLoading(false);
         setResults({});
       });
+  };
+
+  const doAdvancedSearch = () => {
+    const mustAll = advMustAll();
+    const mustAny = advMustAny();
+    const mustNone = advMustNone();
+    if (!mustAll.length && !mustAny.length && !mustNone.length) return;
+
+    const yearFrom = advYearFrom();
+    const yearTo = advYearTo();
+    const outcomes = advOutcomes();
+
+    setShowAdvancedModal(false);
+    setSearchMode("advanced");
+    skipAdvancedEffect = true;
+    setSearchParams({
+      doi: undefined, dois: undefined, q: undefined,
+      mustAll: mustAll.length ? mustAll.join("|") : undefined,
+      mustAny: mustAny.length ? mustAny.join("|") : undefined,
+      mustNone: mustNone.length ? mustNone.join("|") : undefined,
+      yearFrom: yearFrom !== 1950 ? String(yearFrom) : undefined,
+      yearTo: yearTo !== new Date().getFullYear() ? String(yearTo) : undefined,
+      outcomes: outcomes.length ? outcomes.join("|") : undefined,
+    }, { replace: true });
+    setIsLoading(true);
+    setHasSearched(true);
+    setHasEverSearched(true);
+    setResults({});
+    setSelectedDoi(null);
+
+    fetchAdvancedSearch({
+      mustHave: mustAll.length ? mustAll : undefined,
+      anyOf: mustAny.length ? mustAny : undefined,
+      exclude: mustNone.length ? mustNone : undefined,
+      yearFrom,
+      yearTo,
+      outcomes: outcomes.length ? outcomes : undefined,
+    })
+      .then(handleResults)
+      .catch((error) => {
+        console.error("Error in advanced search:", error);
+        setIsLoading(false);
+        setResults({});
+      });
+  };
+
+  const clearAdvancedSearch = () => {
+    setAdvMustAll([]);
+    setAdvMustAny([]);
+    setAdvMustNone([]);
+    setAdvYearFrom(1950);
+    setAdvYearTo(new Date().getFullYear());
+    setAdvOutcomes([]);
   };
 
   const debouncedFuzzySearch = debounce(
@@ -354,6 +422,9 @@ function App() {
   createEffect(() => {
     const doi = String(searchParams.doi || searchParams.dois || "");
     const q = String(searchParams.q || "");
+    const advMustAllParam = searchParams.mustAll || "";
+    const advMustAnyParam = searchParams.mustAny || "";
+    const advMustNoneParam = searchParams.mustNone || "";
     const currentTags = doi
       ? doi
           .split(",")
@@ -378,6 +449,39 @@ function App() {
         setInputValue(q);
         setSearchMode("fuzzy");
         doFuzzySearch(q);
+      }
+    } else if (advMustAllParam || advMustAnyParam || advMustNoneParam) {
+      if (skipAdvancedEffect) {
+        skipAdvancedEffect = false;
+      } else {
+        const mustAll = advMustAllParam ? advMustAllParam.split("|") : [];
+        const mustAny = advMustAnyParam ? advMustAnyParam.split("|") : [];
+        const mustNone = advMustNoneParam ? advMustNoneParam.split("|") : [];
+        const yearFrom = searchParams.yearFrom ? parseInt(searchParams.yearFrom) : 1950;
+        const yearTo = searchParams.yearTo ? parseInt(searchParams.yearTo) : new Date().getFullYear();
+        const outcomes = searchParams.outcomes ? searchParams.outcomes.split("|") : [];
+        setAdvMustAll(mustAll);
+        setAdvMustAny(mustAny);
+        setAdvMustNone(mustNone);
+        setAdvYearFrom(yearFrom);
+        setAdvYearTo(yearTo);
+        setAdvOutcomes(outcomes);
+        setTags([]);
+        setInputValue("");
+        setSearchMode("advanced");
+        setIsLoading(true);
+        setHasSearched(true);
+        setHasEverSearched(true);
+        setResults({});
+        setSelectedDoi(null);
+        fetchAdvancedSearch({
+          mustHave: mustAll.length ? mustAll : undefined,
+          anyOf: mustAny.length ? mustAny : undefined,
+          exclude: mustNone.length ? mustNone : undefined,
+          yearFrom,
+          yearTo,
+          outcomes: outcomes.length ? outcomes : undefined,
+        }).then(handleResults).catch(() => { setIsLoading(false); setResults({}); });
       }
     } else {
       // URL has no search params — reset to welcome state
@@ -405,6 +509,14 @@ function App() {
         inputValue={inputValue()}
         searchMode={searchMode()}
         showSearch={hasEverSearched()}
+        advancedState={{
+          mustAll: advMustAll(),
+          mustAny: advMustAny(),
+          mustNone: advMustNone(),
+          yearFrom: advYearFrom(),
+          yearTo: advYearTo(),
+          outcomes: advOutcomes(),
+        }}
         onInputRef={(el) => (topbarInputRef = el)}
         onInputChange={(v) => {
           setInputValue(v);
@@ -445,6 +557,7 @@ function App() {
           }
         }}
         onImportClick={() => setShowImportModal(true)}
+        onAdvancedClick={() => setShowAdvancedModal(true)}
       />
 
       <div
@@ -468,7 +581,11 @@ function App() {
           />
         </Show>
 
-        <div class="right-panel" ref={rightPanelRef}>
+        <div
+          class="right-panel"
+          classList={{ "right-panel--scrollable": Object.keys(results()).length > 0 }}
+          ref={rightPanelRef}
+        >
           <Show
             when={Object.keys(results()).length > 0}
             fallback={
@@ -500,6 +617,7 @@ function App() {
                             onSearchModeChange={handleSearchModeChange}
                             onExampleClick={handleExampleClick}
                             onImportClick={() => setShowImportModal(true)}
+                            onAdvancedClick={() => setShowAdvancedModal(true)}
                           />
                         }
                       >
@@ -583,6 +701,20 @@ function App() {
             }
           >
             <>
+              <Show when={
+                searchMode() === "advanced" &&
+                advMustAll().length === 0 &&
+                advMustAny().length === 0 &&
+                advMustNone().length > 0
+              }>
+                <div class="exclude-only-warning">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                  Exclude-only searches are limited to 50 results.
+                </div>
+              </Show>
               <Show when={aggregateOutcomes().total > 0}>
                 <SearchOutcomesBanner
                   outcomes={aggregateOutcomes()}
@@ -623,6 +755,27 @@ function App() {
           syncUrl(dois);
           doDoiSearch(dois);
         }}
+      />
+
+      <AdvancedSearchPanel
+        open={showAdvancedModal()}
+        state={{
+          mustAll: advMustAll(),
+          mustAny: advMustAny(),
+          mustNone: advMustNone(),
+          yearFrom: advYearFrom(),
+          yearTo: advYearTo(),
+          outcomes: advOutcomes(),
+        }}
+        onMustAllChange={setAdvMustAll}
+        onMustAnyChange={setAdvMustAny}
+        onMustNoneChange={setAdvMustNone}
+        onYearFromChange={setAdvYearFrom}
+        onYearToChange={setAdvYearTo}
+        onOutcomesChange={setAdvOutcomes}
+        onSearch={doAdvancedSearch}
+        onClear={clearAdvancedSearch}
+        onClose={() => setShowAdvancedModal(false)}
       />
 
       <Footer />

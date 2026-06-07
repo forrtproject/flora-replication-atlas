@@ -43,3 +43,26 @@ export const fetchFuzzySearch = async (query: string, limit = 20): Promise<DOIRe
   const results = response.data.results ?? {};
   return { results, isEmpty: Object.keys(results).length === 0 };
 };
+
+export type AdvancedSearchParams = {
+  mustHave?: string[];
+  anyOf?: string[];
+  exclude?: string[];
+  yearFrom?: number;
+  yearTo?: number;
+  outcomes?: string[];
+};
+
+export const fetchAdvancedSearch = async (params: AdvancedSearchParams): Promise<DOIResults> => {
+  const body: Record<string, unknown> = {};
+  if (params.mustHave?.length) body.mustHave = params.mustHave;
+  if (params.anyOf?.length) body.anyOf = params.anyOf;
+  if (params.exclude?.length) body.exclude = params.exclude;
+  if (params.yearFrom !== undefined) body.yearFrom = params.yearFrom;
+  if (params.yearTo !== undefined) body.yearTo = params.yearTo;
+  if (params.outcomes?.length) body.outcomes = params.outcomes;
+
+  const response = await backend.post<DOIResults>('/search', body);
+  const results = response.data.results ?? {};
+  return { results, isEmpty: Object.keys(results).length === 0 };
+};

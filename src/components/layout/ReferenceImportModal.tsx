@@ -1,9 +1,11 @@
 import { createSignal, createEffect, For, Show, onCleanup, onMount } from "solid-js";
-import { parseReferences } from "../../utils/referenceParser";
+import { parseReferences, parseRisFile, parseBibFile, extractDoisDirect } from "../../utils/referenceParser";
+import { fetchOsfDois } from "../../utils/osfFetch";
 import { lookupAll, type LookupResult } from "../../utils/doiLookup";
 
-type Tab = "paste" | "upload";
+type Tab = "paste" | "upload" | "osf";
 type Stage = "input" | "processing" | "results";
+type FileType = "txt" | "ris" | "bib" | "pdf";
 
 type Props = {
   open: boolean;
@@ -27,8 +29,11 @@ export const ReferenceImportModal = (props: Props) => {
   const [stage, setStage] = createSignal<Stage>("input");
   const [text, setText] = createSignal("");
   const [fileName, setFileName] = createSignal<string | null>(null);
+  const [fileType, setFileType] = createSignal<FileType | null>(null);
+  const [osfUrl, setOsfUrl] = createSignal("");
   const [results, setResults] = createSignal<LookupResult[]>([]);
   const [progress, setProgress] = createSignal({ done: 0, total: 0 });
+  const [progressMsg, setProgressMsg] = createSignal("Looking up DOIs…");
   const [error, setError] = createSignal<string | null>(null);
   const [dragOver, setDragOver] = createSignal(false);
 
@@ -41,8 +46,11 @@ export const ReferenceImportModal = (props: Props) => {
     setStage("input");
     setText("");
     setFileName(null);
+    setFileType(null);
+    setOsfUrl("");
     setResults([]);
     setProgress({ done: 0, total: 0 });
+    setProgressMsg("Looking up DOIs…");
     setError(null);
     setDragOver(false);
   };
@@ -66,17 +74,25 @@ export const ReferenceImportModal = (props: Props) => {
   });
 
   const loadFile = (file: File) => {
-    if (!file.name.endsWith(".txt") && file.type !== "text/plain") {
-      setError("Only .txt files are supported.");
+    const name = file.name.toLowerCase();
+    const isPdf = name.endsWith(".pdf") || file.type === "application/pdf";
+    const isRis = name.endsWith(".ris");
+    const isBib = name.endsWith(".bib");
+    const isTxt = name.endsWith(".txt") || file.type === "text/plain";
+    if (!isPdf && !isRis && !isBib && !isTxt) {
+      setError("Only .txt, .ris, .bib, or .pdf files are supported.");
       return;
     }
+    const ft: FileType = isPdf ? "pdf" : isRis ? "ris" : isBib ? "bib" : "txt";
     const reader = new FileReader();
     reader.onload = (e) => {
       setText((e.target?.result as string) ?? "");
       setFileName(file.name);
+      setFileType(ft);
       setError(null);
     };
-    reader.readAsText(file);
+    // PDF: read as latin-1 so DOIs (ASCII) survive byte-for-byte
+    reader.readAsText(file, isPdf ? "ISO-8859-1" : undefined);
   };
 
   const handleFileInput = (e: Event) => {
@@ -92,23 +108,48 @@ export const ReferenceImportModal = (props: Props) => {
   };
 
   const runExtraction = async () => {
-    const raw = text().trim();
-    if (!raw) { setError("Please enter or upload some text first."); return; }
     setError(null);
-
-    const refs = parseReferences(raw);
-    if (refs.length === 0) { setError("No references detected in the text."); return; }
-
-    setStage("processing");
-    setProgress({ done: 0, total: refs.length });
-
+    abortController?.abort();
     abortController = new AbortController();
-    const found = await lookupAll(
-      refs,
-      (done, total) => setProgress({ done, total }),
-      abortController.signal,
-    );
+    const signal = abortController.signal;
 
+    let refs: ReturnType<typeof parseReferences>;
+
+    if (tab() === "osf") {
+      const url = osfUrl().trim();
+      if (!url) { setError("Please enter an OSF URL."); return; }
+      setStage("processing");
+      setProgressMsg("Fetching from OSF…");
+      setProgress({ done: 0, total: 1 });
+      try {
+        refs = await fetchOsfDois(url, signal);
+      } catch (e) {
+        if (!signal.aborted) {
+          setStage("input");
+          setError(e instanceof Error ? e.message : "Failed to fetch OSF content.");
+        }
+        return;
+      }
+      if (refs.length === 0) {
+        setStage("input");
+        setError("No DOIs found in the OSF content.");
+        return;
+      }
+    } else {
+      const raw = text().trim();
+      if (!raw) { setError("Please enter or upload some text first."); return; }
+      const ft = fileType();
+      refs = ft === "ris" ? parseRisFile(raw)
+           : ft === "bib" ? parseBibFile(raw)
+           : ft === "pdf" ? extractDoisDirect(raw)
+           : parseReferences(raw);
+      if (refs.length === 0) { setError("No references detected in the text."); return; }
+      setStage("processing");
+    }
+
+    setProgressMsg("Looking up DOIs…");
+    setProgress({ done: 0, total: refs.length });
+    const found = await lookupAll(refs, (done, total) => setProgress({ done, total }), signal);
     setResults(found);
     setStage("results");
   };
@@ -138,6 +179,11 @@ export const ReferenceImportModal = (props: Props) => {
   const foundCount = () => results().filter((r) => r.status !== "not_found").length;
   const notFoundCount = () => results().filter((r) => r.status === "not_found").length;
 
+  const switchTab = (t: Tab) => { setTab(t); setError(null); };
+
+  const submitDisabled = () =>
+    tab() === "osf" ? !osfUrl().trim() : !text().trim();
+
   return (
     <Show when={props.open}>
       <div class="rim-backdrop" onClick={handleClose} role="presentation">
@@ -153,7 +199,7 @@ export const ReferenceImportModal = (props: Props) => {
             <div>
               <h2 class="rim-title">Import References</h2>
               <p class="rim-subtitle">
-                Extract DOIs from a reference list — missing ones are looked up via CrossRef &amp; OpenAlex.
+                Extract DOIs from a reference list, PDF, or OSF link.
               </p>
             </div>
             <button class="rim-close" onClick={handleClose} aria-label="Close">
@@ -170,7 +216,7 @@ export const ReferenceImportModal = (props: Props) => {
             <div class="rim-tabs">
               <button
                 class={`rim-tab ${tab() === "paste" ? "active" : ""}`}
-                onClick={() => setTab("paste")}
+                onClick={() => switchTab("paste")}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M9 2h6l2 2v2H7V4z" /><rect x="5" y="6" width="14" height="16" rx="1" />
@@ -180,14 +226,24 @@ export const ReferenceImportModal = (props: Props) => {
               </button>
               <button
                 class={`rim-tab ${tab() === "upload" ? "active" : ""}`}
-                onClick={() => setTab("upload")}
+                onClick={() => switchTab("upload")}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
                   <polyline points="17 8 12 3 7 8" />
                   <line x1="12" y1="3" x2="12" y2="15" />
                 </svg>
-                Upload .txt
+                Upload file
+              </button>
+              <button
+                class={`rim-tab ${tab() === "osf" ? "active" : ""}`}
+                onClick={() => switchTab("osf")}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20" />
+                </svg>
+                OSF link
               </button>
             </div>
 
@@ -213,7 +269,7 @@ export const ReferenceImportModal = (props: Props) => {
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept=".txt,text/plain"
+                    accept=".txt,.ris,.bib,.pdf,text/plain,application/pdf"
                     style={{ display: "none" }}
                     onChange={handleFileInput}
                   />
@@ -226,7 +282,10 @@ export const ReferenceImportModal = (props: Props) => {
                           <polyline points="17 8 12 3 7 8" />
                           <line x1="12" y1="3" x2="12" y2="15" />
                         </svg>
-                        <p class="rim-drop-label">Drop a .txt file here or <span class="rim-drop-link">click to browse</span></p>
+                        <p class="rim-drop-label">
+                          Drop a file here or <span class="rim-drop-link">click to browse</span>
+                        </p>
+                        <p class="rim-drop-formats">.txt · .ris · .bib · .pdf</p>
                       </>
                     }
                   >
@@ -239,10 +298,38 @@ export const ReferenceImportModal = (props: Props) => {
                   </Show>
                 </div>
 
-                <Show when={text() && fileName()}>
+                {/* Preview — skip for PDF (binary content) */}
+                <Show when={text() && fileName() && fileType() !== "pdf"}>
                   <p class="rim-file-preview-label">Preview</p>
                   <div class="rim-file-preview">{text().substring(0, 600)}{text().length > 600 ? "…" : ""}</div>
                 </Show>
+                <Show when={fileType() === "pdf" && fileName()}>
+                  <p class="rim-file-preview-label">Ready</p>
+                  <div class="rim-pdf-ready">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    PDF loaded — DOIs will be extracted on submit.
+                  </div>
+                </Show>
+              </Show>
+
+              <Show when={tab() === "osf"}>
+                <div class="rim-osf-section">
+                  <label class="rim-osf-label" for="rim-osf-input">OSF project or file URL</label>
+                  <input
+                    id="rim-osf-input"
+                    class="rim-osf-input"
+                    type="url"
+                    placeholder="https://osf.io/abc12"
+                    value={osfUrl()}
+                    onInput={(e) => { setOsfUrl(e.currentTarget.value); setError(null); }}
+                    spellcheck={false}
+                  />
+                  <p class="rim-osf-hint">
+                    Paste a public OSF file or project link. DOIs are extracted directly from the document content.
+                  </p>
+                </div>
               </Show>
 
               <Show when={error()}>
@@ -255,7 +342,7 @@ export const ReferenceImportModal = (props: Props) => {
               <button
                 class="rim-btn-primary"
                 onClick={runExtraction}
-                disabled={!text().trim()}
+                disabled={submitDisabled()}
               >
                 Extract &amp; look up DOIs
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -271,7 +358,7 @@ export const ReferenceImportModal = (props: Props) => {
               <div class="rim-progress-wrap">
                 <div class="rim-spinner" />
                 <p class="rim-progress-text">
-                  Looking up DOIs… {progress().done} / {progress().total}
+                  {progressMsg()} {progress().done} / {progress().total}
                 </p>
                 <div class="rim-progress-bar-track">
                   <div

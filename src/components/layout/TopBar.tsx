@@ -3,14 +3,16 @@ import { A } from "@solidjs/router";
 import forrt from "../../assets/FORRT.svg";
 import { parseDoiPaste } from "../../utils/doi";
 import { AlertDialog } from "./AlertDialog";
+import type { AdvancedSearchState } from "./AdvancedSearchPanel";
 
-export type SearchMode = "doi" | "fuzzy";
+export type SearchMode = "doi" | "fuzzy" | "advanced";
 
 type TopBarProps = {
   tags: string[];
   inputValue: string;
   searchMode: SearchMode;
   showSearch?: boolean;
+  advancedState?: AdvancedSearchState;
   onInputChange: (value: string) => void;
   onAddTag: (tag: string) => void;
   onAddTags?: (tags: string[]) => void;
@@ -20,6 +22,7 @@ type TopBarProps = {
   onSearchModeChange: (mode: SearchMode) => void;
   onInputRef?: (el: HTMLInputElement) => void;
   onImportClick?: () => void;
+  onAdvancedClick?: () => void;
 };
 
 const DOI_DELIMITER_KEYS = new Set([",", ";", " ", "Tab"]);
@@ -86,6 +89,69 @@ export const TopBar = (props: TopBarProps) => {
         props.onAddTag(part);
       }
     }
+  };
+
+  const MIN_YEAR = 1950;
+  const MAX_YEAR = new Date().getFullYear();
+
+  const advancedBar = () => {
+    const state = props.advancedState;
+    if (!state) return null;
+    const yearChanged = state.yearFrom !== MIN_YEAR || state.yearTo !== MAX_YEAR;
+    return (
+      <>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;opacity:0.5">
+          <line x1="21" y1="4" x2="14" y2="4"/><line x1="10" y1="4" x2="3" y2="4"/>
+          <line x1="21" y1="12" x2="12" y2="12"/><line x1="8" y1="12" x2="3" y2="12"/>
+          <line x1="21" y1="20" x2="16" y2="20"/><line x1="12" y1="20" x2="3" y2="20"/>
+          <line x1="14" y1="2" x2="14" y2="6"/><line x1="8" y1="10" x2="8" y2="14"/>
+          <line x1="16" y1="18" x2="16" y2="22"/>
+        </svg>
+        <span class="topbar-adv-badge">Advanced</span>
+        <div class="topbar-adv-chips">
+          <For each={state.mustAll}>
+            {(t) => (
+              <span class="topbar-adv-chip topbar-adv-chip--green">
+                <span class="topbar-adv-chip-pre">all</span>{t}
+              </span>
+            )}
+          </For>
+          <For each={state.mustAny}>
+            {(t) => (
+              <span class="topbar-adv-chip topbar-adv-chip--amber">
+                <span class="topbar-adv-chip-pre">any</span>{t}
+              </span>
+            )}
+          </For>
+          <For each={state.mustNone}>
+            {(t) => (
+              <span class="topbar-adv-chip topbar-adv-chip--red">
+                <span class="topbar-adv-chip-pre">not</span>{t}
+              </span>
+            )}
+          </For>
+          <Show when={yearChanged}>
+            <span class="topbar-adv-chip topbar-adv-chip--gray">
+              {state.yearFrom}–{state.yearTo}
+            </span>
+          </Show>
+          <For each={state.outcomes}>
+            {(o) => <span class="topbar-adv-chip topbar-adv-chip--primary">{o}</span>}
+          </For>
+        </div>
+        <button
+          class="topbar-adv-clear"
+          type="button"
+          title="Clear advanced search"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={(e) => { e.stopPropagation(); props.onSearchModeChange("fuzzy"); }}
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </>
+    );
   };
 
   const searchBar = (ref: (el: HTMLInputElement) => void) => (
@@ -193,13 +259,39 @@ export const TopBar = (props: TopBarProps) => {
           <div class="topbar-search-group topbar-search-desktop">
             <div
               class="topbar-search"
-              onClick={() => inputRef?.focus()}
+              classList={{ "topbar-search--advanced": props.searchMode === "advanced" }}
+              onClick={() => props.searchMode === "advanced" ? props.onAdvancedClick?.() : inputRef?.focus()}
             >
-              {searchBar((el) => {
-                inputRef = el;
-                props.onInputRef?.(el);
-              })}
+              {props.searchMode === "advanced"
+                ? advancedBar()
+                : searchBar((el) => {
+                    inputRef = el;
+                    props.onInputRef?.(el);
+                  })}
             </div>
+            <Show when={!!props.onAdvancedClick}>
+              <span class="topbar-import-sep" aria-hidden="true" />
+              <button
+                class="topbar-adv-btn"
+                classList={{ "topbar-adv-btn--active": props.searchMode === "advanced" }}
+                onClick={() => props.onAdvancedClick!()}
+                title={props.searchMode === "advanced" ? "Edit filters" : "Advanced search"}
+                type="button"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="21" y1="4" x2="14" y2="4"/>
+                  <line x1="10" y1="4" x2="3" y2="4"/>
+                  <line x1="21" y1="12" x2="12" y2="12"/>
+                  <line x1="8" y1="12" x2="3" y2="12"/>
+                  <line x1="21" y1="20" x2="16" y2="20"/>
+                  <line x1="12" y1="20" x2="3" y2="20"/>
+                  <line x1="14" y1="2" x2="14" y2="6"/>
+                  <line x1="8" y1="10" x2="8" y2="14"/>
+                  <line x1="16" y1="18" x2="16" y2="22"/>
+                </svg>
+                {props.searchMode === "advanced" ? "Edit filters" : "Advanced search"}
+              </button>
+            </Show>
             <Show when={!!props.onImportClick}>
               <span class="topbar-import-sep" aria-hidden="true" />
               <button
@@ -276,77 +368,60 @@ export const TopBar = (props: TopBarProps) => {
       {/* Mobile search row — always visible on small screens */}
       <Show when={props.showSearch !== false}>
         <div class="topbar-mobile-search">
-          <div class="mob-search-modes">
-            <button
-              classList={{ active: props.searchMode === "doi" }}
-              onClick={() => props.onSearchModeChange("doi")}
-            >
-              DOI
-            </button>
-            <button
-              classList={{ active: props.searchMode === "fuzzy" }}
-              onClick={() => props.onSearchModeChange("fuzzy")}
-            >
-              Author / Title / Year
-            </button>
-          </div>
-          <div class="mob-search-row" onClick={() => mobileInputRef?.focus()}>
-            <svg
-              class="mob-search-icon"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="M21 21l-4.3-4.3" />
-            </svg>
-            <div class="mob-search-input-wrap">
-              {props.searchMode === "doi" && (
-                <For each={props.tags}>
-                  {(tag, i) => (
-                    <span class="search-tag">
-                      {tag}
-                      <button
-                        class="search-tag-remove"
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          props.onRemoveTag(i());
-                        }}
-                      >
-                        &times;
-                      </button>
-                    </span>
-                  )}
-                </For>
-              )}
-              <input
-                ref={(el) => (mobileInputRef = el)}
-                type="text"
-                placeholder={
-                  props.searchMode === "doi"
-                    ? props.tags.length === 0
-                      ? "Search by DOI…"
-                      : "Add another DOI…"
-                    : "Search by title, author, or year…"
-                }
-                value={props.inputValue}
-                onInput={(e) => props.onInputChange(e.currentTarget.value)}
-                onKeyDown={handleKeyDown}
-                on:paste={handlePaste}
-              />
+          <Show
+            when={props.searchMode !== "advanced"}
+            fallback={
+              <div class="mob-adv-active-row">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0">
+                  <line x1="21" y1="4" x2="14" y2="4"/><line x1="10" y1="4" x2="3" y2="4"/>
+                  <line x1="21" y1="12" x2="12" y2="12"/><line x1="8" y1="12" x2="3" y2="12"/>
+                  <line x1="21" y1="20" x2="16" y2="20"/><line x1="12" y1="20" x2="3" y2="20"/>
+                  <line x1="14" y1="2" x2="14" y2="6"/><line x1="8" y1="10" x2="8" y2="14"/>
+                  <line x1="16" y1="18" x2="16" y2="22"/>
+                </svg>
+                <div class="mob-adv-active-chips">
+                  <For each={props.advancedState?.mustAll ?? []}>
+                    {(t) => <span class="topbar-adv-chip topbar-adv-chip--green"><span class="topbar-adv-chip-pre">all</span>{t}</span>}
+                  </For>
+                  <For each={props.advancedState?.mustAny ?? []}>
+                    {(t) => <span class="topbar-adv-chip topbar-adv-chip--amber"><span class="topbar-adv-chip-pre">any</span>{t}</span>}
+                  </For>
+                  <For each={props.advancedState?.mustNone ?? []}>
+                    {(t) => <span class="topbar-adv-chip topbar-adv-chip--red"><span class="topbar-adv-chip-pre">not</span>{t}</span>}
+                  </For>
+                  <Show when={props.advancedState && (props.advancedState.yearFrom !== MIN_YEAR || props.advancedState.yearTo !== MAX_YEAR)}>
+                    <span class="topbar-adv-chip topbar-adv-chip--gray">{props.advancedState!.yearFrom}–{props.advancedState!.yearTo}</span>
+                  </Show>
+                  <For each={props.advancedState?.outcomes ?? []}>
+                    {(o) => <span class="topbar-adv-chip topbar-adv-chip--primary">{o}</span>}
+                  </For>
+                </div>
+                <button class="mob-adv-edit-btn" type="button" onClick={() => props.onAdvancedClick?.()}>Edit</button>
+                <button class="mob-adv-active-clear" type="button" title="Clear" onClick={() => props.onSearchModeChange("fuzzy")}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            }
+          >
+            <div class="mob-search-modes">
+              <button
+                classList={{ active: props.searchMode === "doi" }}
+                onClick={() => props.onSearchModeChange("doi")}
+              >
+                DOI
+              </button>
+              <button
+                classList={{ active: props.searchMode === "fuzzy" }}
+                onClick={() => props.onSearchModeChange("fuzzy")}
+              >
+                Author / Title / Year
+              </button>
             </div>
-            <button
-              class="mob-search-btn"
-              onClick={() => {
-                const value = props.inputValue.trim();
-                fireSearch(value || undefined);
-              }}
-            >
+            <div class="mob-search-row" onClick={() => mobileInputRef?.focus()}>
               <svg
+                class="mob-search-icon"
                 width="16"
                 height="16"
                 viewBox="0 0 24 24"
@@ -357,8 +432,79 @@ export const TopBar = (props: TopBarProps) => {
                 <circle cx="11" cy="11" r="8" />
                 <path d="M21 21l-4.3-4.3" />
               </svg>
-            </button>
-          </div>
+              <div class="mob-search-input-wrap">
+                {props.searchMode === "doi" && (
+                  <For each={props.tags}>
+                    {(tag, i) => (
+                      <span class="search-tag">
+                        {tag}
+                        <button
+                          class="search-tag-remove"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            props.onRemoveTag(i());
+                          }}
+                        >
+                          &times;
+                        </button>
+                      </span>
+                    )}
+                  </For>
+                )}
+                <input
+                  ref={(el) => (mobileInputRef = el)}
+                  type="text"
+                  placeholder={
+                    props.searchMode === "doi"
+                      ? props.tags.length === 0
+                        ? "Search by DOI…"
+                        : "Add another DOI…"
+                      : "Search by title, author, or year…"
+                  }
+                  value={props.inputValue}
+                  onInput={(e) => props.onInputChange(e.currentTarget.value)}
+                  onKeyDown={handleKeyDown}
+                  on:paste={handlePaste}
+                />
+              </div>
+              <button
+                class="mob-search-btn"
+                onClick={() => {
+                  const value = props.inputValue.trim();
+                  fireSearch(value || undefined);
+                }}
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="M21 21l-4.3-4.3" />
+                </svg>
+              </button>
+              <Show when={!!props.onAdvancedClick}>
+                <button
+                  class="mob-adv-btn"
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); props.onAdvancedClick!(); }}
+                  title="Advanced search"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="21" y1="4" x2="14" y2="4"/><line x1="10" y1="4" x2="3" y2="4"/>
+                    <line x1="21" y1="12" x2="12" y2="12"/><line x1="8" y1="12" x2="3" y2="12"/>
+                    <line x1="21" y1="20" x2="16" y2="20"/><line x1="12" y1="20" x2="3" y2="20"/>
+                    <line x1="14" y1="2" x2="14" y2="6"/><line x1="8" y1="10" x2="8" y2="14"/>
+                    <line x1="16" y1="18" x2="16" y2="22"/>
+                  </svg>
+                </button>
+              </Show>
+            </div>
+          </Show>
         </div>
       </Show>
 

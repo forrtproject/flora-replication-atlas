@@ -21,7 +21,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: cache/
-          key: oc-cache-${{ runner.os }}-${{ hashFiles('refresh_data.py') }}
+          key: oc-cache-${{ runner.os }}-${{ hashFiles('scripts/refresh_data.py') }}
           restore-keys: |
             oc-cache-${{ runner.os }}-
 

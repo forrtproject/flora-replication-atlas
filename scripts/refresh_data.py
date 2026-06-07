@@ -25,7 +25,7 @@ from decimal import Decimal
 from tqdm import tqdm
 
 # ------------------------------------------------------------------ config
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT / "data"
 CACHE_DIR = ROOT / "cache"
 DATA_DIR.mkdir(exist_ok=True)
