@@ -154,7 +154,7 @@ function StackedBarChart(props: {
                 stroke={color} stroke-width="1.5" stroke-dasharray="5 3" opacity="0.85" />
               <rect x={chipX} y={labelY - 12} width={approxW} height={16} rx="3" fill={chipBg} />
               <text x={textX} y={labelY} text-anchor={anchor}
-                font-size={FS} fill={color} font-weight="700" font-family={FONT}>{label}</text>
+                font-size={FS} fill={color} font-family={FONT} style={{ "font-weight": "700" }}>{label}</text>
             </>
           );
         }}
