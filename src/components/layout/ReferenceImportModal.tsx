@@ -1,9 +1,10 @@
 import { createSignal, createEffect, For, Show, onCleanup, onMount } from "solid-js";
-import { parseReferences } from "../../utils/referenceParser";
+import { parseReferences, parseRisFile, parseBibFile } from "../../utils/referenceParser";
 import { lookupAll, type LookupResult } from "../../utils/doiLookup";
 
 type Tab = "paste" | "upload";
 type Stage = "input" | "processing" | "results";
+type FileType = "txt" | "ris" | "bib";
 
 type Props = {
   open: boolean;
@@ -27,6 +28,7 @@ export const ReferenceImportModal = (props: Props) => {
   const [stage, setStage] = createSignal<Stage>("input");
   const [text, setText] = createSignal("");
   const [fileName, setFileName] = createSignal<string | null>(null);
+  const [fileType, setFileType] = createSignal<FileType | null>(null);
   const [results, setResults] = createSignal<LookupResult[]>([]);
   const [progress, setProgress] = createSignal({ done: 0, total: 0 });
   const [error, setError] = createSignal<string | null>(null);
@@ -41,6 +43,7 @@ export const ReferenceImportModal = (props: Props) => {
     setStage("input");
     setText("");
     setFileName(null);
+    setFileType(null);
     setResults([]);
     setProgress({ done: 0, total: 0 });
     setError(null);
@@ -66,14 +69,19 @@ export const ReferenceImportModal = (props: Props) => {
   });
 
   const loadFile = (file: File) => {
-    if (!file.name.endsWith(".txt") && file.type !== "text/plain") {
-      setError("Only .txt files are supported.");
+    const name = file.name.toLowerCase();
+    const isRis = name.endsWith(".ris");
+    const isBib = name.endsWith(".bib");
+    const isTxt = name.endsWith(".txt") || file.type === "text/plain";
+    if (!isRis && !isBib && !isTxt) {
+      setError("Only .txt, .ris, or .bib files are supported.");
       return;
     }
     const reader = new FileReader();
     reader.onload = (e) => {
       setText((e.target?.result as string) ?? "");
       setFileName(file.name);
+      setFileType(isRis ? "ris" : isBib ? "bib" : "txt");
       setError(null);
     };
     reader.readAsText(file);
@@ -96,7 +104,8 @@ export const ReferenceImportModal = (props: Props) => {
     if (!raw) { setError("Please enter or upload some text first."); return; }
     setError(null);
 
-    const refs = parseReferences(raw);
+    const ft = fileType();
+    const refs = ft === "ris" ? parseRisFile(raw) : ft === "bib" ? parseBibFile(raw) : parseReferences(raw);
     if (refs.length === 0) { setError("No references detected in the text."); return; }
 
     setStage("processing");
@@ -187,7 +196,7 @@ export const ReferenceImportModal = (props: Props) => {
                   <polyline points="17 8 12 3 7 8" />
                   <line x1="12" y1="3" x2="12" y2="15" />
                 </svg>
-                Upload .txt
+                Upload file
               </button>
             </div>
 
@@ -213,7 +222,7 @@ export const ReferenceImportModal = (props: Props) => {
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept=".txt,text/plain"
+                    accept=".txt,.ris,.bib,text/plain"
                     style={{ display: "none" }}
                     onChange={handleFileInput}
                   />
@@ -226,7 +235,7 @@ export const ReferenceImportModal = (props: Props) => {
                           <polyline points="17 8 12 3 7 8" />
                           <line x1="12" y1="3" x2="12" y2="15" />
                         </svg>
-                        <p class="rim-drop-label">Drop a .txt file here or <span class="rim-drop-link">click to browse</span></p>
+                        <p class="rim-drop-label">Drop a <strong>.txt</strong>, <strong>.ris</strong>, or <strong>.bib</strong> file here or <span class="rim-drop-link">click to browse</span></p>
                       </>
                     }
                   >

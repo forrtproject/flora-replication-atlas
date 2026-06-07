@@ -123,3 +123,101 @@ export function parseReferences(text: string): ParsedReference[] {
     queryText: buildQueryText(raw),
   }));
 }
+
+export function parseRisFile(text: string): ParsedReference[] {
+  const records: ParsedReference[] = [];
+  let doi: string | null = null;
+  let title = "";
+  let author = "";
+  let year = "";
+  let inRecord = false;
+
+  const flush = () => {
+    if (!inRecord) return;
+    const raw = [title, author, year].filter(Boolean).join("; ") || doi || "";
+    if (raw) {
+      records.push({
+        raw,
+        doi: doi ? cleanDoi(doi) : null,
+        queryText: [title, author].filter(Boolean).join(" "),
+      });
+    }
+    doi = null; title = ""; author = ""; year = ""; inRecord = false;
+  };
+
+  for (const line of text.split(/\r?\n/)) {
+    const m = line.match(/^([A-Z][A-Z0-9])\s{1,2}-\s+(.*)$/);
+    if (!m) continue;
+    const [, tag, val] = m;
+    if (tag === "TY") { inRecord = true; }
+    else if (tag === "ER") { flush(); }
+    else if (tag === "DO" && !doi) { doi = val.trim(); }
+    else if ((tag === "TI" || tag === "T1") && !title) { title = val.trim(); }
+    else if ((tag === "AU" || tag === "A1") && !author) { author = val.trim(); }
+    else if ((tag === "PY" || tag === "Y1") && !year) { year = val.trim().slice(0, 4); }
+  }
+  flush();
+
+  return records.filter((r) => r.doi || r.queryText);
+}
+
+function extractBibField(block: string, name: string): string {
+  const re = new RegExp(`\\b${name}\\s*=\\s*`, "i");
+  const match = re.exec(block);
+  if (!match) return "";
+  let s = block.slice(match.index + match[0].length).trimStart();
+  if (s[0] === "{") {
+    let depth = 0;
+    let k = 0;
+    for (; k < s.length; k++) {
+      if (s[k] === "{") depth++;
+      else if (s[k] === "}") { depth--; if (depth === 0) break; }
+    }
+    return s.slice(1, k).replace(/[{}]/g, "").trim();
+  } else if (s[0] === '"') {
+    const end = s.indexOf('"', 1);
+    return end >= 0 ? s.slice(1, end).trim() : "";
+  } else {
+    const end = s.search(/[,\n]/);
+    return end >= 0 ? s.slice(0, end).trim() : s.trim();
+  }
+}
+
+export function parseBibFile(text: string): ParsedReference[] {
+  const entries: ParsedReference[] = [];
+  let i = 0;
+
+  while (i < text.length) {
+    const at = text.indexOf("@", i);
+    if (at === -1) break;
+    const brace = text.indexOf("{", at);
+    if (brace === -1) break;
+
+    let depth = 0;
+    let j = brace;
+    while (j < text.length) {
+      if (text[j] === "{") depth++;
+      else if (text[j] === "}") { depth--; if (depth === 0) break; }
+      j++;
+    }
+
+    const block = text.slice(at, j + 1);
+    const doi = extractBibField(block, "doi");
+    const title = extractBibField(block, "title");
+    const author = extractBibField(block, "author");
+    const year = extractBibField(block, "year");
+    const raw = [title, author, year].filter(Boolean).join("; ") || doi || block.slice(0, 80);
+
+    if (doi || title) {
+      entries.push({
+        raw,
+        doi: doi ? cleanDoi(doi) : null,
+        queryText: [title, author].filter(Boolean).join(" "),
+      });
+    }
+
+    i = j + 1;
+  }
+
+  return entries.filter((e) => e.doi || e.queryText);
+}
