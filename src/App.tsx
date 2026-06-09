@@ -22,6 +22,8 @@ import { DetailView } from "./components/layout/DetailView";
 import { NoDataState } from "./components/layout/NoDataState";
 import { Footer } from "./components/Footer";
 import { ReferenceImportModal } from "./components/layout/ReferenceImportModal";
+import { createToastState } from "./components/layout/Toast";
+import { HttpError } from "./utils/http";
 
 const isDoi = (s: string) => /^10\.\d{4,}\//.test(s.trim());
 
@@ -41,8 +43,19 @@ const debounce = <T extends unknown[]>(
   return call;
 };
 
+const toastDetails = (error: unknown): [string, string] => {
+  if (error instanceof HttpError) {
+    if (error.status === 408) return ["Search timed out", "The server took too long to respond. Please try again."];
+    if (error.status === 0) return ["Network error", "Check your connection and try again."];
+    if (error.status >= 500) return ["Server error", "Something went wrong on our end. Please try again later."];
+    if (error.status >= 400) return ["Search failed", `The request was rejected (${error.status}). Try a different query.`];
+  }
+  return ["Something went wrong", "An unexpected error occurred. Please try again."];
+};
+
 function App() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { show: showToast, ToastStack } = createToastState();
 
   const [tags, setTags] = createSignal<string[]>([]);
   const [inputValue, setInputValue] = createSignal("");
@@ -308,9 +321,9 @@ function App() {
     fetchMultipleDOIInfo(dois)
       .then(handleResults)
       .catch((error) => {
-        console.error("Error fetching DOI info:", error);
         setIsLoading(false);
         setResults({});
+        const [t, m] = toastDetails(error); showToast(t, m);
       });
   };
 
@@ -326,9 +339,9 @@ function App() {
     fetchFuzzySearch(query)
       .then(handleResults)
       .catch((error) => {
-        console.error("Error in fuzzy search:", error);
         setIsLoading(false);
         setResults({});
+        const [t, m] = toastDetails(error); showToast(t, m);
       });
   };
 
@@ -370,9 +383,9 @@ function App() {
     })
       .then(handleResults)
       .catch((error) => {
-        console.error("Error in advanced search:", error);
         setIsLoading(false);
         setResults({});
+        const [t, m] = toastDetails(error); showToast(t, m);
       });
   };
 
@@ -481,7 +494,7 @@ function App() {
           yearFrom,
           yearTo,
           outcomes: outcomes.length ? outcomes : undefined,
-        }).then(handleResults).catch(() => { setIsLoading(false); setResults({}); });
+        }).then(handleResults).catch((error) => { setIsLoading(false); setResults({}); const [t, m] = toastDetails(error); showToast(t, m); });
       }
     } else {
       // URL has no search params — reset to welcome state
@@ -779,6 +792,7 @@ function App() {
       />
 
       <Footer />
+      <ToastStack />
     </>
   );
 }
