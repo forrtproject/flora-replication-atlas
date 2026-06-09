@@ -1,4 +1,4 @@
-import { createEffect, For, Show } from "solid-js";
+import { createEffect, createSignal, For, Show } from "solid-js";
 import type { OriginalPaper, FormattedDOIResult } from "../../@types";
 import { formatReplicationResponse } from "../../api/formatter";
 import { formatAuthors, renderAuthors, na } from "../../utils/formatter";
@@ -51,6 +51,24 @@ const PrintIcon = () => (
 );
 
 export const StudyListPanel = (props: StudyListPanelProps) => {
+  const [selectedDois, setSelectedDois] = createSignal<Set<string>>(new Set());
+
+  const toggleSelect = (doi: string, e: MouseEvent) => {
+    e.stopPropagation();
+    setSelectedDois((prev) => {
+      const next = new Set<string>(prev);
+      if (next.has(doi)) next.delete(doi);
+      else next.add(doi);
+      return next;
+    });
+  };
+
+  const selectAll = () => {
+    setSelectedDois(new Set(entries().map((e) => e.doi)));
+  };
+
+  const clearSelection = () => setSelectedDois(new Set<string>());
+
   const allEntries = () =>
     Object.entries(props.results)
       .map(([doi, paper]) => {
@@ -77,8 +95,10 @@ export const StudyListPanel = (props: StudyListPanelProps) => {
   const replicationCount = () =>
     allEntries().filter((e) => e.isReplication).length;
 
-  const handleExportPdf = () => {
-    const visible = entries();
+  type EntryItem = ReturnType<typeof allEntries>[number];
+
+  const handleExportPdf = (entriesToExport?: EntryItem[]) => {
+    const visible = entriesToExport ?? entries();
     if (visible.length === 0) return;
 
     const filterLabel =
@@ -249,16 +269,34 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
       <div class="lp-header">
         <h3>Search Results</h3>
         <div class="lp-header-actions">
-          <Show when={totalCount() > 0}>
+          <Show when={selectedDois().size > 0}>
+            <span class="lp-select-count">{selectedDois().size} selected</span>
             <button
-              class="lp-export-btn"
-              onClick={handleExportPdf}
-              title="Export to PDF"
+              class="lp-export-btn lp-export-btn--selected"
+              onClick={() => {
+                const sel = selectedDois();
+                handleExportPdf(entries().filter((e) => sel.has(e.doi)));
+              }}
+              title="Export selected entries"
             >
               <PrintIcon /> Export
             </button>
+            <button
+              class="lp-clear-select-btn"
+              onClick={clearSelection}
+              title="Clear selection"
+            >
+              &times;
+            </button>
           </Show>
-          <Show when={totalCount() > 0}>
+          <Show when={selectedDois().size === 0 && totalCount() > 0}>
+            <button
+              class="lp-export-btn"
+              onClick={() => handleExportPdf()}
+              title="Export all to PDF"
+            >
+              <PrintIcon /> Export
+            </button>
             <span class="lp-count">
               {totalCount()} {totalCount() === 1 ? "study" : "studies"}
             </span>
@@ -291,6 +329,14 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
               <span class="sli-filter-count">{replicationCount()}</span>
             </button>
           </Show>
+          <Show when={entries().length > 1}>
+            <button
+              class="sli-select-all-btn"
+              onClick={() => selectedDois().size === entries().length ? clearSelection() : selectAll()}
+            >
+              {selectedDois().size === entries().length ? "Deselect all" : "Select all"}
+            </button>
+          </Show>
         </div>
       </Show>
 
@@ -310,7 +356,12 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
           <For each={entries()}>
             {(entry) => (
               <div
-                class={`sli ${props.selectedDoi === entry.doi ? "active" : ""}`}
+                classList={{
+                  sli: true,
+                  active: props.selectedDoi === entry.doi,
+                  "sli--checked": selectedDois().has(entry.doi),
+                  "sli--selecting": selectedDois().size > 0,
+                }}
                 ref={(el) => {
                   createEffect(() => {
                     if (props.selectedDoi === entry.doi) {
@@ -323,6 +374,18 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
                 }}
                 onClick={() => props.onSelect(entry.doi)}
               >
+                <div
+                  class="sli-checkbox"
+                  role="checkbox"
+                  aria-checked={selectedDois().has(entry.doi)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleSelect(entry.doi, e);
+                  }}
+                  title="Select entry"
+                >
+                  <span class="sli-checkbox-box" />
+                </div>
                 <div class={`sli-dot ${entry.status}`} />
                 <div class="sli-body">
                   <div class="sli-title">{entry.rep.title || entry.doi}</div>

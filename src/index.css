@@ -378,6 +378,38 @@ body {
   color: var(--text-secondary);
   background: var(--surface);
 }
+.lp-export-btn--selected {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.lp-export-btn--selected:hover {
+  background: var(--primary-faint);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.lp-select-count {
+  font-size: 10.5px;
+  color: var(--primary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.lp-clear-select-btn {
+  font-size: 13px;
+  line-height: 1;
+  padding: 0.1rem 0.35rem;
+  border-radius: 100px;
+  border: 1px solid var(--border-light);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: all var(--transition-fast);
+}
+.lp-clear-select-btn:hover {
+  border-color: var(--border);
+  color: var(--text-secondary);
+  background: var(--surface);
+}
 
 /* ─── Filter chips ─── */
 .lp-filters {
@@ -475,6 +507,24 @@ body {
   opacity: 0.7;
   margin-left: 0.15rem;
 }
+.sli-select-all-btn {
+  margin-left: auto;
+  font-size: 10.5px;
+  padding: 0.15rem 0.45rem;
+  border-radius: 100px;
+  border: 1px solid var(--border-light);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+.sli-select-all-btn:hover {
+  border-color: var(--border);
+  color: var(--text-secondary);
+  background: var(--surface);
+}
 
 /* ─── Study list ─── */
 .study-list {
@@ -522,6 +572,55 @@ body {
   border-radius: 0 3px 3px 0;
   background: var(--primary);
 }
+/* ─── Checkbox ─── */
+.sli-checkbox {
+  display: none;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-top: 0.2rem;
+}
+.sli-checkbox input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.sli-checkbox-box {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1.5px solid var(--border);
+  background: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+.sli:hover .sli-checkbox,
+.sli--selecting .sli-checkbox {
+  display: flex;
+}
+.sli--checked .sli-checkbox-box {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+.sli--checked .sli-checkbox-box::after {
+  content: "";
+  display: block;
+  width: 8px;
+  height: 5px;
+  border-left: 1.5px solid white;
+  border-bottom: 1.5px solid white;
+  transform: rotate(-45deg) translateY(-1px);
+}
+.sli--checked {
+  background: var(--primary-faint);
+}
+
 .sli-dot {
   width: 9px;
   height: 9px;
