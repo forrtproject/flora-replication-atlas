@@ -8,7 +8,11 @@ import {
 } from "solid-js";
 import { useSearchParams } from "@solidjs/router";
 import type { DOIResults, OriginalPaper } from "./@types";
-import { fetchMultipleDOIInfo, fetchFuzzySearch, fetchAdvancedSearch } from "./api/backend";
+import {
+  fetchMultipleDOIInfo,
+  fetchFuzzySearch,
+  fetchAdvancedSearch,
+} from "./api/backend";
 import { formatReplicationResponse } from "./api/formatter";
 import { SearchOutcomesBanner } from "./components/replication/SearchOutcomesBanner";
 import { TopBar, type SearchMode } from "./components/layout/TopBar";
@@ -45,12 +49,28 @@ const debounce = <T extends unknown[]>(
 
 const toastDetails = (error: unknown): [string, string] => {
   if (error instanceof HttpError) {
-    if (error.status === 408) return ["Search timed out", "The server took too long to respond. Please try again."];
-    if (error.status === 0) return ["Network error", "Check your connection and try again."];
-    if (error.status >= 500) return ["Server error", "Something went wrong on our end. Please try again later."];
-    if (error.status >= 400) return ["Search failed", `The request was rejected (${error.status}). Try a different query.`];
+    if (error.status === 408)
+      return [
+        "Search timed out",
+        "The server took too long to respond. Please try again.",
+      ];
+    if (error.status === 0)
+      return ["Network error", "Check your connection and try again."];
+    if (error.status >= 500)
+      return [
+        "Server error",
+        "Something went wrong on our end. Please try again later.",
+      ];
+    if (error.status >= 400)
+      return [
+        "Search failed",
+        `The request was rejected (${error.status}). Try a different query.`,
+      ];
   }
-  return ["Something went wrong", "An unexpected error occurred. Please try again."];
+  return [
+    "Something went wrong",
+    "An unexpected error occurred. Please try again.",
+  ];
 };
 
 function App() {
@@ -308,7 +328,16 @@ function App() {
     setSelectedDoi(null);
     setHasSearched(false);
     ignoreNextReset = true;
-    setSearchParams({ q: undefined, dois: undefined, mustAll: undefined, mustAny: undefined, mustNone: undefined, yearFrom: undefined, yearTo: undefined, outcomes: undefined });
+    setSearchParams({
+      q: undefined,
+      dois: undefined,
+      mustAll: undefined,
+      mustAny: undefined,
+      mustNone: undefined,
+      yearFrom: undefined,
+      yearTo: undefined,
+      outcomes: undefined,
+    });
   };
 
   const doDoiSearch = (dois: string[]) => {
@@ -323,7 +352,8 @@ function App() {
       .catch((error) => {
         setIsLoading(false);
         setResults({});
-        const [t, m] = toastDetails(error); showToast(t, m);
+        const [t, m] = toastDetails(error);
+        showToast(t, m);
       });
   };
 
@@ -341,7 +371,8 @@ function App() {
       .catch((error) => {
         setIsLoading(false);
         setResults({});
-        const [t, m] = toastDetails(error); showToast(t, m);
+        const [t, m] = toastDetails(error);
+        showToast(t, m);
       });
   };
 
@@ -358,15 +389,21 @@ function App() {
     setShowAdvancedModal(false);
     setSearchMode("advanced");
     skipAdvancedEffect = true;
-    setSearchParams({
-      doi: undefined, dois: undefined, q: undefined,
-      mustAll: mustAll.length ? mustAll.join("|") : undefined,
-      mustAny: mustAny.length ? mustAny.join("|") : undefined,
-      mustNone: mustNone.length ? mustNone.join("|") : undefined,
-      yearFrom: yearFrom !== 1950 ? String(yearFrom) : undefined,
-      yearTo: yearTo !== new Date().getFullYear() ? String(yearTo) : undefined,
-      outcomes: outcomes.length ? outcomes.join("|") : undefined,
-    }, { replace: true });
+    setSearchParams(
+      {
+        doi: undefined,
+        dois: undefined,
+        q: undefined,
+        mustAll: mustAll.length ? mustAll.join("|") : undefined,
+        mustAny: mustAny.length ? mustAny.join("|") : undefined,
+        mustNone: mustNone.length ? mustNone.join("|") : undefined,
+        yearFrom: yearFrom !== 1950 ? String(yearFrom) : undefined,
+        yearTo:
+          yearTo !== new Date().getFullYear() ? String(yearTo) : undefined,
+        outcomes: outcomes.length ? outcomes.join("|") : undefined,
+      },
+      { replace: true },
+    );
     setIsLoading(true);
     setHasSearched(true);
     setHasEverSearched(true);
@@ -385,7 +422,8 @@ function App() {
       .catch((error) => {
         setIsLoading(false);
         setResults({});
-        const [t, m] = toastDetails(error); showToast(t, m);
+        const [t, m] = toastDetails(error);
+        showToast(t, m);
       });
   };
 
@@ -470,9 +508,15 @@ function App() {
         const mustAll = advMustAllParam ? advMustAllParam.split("|") : [];
         const mustAny = advMustAnyParam ? advMustAnyParam.split("|") : [];
         const mustNone = advMustNoneParam ? advMustNoneParam.split("|") : [];
-        const yearFrom = searchParams.yearFrom ? parseInt(String(searchParams.yearFrom)) : 1950;
-        const yearTo = searchParams.yearTo ? parseInt(String(searchParams.yearTo)) : new Date().getFullYear();
-        const outcomes = searchParams.outcomes ? String(searchParams.outcomes).split("|") : [];
+        const yearFrom = searchParams.yearFrom
+          ? parseInt(String(searchParams.yearFrom))
+          : 1950;
+        const yearTo = searchParams.yearTo
+          ? parseInt(String(searchParams.yearTo))
+          : new Date().getFullYear();
+        const outcomes = searchParams.outcomes
+          ? String(searchParams.outcomes).split("|")
+          : [];
         setAdvMustAll(mustAll);
         setAdvMustAny(mustAny);
         setAdvMustNone(mustNone);
@@ -494,7 +538,14 @@ function App() {
           yearFrom,
           yearTo,
           outcomes: outcomes.length ? outcomes : undefined,
-        }).then(handleResults).catch((error) => { setIsLoading(false); setResults({}); const [t, m] = toastDetails(error); showToast(t, m); });
+        })
+          .then(handleResults)
+          .catch((error) => {
+            setIsLoading(false);
+            setResults({});
+            const [t, m] = toastDetails(error);
+            showToast(t, m);
+          });
       }
     } else {
       // URL has no search params — reset to welcome state
@@ -596,7 +647,9 @@ function App() {
 
         <div
           class="right-panel"
-          classList={{ "right-panel--scrollable": Object.keys(results()).length > 0 }}
+          classList={{
+            "right-panel--scrollable": Object.keys(results()).length > 0,
+          }}
           ref={rightPanelRef}
         >
           <Show
@@ -714,18 +767,30 @@ function App() {
             }
           >
             <>
-              <Show when={
-                searchMode() === "advanced" &&
-                advMustAll().length === 0 &&
-                advMustAny().length === 0 &&
-                advMustNone().length > 0
-              }>
+              <Show
+                when={
+                  searchMode() === "advanced" &&
+                  advMustAll().length === 0 &&
+                  advMustAny().length === 0 &&
+                  advMustNone().length > 0
+                }
+              >
                 <div class="exclude-only-warning">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0">
-                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                    <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    style="flex-shrink:0"
+                  >
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
                   </svg>
-                  Exclude-only searches are limited to 50 results.
+                  Exclude-only searches are cost heavy, please consider adding
+                  some inclusion criteria to narrow down results.
                 </div>
               </Show>
               <Show when={aggregateOutcomes().total > 0}>

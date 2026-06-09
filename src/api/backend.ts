@@ -1,6 +1,14 @@
-import type { DOIResults } from "../@types";
+import type { DOIResults, OriginalPaper } from "../@types";
 import { createHttp } from "../utils/http";
 import { replicationResponseHasNoData } from "./formatter";
+
+type SearchResponse = {
+  results: Record<string, OriginalPaper>;
+  total: number;
+  offset: number;
+  limit: number;
+  hasMore: boolean;
+};
 
 const backend = createHttp({
   baseURL: import.meta.env.VITE_BACKEND_URL || "https://5waa6mryb6.execute-api.eu-central-1.amazonaws.com/v1",
@@ -38,10 +46,21 @@ export const fetchMultipleDOIInfo = async (dois: string[]): Promise<DOIResults> 
   return merged;
 };
 
-export const fetchFuzzySearch = async (query: string, limit = 20): Promise<DOIResults> => {
-  const response = await backend.get(`/search?q=${encodeURIComponent(query)}&limit=${limit}`);
-  const results = response.data.results ?? {};
-  return { results, isEmpty: Object.keys(results).length === 0 };
+export const fetchFuzzySearch = async (query: string): Promise<DOIResults> => {
+  const allResults: Record<string, OriginalPaper> = {};
+  let offset = 0;
+
+  while (true) {
+    const response = await backend.get<SearchResponse>(
+      `/search?q=${encodeURIComponent(query)}&limit=1000&offset=${offset}`
+    );
+    const data = response.data;
+    Object.assign(allResults, data.results ?? {});
+    if (!data.hasMore) break;
+    offset += 1000;
+  }
+
+  return { results: allResults, isEmpty: Object.keys(allResults).length === 0 };
 };
 
 export type AdvancedSearchParams = {
@@ -54,15 +73,24 @@ export type AdvancedSearchParams = {
 };
 
 export const fetchAdvancedSearch = async (params: AdvancedSearchParams): Promise<DOIResults> => {
-  const body: Record<string, unknown> = {};
-  if (params.mustHave?.length) body.mustHave = params.mustHave;
-  if (params.anyOf?.length) body.anyOf = params.anyOf;
-  if (params.exclude?.length) body.exclude = params.exclude;
-  if (params.yearFrom !== undefined) body.yearFrom = params.yearFrom;
-  if (params.yearTo !== undefined) body.yearTo = params.yearTo;
-  if (params.outcomes?.length) body.outcomes = params.outcomes;
+  const baseBody: Record<string, unknown> = {};
+  if (params.mustHave?.length) baseBody.mustHave = params.mustHave;
+  if (params.anyOf?.length) baseBody.anyOf = params.anyOf;
+  if (params.exclude?.length) baseBody.exclude = params.exclude;
+  if (params.yearFrom !== undefined) baseBody.yearFrom = params.yearFrom;
+  if (params.yearTo !== undefined) baseBody.yearTo = params.yearTo;
+  if (params.outcomes?.length) baseBody.outcomes = params.outcomes;
 
-  const response = await backend.post<DOIResults>('/search', body);
-  const results = response.data.results ?? {};
-  return { results, isEmpty: Object.keys(results).length === 0 };
+  const allResults: Record<string, OriginalPaper> = {};
+  let offset = 0;
+
+  while (true) {
+    const response = await backend.post<SearchResponse>('/search', { ...baseBody, limit: 1000, offset });
+    const data = response.data;
+    Object.assign(allResults, data.results ?? {});
+    if (!data.hasMore) break;
+    offset += 1000;
+  }
+
+  return { results: allResults, isEmpty: Object.keys(allResults).length === 0 };
 };
