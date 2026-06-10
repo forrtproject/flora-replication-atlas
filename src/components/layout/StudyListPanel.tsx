@@ -75,8 +75,12 @@ export const StudyListPanel = (props: StudyListPanelProps) => {
         const rep = formatReplicationResponse(paper);
         const status = resolveOverallStatus(rep);
         const hasData = !!(rep.title && paper.record);
-        const isOriginal = (rep.replications?.length || 0) > 0 || (rep.reproductions?.length || 0) > 0;
-        const isReplication = (rep.originals?.length || 0) > 0 || (paper.types?.includes("reproduction") ?? false);
+        const isOriginal =
+          (rep.replications?.length || 0) > 0 ||
+          (rep.reproductions?.length || 0) > 0;
+        const isReplication =
+          (rep.originals?.length || 0) > 0 ||
+          (paper.types?.includes("reproduction") ?? false);
         return { doi, paper, rep, status, hasData, isOriginal, isReplication };
       })
       .sort((a, b) => {
@@ -102,7 +106,9 @@ export const StudyListPanel = (props: StudyListPanelProps) => {
     if (visible.length === 0) return;
 
     const filterLabel =
-      props.typeFilter === "original" ? "Original Studies" : "Replication Studies";
+      props.typeFilter === "original"
+        ? "Original Studies"
+        : "Replication Studies";
     const esc = (s: string) =>
       s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
@@ -131,7 +137,8 @@ export const StudyListPanel = (props: StudyListPanelProps) => {
     const cards = visible
       .map((entry) => {
         const tags = (entry.paper.types || []).map(
-          (type) => `<span class="tag ${type.toLowerCase()}">${esc(type.charAt(0).toUpperCase() + type.slice(1))}</span>`
+          (type) =>
+            `<span class="tag ${type.toLowerCase()}">${esc(type.charAt(0).toUpperCase() + type.slice(1))}</span>`,
         );
 
         const reps = entry.rep.replications || [];
@@ -290,6 +297,9 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
             </button>
           </Show>
           <Show when={selectedDois().size === 0 && totalCount() > 0}>
+            <span class="lp-count">
+              {totalCount()} {totalCount() === 1 ? "study" : "studies"}
+            </span>
             <button
               class="lp-export-btn"
               onClick={() => handleExportPdf()}
@@ -297,9 +307,6 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
             >
               <PrintIcon /> Export
             </button>
-            <span class="lp-count">
-              {totalCount()} {totalCount() === 1 ? "study" : "studies"}
-            </span>
           </Show>
         </div>
       </div>
@@ -332,9 +339,15 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
           <Show when={entries().length > 1}>
             <button
               class="sli-select-all-btn"
-              onClick={() => selectedDois().size === entries().length ? clearSelection() : selectAll()}
+              onClick={() =>
+                selectedDois().size === entries().length
+                  ? clearSelection()
+                  : selectAll()
+              }
             >
-              {selectedDois().size === entries().length ? "Deselect all" : "Select all"}
+              {selectedDois().size === entries().length
+                ? "Deselect all"
+                : "Select all"}
             </button>
           </Show>
         </div>
@@ -348,7 +361,9 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
           </div>
         </Show>
 
-        <Show when={!props.isLoading && props.hasSearched && totalCount() === 0}>
+        <Show
+          when={!props.isLoading && props.hasSearched && totalCount() === 0}
+        >
           <div class="sli-empty">No results found</div>
         </Show>
 
@@ -396,7 +411,9 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
                   <div class="sli-pills">
                     <For each={entry.paper.types || []}>
                       {(type) => (
-                        <span class={`sli-pill sli-type-tag ${type.toLowerCase()}`}>
+                        <span
+                          class={`sli-pill sli-type-tag ${type.toLowerCase()}`}
+                        >
                           {type.charAt(0).toUpperCase() + type.slice(1)}
                         </span>
                       )}
