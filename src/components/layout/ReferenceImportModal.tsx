@@ -235,6 +235,7 @@ export const ReferenceImportModal = (props: Props) => {
                 </svg>
                 Upload file
               </button>
+              {false && (
               <button
                 class={`rim-tab ${tab() === "osf" ? "active" : ""}`}
                 onClick={() => switchTab("osf")}
@@ -245,6 +246,7 @@ export const ReferenceImportModal = (props: Props) => {
                 </svg>
                 OSF link
               </button>
+              )}
             </div>
 
             <div class="rim-body">
@@ -314,6 +316,7 @@ export const ReferenceImportModal = (props: Props) => {
                 </Show>
               </Show>
 
+              {false && (
               <Show when={tab() === "osf"}>
                 <div class="rim-osf-section">
                   <label class="rim-osf-label" for="rim-osf-input">OSF project or file URL</label>
@@ -331,6 +334,7 @@ export const ReferenceImportModal = (props: Props) => {
                   </p>
                 </div>
               </Show>
+              )}
 
               <Show when={error()}>
                 <p class="rim-error">{error()}</p>
