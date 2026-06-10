@@ -351,6 +351,7 @@ export const AdvancedSearchPanel = (props: Props) => {
   const [pendingAll, setPendingAll] = createSignal("");
   const [pendingAny, setPendingAny] = createSignal("");
   const [pendingNone, setPendingNone] = createSignal("");
+  const [showHelp, setShowHelp] = createSignal(false);
 
   const canSearch = () =>
     props.state.mustAll.length > 0 || props.state.mustAny.length > 0 || props.state.mustNone.length > 0 ||
@@ -382,7 +383,13 @@ export const AdvancedSearchPanel = (props: Props) => {
           <div class="adv-modal-header">
             <div class="adv-modal-title-row">
               <h2 class="adv-modal-title">Advanced search</h2>
-              <button class="adv-modal-help" type="button" title="Help" tabIndex={-1}>
+              <button
+                class="adv-modal-help"
+                type="button"
+                title="How search works"
+                classList={{ "adv-modal-help--active": showHelp() }}
+                onClick={() => setShowHelp((v) => !v)}
+              >
                 ?
               </button>
             </div>
@@ -400,6 +407,37 @@ export const AdvancedSearchPanel = (props: Props) => {
 
           {/* Body */}
           <div class="adv-modal-body">
+            <Show when={showHelp()}>
+              <div class="adv-help-panel">
+                <div class="adv-help-grid">
+                  <div class="adv-help-item">
+                    <span class="adv-help-chip adv-help-chip--green">all</span>
+                    <span>AND — every word must be present</span>
+                  </div>
+                  <div class="adv-help-item">
+                    <span class="adv-help-chip adv-help-chip--amber">any</span>
+                    <span>OR — at least one word must appear</span>
+                  </div>
+                  <div class="adv-help-item">
+                    <span class="adv-help-chip adv-help-chip--red">not</span>
+                    <span>Excludes studies containing these words</span>
+                  </div>
+                  <div class="adv-help-item">
+                    <span class="adv-help-chip adv-help-chip--gray">year</span>
+                    <span>Drag handles to set publication range</span>
+                  </div>
+                  <div class="adv-help-item">
+                    <span class="adv-help-chip adv-help-chip--gray">outcome</span>
+                    <span>Filter by replication result</span>
+                  </div>
+                  <div class="adv-help-item">
+                    <span class="adv-help-chip adv-help-chip--gray">type</span>
+                    <span>Filter by original, replication, or reproduction</span>
+                  </div>
+                </div>
+                <p class="adv-help-hint">Press <kbd>Enter</kbd> or <kbd>,</kbd> to commit a keyword.</p>
+              </div>
+            </Show>
             {/* Keywords section */}
             <div class="adv-section-label">KEYWORDS</div>
             <div class="adv-buckets-row">
