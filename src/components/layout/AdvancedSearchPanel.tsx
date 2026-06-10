@@ -10,6 +10,7 @@ type BucketColor = "green" | "amber" | "red";
 type BucketInputProps = {
   tags: string[];
   onTagsChange: (tags: string[]) => void;
+  onInputChange?: (val: string) => void;
   placeholder: string;
   color: BucketColor;
   label: string;
@@ -27,6 +28,7 @@ const BucketInput = (props: BucketInputProps) => {
       props.onTagsChange([...props.tags, trimmed]);
     }
     setInput("");
+    props.onInputChange?.("");
   };
 
   const removeTag = (index: number) => {
@@ -79,7 +81,7 @@ const BucketInput = (props: BucketInputProps) => {
           type="text"
           class="adv-bucket-input"
           value={input()}
-          onInput={(e) => setInput(e.currentTarget.value)}
+          onInput={(e) => { setInput(e.currentTarget.value); props.onInputChange?.(e.currentTarget.value); }}
           onKeyDown={handleKeyDown}
           onBlur={handleBlur}
           placeholder={props.tags.length === 0 ? props.placeholder : ""}
@@ -297,8 +299,13 @@ type Props = {
 };
 
 export const AdvancedSearchPanel = (props: Props) => {
+  const [pendingAll, setPendingAll] = createSignal("");
+  const [pendingAny, setPendingAny] = createSignal("");
+  const [pendingNone, setPendingNone] = createSignal("");
+
   const canSearch = () =>
-    props.state.mustAll.length > 0 || props.state.mustAny.length > 0 || props.state.mustNone.length > 0;
+    props.state.mustAll.length > 0 || props.state.mustAny.length > 0 || props.state.mustNone.length > 0 ||
+    pendingAll().trim().length > 0 || pendingAny().trim().length > 0 || pendingNone().trim().length > 0;
 
   const handleKey = (e: KeyboardEvent) => {
     if (e.key === "Escape" && props.open) props.onClose();
@@ -349,6 +356,7 @@ export const AdvancedSearchPanel = (props: Props) => {
               <BucketInput
                 tags={props.state.mustAll}
                 onTagsChange={props.onMustAllChange}
+                onInputChange={setPendingAll}
                 placeholder="type a word…"
                 color="green"
                 label="Has all of these"
@@ -362,6 +370,7 @@ export const AdvancedSearchPanel = (props: Props) => {
               <BucketInput
                 tags={props.state.mustAny}
                 onTagsChange={props.onMustAnyChange}
+                onInputChange={setPendingAny}
                 placeholder="type a word…"
                 color="amber"
                 label="Has any of these"
@@ -371,6 +380,7 @@ export const AdvancedSearchPanel = (props: Props) => {
               <BucketInput
                 tags={props.state.mustNone}
                 onTagsChange={props.onMustNoneChange}
+                onInputChange={setPendingNone}
                 placeholder="type a word…"
                 color="red"
                 label="Excludes these"
