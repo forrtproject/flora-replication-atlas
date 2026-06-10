@@ -70,6 +70,7 @@ export type AdvancedSearchParams = {
   yearFrom?: number;
   yearTo?: number;
   outcomes?: string[];
+  paperTypes?: string[];
 };
 
 export const fetchAdvancedSearch = async (params: AdvancedSearchParams): Promise<DOIResults> => {
@@ -80,6 +81,7 @@ export const fetchAdvancedSearch = async (params: AdvancedSearchParams): Promise
   if (params.yearFrom !== undefined) baseBody.yearFrom = params.yearFrom;
   if (params.yearTo !== undefined) baseBody.yearTo = params.yearTo;
   if (params.outcomes?.length) baseBody.outcomes = params.outcomes;
+  if (params.paperTypes?.length) baseBody.paperTypes = params.paperTypes;
 
   const allResults: Record<string, OriginalPaper> = {};
   let offset = 0;

@@ -3576,9 +3576,14 @@ body {
 }
 
 /* ── Filters row ── */
+.adv-filter-year {
+  display: flex;
+  flex-direction: column;
+}
+
 .adv-filters-row {
   display: grid;
-  grid-template-columns: 1fr 1.4fr;
+  grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
   align-items: start;
 }

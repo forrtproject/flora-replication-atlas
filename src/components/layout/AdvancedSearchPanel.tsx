@@ -183,6 +183,43 @@ const OutcomePills = (props: OutcomePillsProps) => {
   );
 };
 
+// ── Paper type pills ─────────────────────────────────────────────────────────
+
+const PAPER_TYPES = [
+  { value: "original",     label: "Original" },
+  { value: "replication",  label: "Replication" },
+  { value: "reproduction", label: "Reproduction" },
+] as const;
+
+type PaperTypePillsProps = {
+  selected: string[];
+  onChange: (v: string[]) => void;
+};
+
+const PaperTypePills = (props: PaperTypePillsProps) => {
+  const toggle = (val: string) => {
+    const cur = props.selected;
+    props.onChange(
+      cur.includes(val) ? cur.filter((v) => v !== val) : [...cur, val],
+    );
+  };
+
+  return (
+    <div class="adv-outcome-pills">
+      {PAPER_TYPES.map((t) => (
+        <button
+          type="button"
+          class="adv-outcome-pill"
+          classList={{ "adv-outcome-pill--active": props.selected.includes(t.value) }}
+          onClick={() => toggle(t.value)}
+        >
+          {t.label}
+        </button>
+      ))}
+    </div>
+  );
+};
+
 // ── Natural language query summary ───────────────────────────────────────────
 
 const QuerySummary = (props: {
@@ -192,6 +229,7 @@ const QuerySummary = (props: {
   yearFrom: number;
   yearTo: number;
   outcomes: string[];
+  paperTypes: string[];
 }) => {
   const desc = createMemo(() => {
     const parts: JSX.Element[] = [];
@@ -260,6 +298,15 @@ const QuerySummary = (props: {
       );
     }
 
+    if (props.paperTypes.length > 0) {
+      parts.push(
+        <>
+          {parts.length > 0 ? ", " : ""}type{" "}
+          <strong>{props.paperTypes.join(" or ")}</strong>
+        </>,
+      );
+    }
+
     if (parts.length === 0) return <span class="adv-qs-empty">All studies</span>;
 
     return <>studies {parts}</>;
@@ -282,6 +329,7 @@ export type AdvancedSearchState = {
   yearFrom: number;
   yearTo: number;
   outcomes: string[];
+  paperTypes: string[];
 };
 
 type Props = {
@@ -293,6 +341,7 @@ type Props = {
   onYearFromChange: (v: number) => void;
   onYearToChange: (v: number) => void;
   onOutcomesChange: (v: string[]) => void;
+  onPaperTypesChange: (v: string[]) => void;
   onSearch: () => void;
   onClear: () => void;
   onClose: () => void;
@@ -305,6 +354,7 @@ export const AdvancedSearchPanel = (props: Props) => {
 
   const canSearch = () =>
     props.state.mustAll.length > 0 || props.state.mustAny.length > 0 || props.state.mustNone.length > 0 ||
+    props.state.paperTypes.length > 0 ||
     pendingAll().trim().length > 0 || pendingAny().trim().length > 0 || pendingNone().trim().length > 0;
 
   const handleKey = (e: KeyboardEvent) => {
@@ -393,22 +443,29 @@ export const AdvancedSearchPanel = (props: Props) => {
               />
             </div>
 
-            {/* Filters row */}
+            {/* Filters */}
+            <div class="adv-filter-year">
+              <div class="adv-section-label">PUBLICATION YEAR</div>
+              <YearSlider
+                from={props.state.yearFrom}
+                to={props.state.yearTo}
+                onFromChange={props.onYearFromChange}
+                onToChange={props.onYearToChange}
+              />
+            </div>
             <div class="adv-filters-row">
-              <div class="adv-filter-col">
-                <div class="adv-section-label">PUBLICATION YEAR</div>
-                <YearSlider
-                  from={props.state.yearFrom}
-                  to={props.state.yearTo}
-                  onFromChange={props.onYearFromChange}
-                  onToChange={props.onYearToChange}
-                />
-              </div>
               <div class="adv-filter-col">
                 <div class="adv-section-label">REPLICATION OUTCOME</div>
                 <OutcomePills
                   selected={props.state.outcomes}
                   onChange={props.onOutcomesChange}
+                />
+              </div>
+              <div class="adv-filter-col">
+                <div class="adv-section-label">STUDY TYPE</div>
+                <PaperTypePills
+                  selected={props.state.paperTypes}
+                  onChange={props.onPaperTypesChange}
                 />
               </div>
             </div>
@@ -423,6 +480,7 @@ export const AdvancedSearchPanel = (props: Props) => {
               yearFrom={props.state.yearFrom}
               yearTo={props.state.yearTo}
               outcomes={props.state.outcomes}
+              paperTypes={props.state.paperTypes}
             />
             <div class="adv-footer-actions">
               <button class="adv-clear-btn" type="button" onClick={props.onClear}>

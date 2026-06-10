@@ -99,6 +99,7 @@ function App() {
   const [advYearFrom, setAdvYearFrom] = createSignal(1950);
   const [advYearTo, setAdvYearTo] = createSignal(new Date().getFullYear());
   const [advOutcomes, setAdvOutcomes] = createSignal<string[]>([]);
+  const [advPaperTypes, setAdvPaperTypes] = createSignal<string[]>([]);
 
   const filteredResults = createMemo(() => {
     const filter = typeFilter();
@@ -380,7 +381,8 @@ function App() {
     const mustAll = advMustAll();
     const mustAny = advMustAny();
     const mustNone = advMustNone();
-    if (!mustAll.length && !mustAny.length && !mustNone.length) return;
+    const paperTypes = advPaperTypes();
+    if (!mustAll.length && !mustAny.length && !mustNone.length && !paperTypes.length) return;
 
     const yearFrom = advYearFrom();
     const yearTo = advYearTo();
@@ -401,6 +403,7 @@ function App() {
         yearTo:
           yearTo !== new Date().getFullYear() ? String(yearTo) : undefined,
         outcomes: outcomes.length ? outcomes.join("|") : undefined,
+        paperTypes: paperTypes.length ? paperTypes.join("|") : undefined,
       },
       { replace: true },
     );
@@ -417,6 +420,7 @@ function App() {
       yearFrom,
       yearTo,
       outcomes: outcomes.length ? outcomes : undefined,
+      paperTypes: paperTypes.length ? paperTypes : undefined,
     })
       .then(handleResults)
       .catch((error) => {
@@ -434,6 +438,7 @@ function App() {
     setAdvYearFrom(1950);
     setAdvYearTo(new Date().getFullYear());
     setAdvOutcomes([]);
+    setAdvPaperTypes([]);
   };
 
   const debouncedFuzzySearch = debounce(
@@ -517,12 +522,16 @@ function App() {
         const outcomes = searchParams.outcomes
           ? String(searchParams.outcomes).split("|")
           : [];
+        const paperTypes = searchParams.paperTypes
+          ? String(searchParams.paperTypes).split("|")
+          : [];
         setAdvMustAll(mustAll);
         setAdvMustAny(mustAny);
         setAdvMustNone(mustNone);
         setAdvYearFrom(yearFrom);
         setAdvYearTo(yearTo);
         setAdvOutcomes(outcomes);
+        setAdvPaperTypes(paperTypes);
         setTags([]);
         setInputValue("");
         setSearchMode("advanced");
@@ -538,6 +547,7 @@ function App() {
           yearFrom,
           yearTo,
           outcomes: outcomes.length ? outcomes : undefined,
+          paperTypes: paperTypes.length ? paperTypes : undefined,
         })
           .then(handleResults)
           .catch((error) => {
@@ -580,6 +590,7 @@ function App() {
           yearFrom: advYearFrom(),
           yearTo: advYearTo(),
           outcomes: advOutcomes(),
+          paperTypes: advPaperTypes(),
         }}
         onInputRef={(el) => (topbarInputRef = el)}
         onInputChange={(v) => {
@@ -818,6 +829,7 @@ function App() {
           yearFrom: advYearFrom(),
           yearTo: advYearTo(),
           outcomes: advOutcomes(),
+          paperTypes: advPaperTypes(),
         }}
         onMustAllChange={setAdvMustAll}
         onMustAnyChange={setAdvMustAny}
@@ -825,6 +837,7 @@ function App() {
         onYearFromChange={setAdvYearFrom}
         onYearToChange={setAdvYearTo}
         onOutcomesChange={setAdvOutcomes}
+        onPaperTypesChange={setAdvPaperTypes}
         onSearch={doAdvancedSearch}
         onClear={clearAdvancedSearch}
         onClose={() => setShowAdvancedModal(false)}
