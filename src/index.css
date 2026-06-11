@@ -525,6 +525,14 @@ body {
   color: var(--text-secondary);
   background: var(--surface);
 }
+.sli-select-all-btn--active {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-faint);
+}
+.sli-select-all-btn--active:hover {
+  background: rgba(133, 57, 83, 0.12);
+}
 
 /* ─── Study list ─── */
 .study-list {
@@ -562,6 +570,7 @@ body {
   background: var(--primary-faint);
   border-color: rgba(133, 57, 83, 0.1);
 }
+
 .sli.active::before {
   content: "";
   position: absolute;

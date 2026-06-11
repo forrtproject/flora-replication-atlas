@@ -288,13 +288,6 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
             >
               <PrintIcon /> Export
             </button>
-            <button
-              class="lp-clear-select-btn"
-              onClick={clearSelection}
-              title="Clear selection"
-            >
-              &times;
-            </button>
           </Show>
           <Show when={selectedDois().size === 0 && totalCount() > 0}>
             <span class="lp-count">
@@ -339,13 +332,14 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
           <Show when={entries().length > 1}>
             <button
               class="sli-select-all-btn"
+              classList={{ "sli-select-all-btn--active": selectedDois().size > 0 }}
               onClick={() =>
-                selectedDois().size === entries().length
+                selectedDois().size > 0
                   ? clearSelection()
                   : selectAll()
               }
             >
-              {selectedDois().size === entries().length
+              {selectedDois().size > 0
                 ? "Deselect all"
                 : "Select all"}
             </button>
