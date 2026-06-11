@@ -284,7 +284,7 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
                 const sel = selectedDois();
                 handleExportPdf(entries().filter((e) => sel.has(e.doi)));
               }}
-              title="Export selected entries"
+              title="Export selected to PDF"
             >
               <PrintIcon /> Export
             </button>
@@ -296,7 +296,7 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
             <button
               class="lp-export-btn"
               onClick={() => handleExportPdf()}
-              title="Export all to PDF"
+              title={`Export ${props.typeFilter === "original" ? "originals" : "replications"} to PDF`}
             >
               <PrintIcon /> Export
             </button>
