@@ -28,6 +28,7 @@ export const ReferenceImportModal = (props: Props) => {
   const [tab, setTab] = createSignal<Tab>("paste");
   const [stage, setStage] = createSignal<Stage>("input");
   const [text, setText] = createSignal("");
+  const [fileContent, setFileContent] = createSignal("");
   const [fileName, setFileName] = createSignal<string | null>(null);
   const [fileType, setFileType] = createSignal<FileType | null>(null);
   const [osfUrl, setOsfUrl] = createSignal("");
@@ -45,6 +46,7 @@ export const ReferenceImportModal = (props: Props) => {
     setTab("paste");
     setStage("input");
     setText("");
+    setFileContent("");
     setFileName(null);
     setFileType(null);
     setOsfUrl("");
@@ -86,7 +88,7 @@ export const ReferenceImportModal = (props: Props) => {
     const ft: FileType = isPdf ? "pdf" : isRis ? "ris" : isBib ? "bib" : "txt";
     const reader = new FileReader();
     reader.onload = (e) => {
-      setText((e.target?.result as string) ?? "");
+      setFileContent((e.target?.result as string) ?? "");
       setFileName(file.name);
       setFileType(ft);
       setError(null);
@@ -136,7 +138,7 @@ export const ReferenceImportModal = (props: Props) => {
         return;
       }
     } else {
-      const raw = text().trim();
+      const raw = (tab() === "upload" ? fileContent() : text()).trim();
       if (!raw) { setError("Please enter or upload some text first."); return; }
       const ft = fileType();
       refs = ft === "ris" ? parseRisFile(raw)
@@ -202,7 +204,9 @@ export const ReferenceImportModal = (props: Props) => {
   const switchTab = (t: Tab) => { setTab(t); setError(null); };
 
   const submitDisabled = () =>
-    tab() === "osf" ? !osfUrl().trim() : !text().trim();
+    tab() === "osf" ? !osfUrl().trim() :
+    tab() === "upload" ? !fileContent().trim() :
+    !text().trim();
 
   return (
     <Show when={props.open}>
@@ -321,9 +325,9 @@ export const ReferenceImportModal = (props: Props) => {
                 </div>
 
                 {/* Preview — skip for PDF (binary content) */}
-                <Show when={text() && fileName() && fileType() !== "pdf"}>
+                <Show when={fileContent() && fileName() && fileType() !== "pdf"}>
                   <p class="rim-file-preview-label">Preview</p>
-                  <div class="rim-file-preview">{text().substring(0, 600)}{text().length > 600 ? "…" : ""}</div>
+                  <div class="rim-file-preview">{fileContent().substring(0, 600)}{fileContent().length > 600 ? "…" : ""}</div>
                 </Show>
                 <Show when={fileType() === "pdf" && fileName()}>
                   <p class="rim-file-preview-label">Ready</p>
