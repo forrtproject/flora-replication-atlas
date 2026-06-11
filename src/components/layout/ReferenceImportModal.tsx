@@ -154,6 +154,26 @@ export const ReferenceImportModal = (props: Props) => {
     setStage("results");
   };
 
+  const [editingIndex, setEditingIndex] = createSignal<number | null>(null);
+  const [editingValue, setEditingValue] = createSignal("");
+
+  const startEdit = (index: number, currentDoi: string) => {
+    setEditingIndex(index);
+    setEditingValue(currentDoi);
+  };
+
+  const commitEdit = (index: number) => {
+    const doi = editingValue().trim();
+    setResults((prev) =>
+      prev.map((r, i) => {
+        if (i !== index) return r;
+        if (!doi) return r;
+        return { ...r, doi, status: "found" as const, source: "direct" as const, selected: true };
+      }),
+    );
+    setEditingIndex(null);
+  };
+
   const toggleResult = (index: number) => {
     setResults((prev) =>
       prev.map((r, i) =>
@@ -425,8 +445,41 @@ export const ReferenceImportModal = (props: Props) => {
                     <div class="rim-row-body">
                       <div class="rim-row-top">
                         <SourceBadge source={result.source} />
-                        <Show when={result.doi}>
-                          <code class="rim-row-doi">{result.doi}</code>
+                        <Show
+                          when={editingIndex() === i()}
+                          fallback={
+                            <div class="rim-doi-display">
+                              <Show when={result.doi}>
+                                <code class="rim-row-doi">{result.doi}</code>
+                              </Show>
+                              <button
+                                class="rim-doi-edit-btn"
+                                type="button"
+                                title="Edit DOI"
+                                onMouseDown={(e) => e.stopPropagation()}
+                                onClick={(e) => { e.stopPropagation(); startEdit(i(), result.doi ?? ""); }}
+                              >
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                </svg>
+                              </button>
+                            </div>
+                          }
+                        >
+                          <input
+                            class="rim-doi-input"
+                            type="text"
+                            value={editingValue()}
+                            onInput={(e) => setEditingValue(e.currentTarget.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") { e.preventDefault(); commitEdit(i()); }
+                              if (e.key === "Escape") setEditingIndex(null);
+                            }}
+                            onBlur={() => commitEdit(i())}
+                            onClick={(e) => e.stopPropagation()}
+                            ref={(el) => setTimeout(() => el?.focus(), 0)}
+                          />
                         </Show>
                       </div>
                       <Show when={result.foundTitle}>
