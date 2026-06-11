@@ -1,5 +1,5 @@
-import { createEffect, Show, For, onCleanup } from "solid-js";
-import type { OriginalPaper } from "../../@types";
+import { createEffect, createMemo, Show, For, onCleanup } from "solid-js";
+import type { OriginalPaper, CitationTimelineEntry } from "../../@types";
 
 type Props = {
   paper: OriginalPaper;
@@ -37,15 +37,15 @@ function niceTicks(max: number, count = 5): number[] {
 }
 
 function StackedBarChart(props: {
-  data: NonNullable<OriginalPaper["citation_timeline"]>;
+  data: CitationTimelineEntry[];
   reps: NonNullable<OriginalPaper["record"]>["replications"];
 }) {
   const ML = 52,
     MR = 72,
-    MT = 38,
+    MT = 72,
     MB = 50;
   const VW = 720,
-    VH = 360;
+    VH = 394;
   const CW = VW - ML - MR;
   const CH = VH - MT - MB;
 
@@ -76,10 +76,50 @@ function StackedBarChart(props: {
       : barCentreX(0) - ((minYear() - year) / yps) * slotW();
   };
 
-  const repLines = () =>
-    props.reps
+  const repLines = () => {
+    const FS = 10;
+    const lines = props.reps
       .filter((r) => r.year != null)
-      .map((r) => ({ x: yearToX(r.year!), r }));
+      .map((r) => {
+        const x = yearToX(r.year!);
+        const outcome = r.outcome.split(",")[0]?.trim() ?? r.outcome;
+        const label = `${outcome} rep ${r.year}`;
+        const approxW = label.length * FS * 0.58 + 14;
+        const anchor: "end" | "start" | "middle" =
+          x > ML + CW - approxW / 2
+            ? "end"
+            : x < ML + approxW / 2
+              ? "start"
+              : "middle";
+        const chipX =
+          anchor === "end"
+            ? x - approxW
+            : anchor === "start"
+              ? x
+              : x - approxW / 2;
+        const textX =
+          anchor === "end"
+            ? chipX + approxW - 6
+            : anchor === "start"
+              ? chipX + 6
+              : chipX + approxW / 2;
+        return { x, r, outcome, label, approxW, anchor, chipX, textX };
+      })
+      .sort((a, b) => a.x - b.x);
+
+    // Greedy level assignment: find the lowest level whose chips don't overlap this one
+    const placed: Array<{ left: number; right: number; level: number }> = [];
+    return lines.map((line) => {
+      const left = line.chipX - 4;
+      const right = line.chipX + line.approxW + 4;
+      let level = 0;
+      while (placed.some((p) => p.level === level && left < p.right && right > p.left)) {
+        level++;
+      }
+      placed.push({ left, right, level });
+      return { ...line, level };
+    });
+  };
 
   const xLabels = () => {
     const every = n() > 50 ? 10 : n() > 25 ? 5 : n() > 12 ? 2 : 1;
@@ -193,37 +233,15 @@ function StackedBarChart(props: {
 
       {/* Rep lines */}
       <For each={repLines()}>
-        {({ x, r }, i) => {
-          const outcome = r.outcome.split(",")[0]?.trim() ?? r.outcome;
-          const label = `${outcome} rep ${r.year}`;
-          const color = COLORS[outcome as keyof typeof COLORS] ?? "#853953";
-          const chipBg = CHIP_BG[outcome] ?? "rgba(133,57,83,0.10)";
-          const FS = 10;
-          const approxW = label.length * FS * 0.58 + 14;
-          const labelY = MT - 10 - (i() % 2) * 18;
-          const anchor =
-            x > ML + CW - approxW / 2
-              ? "end"
-              : x < ML + approxW / 2
-                ? "start"
-                : "middle";
-          const chipX =
-            anchor === "end"
-              ? x - approxW
-              : anchor === "start"
-                ? x
-                : x - approxW / 2;
-          const textX =
-            anchor === "end"
-              ? chipX + approxW - 6
-              : anchor === "start"
-                ? chipX + 6
-                : chipX + approxW / 2;
+        {(line) => {
+          const color = COLORS[line.outcome as keyof typeof COLORS] ?? "#853953";
+          const chipBg = CHIP_BG[line.outcome] ?? "rgba(133,57,83,0.10)";
+          const labelY = MT - 12 - line.level * 22;
           return (
             <>
               <line
-                x1={x}
-                x2={x}
+                x1={line.x}
+                x2={line.x}
                 y1={MT}
                 y2={MT + CH}
                 stroke={color}
@@ -232,25 +250,25 @@ function StackedBarChart(props: {
                 opacity="0.85"
               />
               <rect
-                x={chipX}
+                x={line.chipX}
                 y={labelY - 12}
-                width={approxW}
+                width={line.approxW}
                 height={16}
                 rx="3"
                 fill={chipBg}
               />
               <text
-                x={textX}
+                x={line.textX}
                 y={labelY}
-                text-anchor={anchor}
+                text-anchor={line.anchor}
                 style={{
-                  "font-size": `${FS}px`,
+                  "font-size": "10px",
                   fill: color,
                   "font-family": FONT,
                   "font-weight": "700",
                 }}
               >
-                {label}
+                {line.label}
               </text>
             </>
           );
@@ -345,8 +363,18 @@ export const CitationImpactModal = (props: Props) => {
     onCleanup(() => document.removeEventListener("keydown", handleKey));
   });
 
-  const tl = () => props.paper.citation_timeline ?? [];
+  const tl = () => props.paper.citation_timeline?.entries ?? [];
   const reps = () => props.paper.record?.replications ?? [];
+
+  const formattedLastUpdated = createMemo(() => {
+    const raw = props.paper.citation_timeline?.last_updated;
+    if (!raw) return null;
+    try {
+      return new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(raw));
+    } catch {
+      return raw;
+    }
+  });
   const totalCit = () =>
     tl().reduce(
       (s, d) => s + d.only + d.with_failed + d.with_mixed + d.with_successful,
@@ -455,6 +483,9 @@ export const CitationImpactModal = (props: Props) => {
               >
                 {props.paper.doi}
               </a>
+              <Show when={formattedLastUpdated()}>
+                {" · "}Last updated: {formattedLastUpdated()}
+              </Show>
             </p>
           </div>
         </Show>

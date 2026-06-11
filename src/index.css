@@ -2828,11 +2828,9 @@ body {
 /* ── Footer ── */
 .cim-footer {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.5rem 1.5rem;
-  padding: 0.75rem 1.5rem 0.9rem;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.7rem 1.5rem 0.85rem;
   border-top: 1px solid var(--border-light);
   flex-shrink: 0;
 }
@@ -2840,7 +2838,7 @@ body {
 .cim-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem 1rem;
+  gap: 0.35rem 1.1rem;
   font-size: 11.5px;
   color: var(--text-secondary);
 }
@@ -2860,10 +2858,11 @@ body {
 }
 
 .cim-footnote {
-  font-size: 11px;
+  font-size: 10.5px;
   color: var(--text-muted);
   margin: 0;
   white-space: nowrap;
+  align-self: flex-end;
 }
 .cim-footnote a {
   color: var(--primary-light);

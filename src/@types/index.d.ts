@@ -63,6 +63,11 @@ export type CitationTimelineEntry = {
   with_mixed: number;
 };
 
+export type CitationTimeline = {
+  last_updated: string;
+  entries: CitationTimelineEntry[];
+};
+
 export type OriginalPaper = {
   doi: string;
   doi_hash: string;
@@ -78,7 +83,7 @@ export type OriginalPaper = {
   url: string | null;
   types?: string[];
   record: RecordData | null;
-  citation_timeline?: CitationTimelineEntry[];
+  citation_timeline?: CitationTimeline;
   n_citations?: number;
 };
 
