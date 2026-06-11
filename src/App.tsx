@@ -595,8 +595,13 @@ function App() {
         onInputRef={(el) => (topbarInputRef = el)}
         onInputChange={(v) => {
           setInputValue(v);
+          const q = v.trim();
+          if (isDoi(q)) {
+            debouncedFuzzySearch.cancel();
+            setSearchMode("doi");
+            return;
+          }
           if (searchMode() === "fuzzy") {
-            const q = v.trim();
             if (q === "") {
               debouncedFuzzySearch.cancel();
               if (tags().length === 0) {
@@ -617,18 +622,20 @@ function App() {
         onSearchSubmit={doSearch}
         onSearchModeChange={handleSearchModeChange}
         onNavigateSearch={(allTags) => {
-          if (searchMode() === "fuzzy") {
-            const query = allTags[0] || inputValue().trim();
+          const query = allTags[0] || inputValue().trim();
+          if (searchMode() === "doi" || isDoi(query)) {
+            if (allTags.length > 0) {
+              setTags(allTags);
+              setInputValue("");
+              syncUrl(allTags);
+              doDoiSearch(allTags);
+            }
+          } else if (searchMode() === "fuzzy") {
             if (query) {
               setTags([]);
               setInputValue(query);
               doFuzzySearch(query);
             }
-          } else if (allTags.length > 0) {
-            setTags(allTags);
-            setInputValue("");
-            syncUrl(allTags);
-            doDoiSearch(allTags);
           }
         }}
         onImportClick={() => setShowImportModal(true)}
