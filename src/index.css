@@ -3105,6 +3105,34 @@ body {
   opacity: 0.85;
 }
 
+.rim-upload-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 10px;
+  line-height: 1.5;
+}
+.rim-upload-tip svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  opacity: 0.7;
+}
+.rim-tip-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: inherit;
+  color: var(--primary-light);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.rim-tip-link:hover {
+  opacity: 0.8;
+}
+
 .rim-osf-section {
   display: flex;
   flex-direction: column;
