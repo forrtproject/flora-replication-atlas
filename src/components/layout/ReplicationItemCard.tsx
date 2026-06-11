@@ -4,6 +4,7 @@ import { renderAuthors, na } from "../../utils/formatter";
 
 type ReplicationItemCardProps = {
   item: ReplicationItem;
+  hideNa?: boolean;
   onCopyApa: (text: string) => void;
   onCopyBibtex: (text: string) => void;
 };
