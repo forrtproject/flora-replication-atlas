@@ -25,8 +25,9 @@ const BATCH_SIZE = 100;
 export const fetchMultipleDOIInfo = async (dois: string[]): Promise<DOIResults> => {
   if (dois.length <= BATCH_SIZE) {
     const response = await backend.post<DOIResults>('/original-lookup', { dois });
-    response.data.isEmpty = replicationResponseHasNoData(response.data);
-    return response.data;
+    const data: DOIResults = response.data ?? { results: {}, isEmpty: true };
+    data.isEmpty = replicationResponseHasNoData(data);
+    return data;
   }
 
   const batches: string[][] = [];
@@ -40,7 +41,7 @@ export const fetchMultipleDOIInfo = async (dois: string[]): Promise<DOIResults> 
 
   const merged: DOIResults = { results: {}, isEmpty: true };
   for (const res of responses) {
-    Object.assign(merged.results, res.data.results ?? {});
+    Object.assign(merged.results, (res.data ?? {}).results ?? {});
   }
   merged.isEmpty = replicationResponseHasNoData(merged);
   return merged;

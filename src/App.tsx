@@ -308,7 +308,9 @@ function App() {
     }
 
     const keys = Object.keys(data);
-    if (keys.length > 0) setSelectedDoi(keys[0]);
+    if (keys.length > 0) {
+      setSelectedDoi(keys[0]);
+    }
     setIsLoading(false);
   };
 
