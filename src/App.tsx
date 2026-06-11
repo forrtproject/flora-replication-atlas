@@ -26,7 +26,8 @@ import { DetailView } from "./components/layout/DetailView";
 import { NoDataState } from "./components/layout/NoDataState";
 import { Footer } from "./components/Footer";
 import { ReferenceImportModal } from "./components/layout/ReferenceImportModal";
-import { createToastState } from "./components/layout/Toast";
+import { createToastState, type Toast } from "./components/layout/Toast";
+import { BugReportModal } from "./components/layout/BugReportModal";
 import { HttpError } from "./utils/http";
 
 const isDoi = (s: string) => /^10\.\d{4,}\//.test(s.trim());
@@ -47,7 +48,7 @@ const debounce = <T extends unknown[]>(
   return call;
 };
 
-const toastDetails = (error: unknown): [string, string] => {
+const toastDetails = (error: unknown): [string, string, boolean?] => {
   if (error instanceof HttpError) {
     if (error.status === 408)
       return [
@@ -70,12 +71,14 @@ const toastDetails = (error: unknown): [string, string] => {
   return [
     "Something went wrong",
     "An unexpected error occurred. Please try again.",
+    true,
   ];
 };
 
 function App() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { show: showToast, ToastStack } = createToastState();
+  const [reportingError, setReportingError] = createSignal<Toast | null>(null);
+  const { show: showToast, ToastStack } = createToastState((toast) => setReportingError(toast));
 
   const [tags, setTags] = createSignal<string[]>([]);
   const [inputValue, setInputValue] = createSignal("");
@@ -355,8 +358,8 @@ function App() {
       .catch((error) => {
         setIsLoading(false);
         setResults({});
-        const [t, m] = toastDetails(error);
-        showToast(t, m);
+        const [t, m, r] = toastDetails(error);
+        showToast(t, m, "error", r);
       });
   };
 
@@ -374,8 +377,8 @@ function App() {
       .catch((error) => {
         setIsLoading(false);
         setResults({});
-        const [t, m] = toastDetails(error);
-        showToast(t, m);
+        const [t, m, r] = toastDetails(error);
+        showToast(t, m, "error", r);
       });
   };
 
@@ -428,8 +431,8 @@ function App() {
       .catch((error) => {
         setIsLoading(false);
         setResults({});
-        const [t, m] = toastDetails(error);
-        showToast(t, m);
+        const [t, m, r] = toastDetails(error);
+        showToast(t, m, "error", r);
       });
   };
 
@@ -854,6 +857,15 @@ function App() {
 
       <Footer />
       <ToastStack />
+      <Show when={reportingError()}>
+        {(toast) => (
+          <BugReportModal
+            errorTitle={toast().title}
+            errorMessage={toast().message}
+            onClose={() => setReportingError(null)}
+          />
+        )}
+      </Show>
     </>
   );
 }
