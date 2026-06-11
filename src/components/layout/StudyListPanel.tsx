@@ -384,18 +384,13 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
                 onClick={() => props.onSelect(entry.doi)}
               >
                 <div
-                  class="sli-checkbox"
+                  class={`sli-dot-check ${entry.status}`}
+                  classList={{ "sli-dot-check--checked": selectedDois().has(entry.doi) }}
                   role="checkbox"
                   aria-checked={selectedDois().has(entry.doi)}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleSelect(entry.doi, e);
-                  }}
+                  onClick={(e) => { e.stopPropagation(); toggleSelect(entry.doi, e); }}
                   title="Select entry"
-                >
-                  <span class="sli-checkbox-box" />
-                </div>
-                <div class={`sli-dot ${entry.status}`} />
+                />
                 <div class="sli-body">
                   <div class="sli-title">{entry.rep.title || entry.doi}</div>
                   <div class="sli-meta">

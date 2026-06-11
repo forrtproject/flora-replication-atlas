@@ -581,74 +581,74 @@ body {
   border-radius: 0 3px 3px 0;
   background: var(--primary);
 }
-/* ─── Checkbox ─── */
-.sli-checkbox {
-  display: none;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  margin-top: 0.2rem;
-}
-.sli-checkbox input[type="checkbox"] {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
-  pointer-events: none;
-}
-.sli-checkbox-box {
+/* ─── Dot / checkbox (same element, morphs on hover) ─── */
+.sli-dot-check {
   width: 14px;
   height: 14px;
-  border-radius: 3px;
-  border: 1.5px solid var(--border);
-  background: var(--white);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all var(--transition-fast);
   flex-shrink: 0;
+  margin-top: 0.3rem;
+  border-radius: 3px;
+  border: 1.5px solid transparent;
+  background: transparent;
+  position: relative;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
 }
-.sli:hover .sli-checkbox,
-.sli--selecting .sli-checkbox {
-  display: flex;
+
+/* 9×9 coloured dot centered in the 14×14 container */
+.sli-dot-check::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  transition: opacity var(--transition-fast);
 }
-.sli--checked .sli-checkbox-box {
+
+.sli-dot-check.mixed::before,
+.sli-dot-check.partial::before   { background: var(--warning); }
+.sli-dot-check.successful::before { background: #16a34a; }
+.sli-dot-check.failed::before    { background: var(--error); }
+.sli-dot-check.blank::before     { background: var(--border); }
+
+/* Hover / selecting → reveal checkbox border, hide dot */
+.sli:hover .sli-dot-check,
+.sli--selecting .sli-dot-check {
+  border-color: var(--border);
+  background: var(--white);
+}
+.sli:hover .sli-dot-check::before,
+.sli--selecting .sli-dot-check::before {
+  opacity: 0;
+}
+
+/* Checked state */
+.sli-dot-check--checked,
+.sli:hover .sli-dot-check--checked,
+.sli--selecting .sli-dot-check--checked {
   background: var(--primary);
   border-color: var(--primary);
 }
-.sli--checked .sli-checkbox-box::after {
+.sli-dot-check--checked::before {
+  opacity: 0;
+}
+.sli-dot-check--checked::after {
   content: "";
-  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
   width: 8px;
   height: 5px;
   border-left: 1.5px solid white;
   border-bottom: 1.5px solid white;
-  transform: rotate(-45deg) translateY(-1px);
-}
-.sli--checked {
-  background: var(--primary-faint);
+  transform: translate(-50%, -65%) rotate(-45deg);
 }
 
-.sli-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  margin-top: 0.35rem;
-}
-.sli-dot.mixed,
-.sli-dot.partial {
-  background: var(--warning);
-}
-.sli-dot.successful {
-  background: #16a34a;
-}
-.sli-dot.failed {
-  background: var(--error);
-}
-.sli-dot.blank {
-  background: var(--text-muted);
+.sli--checked {
+  background: var(--primary-faint);
 }
 .sli-body {
   flex: 1;
