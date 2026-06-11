@@ -138,6 +138,9 @@ export const TopBar = (props: TopBarProps) => {
           <For each={state.outcomes}>
             {(o) => <span class="topbar-adv-chip topbar-adv-chip--primary">{o}</span>}
           </For>
+          <For each={state.paperTypes}>
+            {(t) => <span class="topbar-adv-chip topbar-adv-chip--gray">{t}</span>}
+          </For>
         </div>
         <button
           class="topbar-adv-clear"
@@ -394,6 +397,9 @@ export const TopBar = (props: TopBarProps) => {
                   </Show>
                   <For each={props.advancedState?.outcomes ?? []}>
                     {(o) => <span class="topbar-adv-chip topbar-adv-chip--primary">{o}</span>}
+                  </For>
+                  <For each={props.advancedState?.paperTypes ?? []}>
+                    {(t) => <span class="topbar-adv-chip topbar-adv-chip--gray">{t}</span>}
                   </For>
                 </div>
                 <button class="mob-adv-edit-btn" type="button" onClick={() => props.onAdvancedClick?.()}>Edit</button>

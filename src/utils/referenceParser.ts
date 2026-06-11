@@ -1,7 +1,22 @@
-const DOI_RE = /\b(10\.\d{4,}\/[^\s"'<>[\]{}|\\^`]+)/g;
+// For general reference text (paste / RIS / BIB): stop at < to avoid XML tags
+// from embedded metadata. A slash is only treated as part of the suffix when
+// the next segment contains digits/underscores/brackets — pure [A-Za-z-]
+// segments are journal routing words.
+const TEXT_SUFFIX = `[^\\s,/<>\\]'"#?&\\\\]`;
+const TEXT_EXTRA_SLASH = `(?:\\/(?![a-zA-Z-]+(?:[/\\s,#?&<>{}\\[\\]]|$))${TEXT_SUFFIX}+)*`;
+const DOI_RE = new RegExp(`(10\\.\\d{4,}(?:\\.\\d+)*\\/${TEXT_SUFFIX}+${TEXT_EXTRA_SLASH})`, "g");
+
+// For PDF / raw-text extraction: also stop at ( ) to avoid PDF object syntax
+// like (doi)/Key(value), and stop at < to avoid XMP metadata tags.
+const PDF_SUFFIX = `[^\\s,/<>\\]'"#?&\\\\()]`;
+const PDF_EXTRA_SLASH = `(?:\\/(?![a-zA-Z-]+(?:[/\\s,#?&<>{}\\[\\]]|$))${PDF_SUFFIX}+)*`;
+const PDF_DOI_RE = new RegExp(`(10\\.\\d{4,}(?:\\.\\d+)*\\/${PDF_SUFFIX}+${PDF_EXTRA_SLASH})`, "g");
 
 function cleanDoi(doi: string): string {
-  return doi.replace(/[.,;)\]>]+$/, "");
+  return doi
+    .replace(/\)\/[A-Za-z].*$/, "")  // strip residual PDF object syntax: )/Key
+    .replace(/<.*$/, "")              // strip residual XML/XMP tags: </dc:identifier
+    .replace(/[.,;)\]>]+$/, "");      // strip trailing punctuation
 }
 
 export type ParsedReference = {
@@ -184,12 +199,12 @@ function extractBibField(block: string, name: string): string {
 }
 
 export function extractDoisDirect(text: string): ParsedReference[] {
-  const re = /\b(10\.\d{4,}\/[^\s"'<>[\]{}|\\^`\x00-\x1f]+)/g;
+  const re = new RegExp(PDF_DOI_RE.source, "g");
   const seen = new Set<string>();
   const refs: ParsedReference[] = [];
   let m: RegExpExecArray | null;
   while ((m = re.exec(text)) !== null) {
-    const doi = m[1].replace(/[.,;)\]>]+$/, "");
+    const doi = cleanDoi(m[1]);
     if (doi.length > 7 && !seen.has(doi)) {
       seen.add(doi);
       refs.push({ raw: doi, doi, queryText: doi });

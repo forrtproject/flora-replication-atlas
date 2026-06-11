@@ -10,6 +10,7 @@ type BucketColor = "green" | "amber" | "red";
 type BucketInputProps = {
   tags: string[];
   onTagsChange: (tags: string[]) => void;
+  onInputChange?: (val: string) => void;
   placeholder: string;
   color: BucketColor;
   label: string;
@@ -27,6 +28,7 @@ const BucketInput = (props: BucketInputProps) => {
       props.onTagsChange([...props.tags, trimmed]);
     }
     setInput("");
+    props.onInputChange?.("");
   };
 
   const removeTag = (index: number) => {
@@ -79,7 +81,7 @@ const BucketInput = (props: BucketInputProps) => {
           type="text"
           class="adv-bucket-input"
           value={input()}
-          onInput={(e) => setInput(e.currentTarget.value)}
+          onInput={(e) => { setInput(e.currentTarget.value); props.onInputChange?.(e.currentTarget.value); }}
           onKeyDown={handleKeyDown}
           onBlur={handleBlur}
           placeholder={props.tags.length === 0 ? props.placeholder : ""}
@@ -181,6 +183,43 @@ const OutcomePills = (props: OutcomePillsProps) => {
   );
 };
 
+// ── Paper type pills ─────────────────────────────────────────────────────────
+
+const PAPER_TYPES = [
+  { value: "original",     label: "Original" },
+  { value: "replication",  label: "Replication" },
+  { value: "reproduction", label: "Reproduction" },
+] as const;
+
+type PaperTypePillsProps = {
+  selected: string[];
+  onChange: (v: string[]) => void;
+};
+
+const PaperTypePills = (props: PaperTypePillsProps) => {
+  const toggle = (val: string) => {
+    const cur = props.selected;
+    props.onChange(
+      cur.includes(val) ? cur.filter((v) => v !== val) : [...cur, val],
+    );
+  };
+
+  return (
+    <div class="adv-outcome-pills">
+      {PAPER_TYPES.map((t) => (
+        <button
+          type="button"
+          class="adv-outcome-pill"
+          classList={{ "adv-outcome-pill--active": props.selected.includes(t.value) }}
+          onClick={() => toggle(t.value)}
+        >
+          {t.label}
+        </button>
+      ))}
+    </div>
+  );
+};
+
 // ── Natural language query summary ───────────────────────────────────────────
 
 const QuerySummary = (props: {
@@ -190,6 +229,7 @@ const QuerySummary = (props: {
   yearFrom: number;
   yearTo: number;
   outcomes: string[];
+  paperTypes: string[];
 }) => {
   const desc = createMemo(() => {
     const parts: JSX.Element[] = [];
@@ -258,6 +298,15 @@ const QuerySummary = (props: {
       );
     }
 
+    if (props.paperTypes.length > 0) {
+      parts.push(
+        <>
+          {parts.length > 0 ? ", " : ""}type{" "}
+          <strong>{props.paperTypes.join(" or ")}</strong>
+        </>,
+      );
+    }
+
     if (parts.length === 0) return <span class="adv-qs-empty">All studies</span>;
 
     return <>studies {parts}</>;
@@ -280,6 +329,7 @@ export type AdvancedSearchState = {
   yearFrom: number;
   yearTo: number;
   outcomes: string[];
+  paperTypes: string[];
 };
 
 type Props = {
@@ -291,14 +341,22 @@ type Props = {
   onYearFromChange: (v: number) => void;
   onYearToChange: (v: number) => void;
   onOutcomesChange: (v: string[]) => void;
+  onPaperTypesChange: (v: string[]) => void;
   onSearch: () => void;
   onClear: () => void;
   onClose: () => void;
 };
 
 export const AdvancedSearchPanel = (props: Props) => {
+  const [pendingAll, setPendingAll] = createSignal("");
+  const [pendingAny, setPendingAny] = createSignal("");
+  const [pendingNone, setPendingNone] = createSignal("");
+  const [showHelp, setShowHelp] = createSignal(false);
+
   const canSearch = () =>
-    props.state.mustAll.length > 0 || props.state.mustAny.length > 0 || props.state.mustNone.length > 0;
+    props.state.mustAll.length > 0 || props.state.mustAny.length > 0 || props.state.mustNone.length > 0 ||
+    props.state.paperTypes.length > 0 ||
+    pendingAll().trim().length > 0 || pendingAny().trim().length > 0 || pendingNone().trim().length > 0;
 
   const handleKey = (e: KeyboardEvent) => {
     if (e.key === "Escape" && props.open) props.onClose();
@@ -325,7 +383,13 @@ export const AdvancedSearchPanel = (props: Props) => {
           <div class="adv-modal-header">
             <div class="adv-modal-title-row">
               <h2 class="adv-modal-title">Advanced search</h2>
-              <button class="adv-modal-help" type="button" title="Help" tabIndex={-1}>
+              <button
+                class="adv-modal-help"
+                type="button"
+                title="How search works"
+                classList={{ "adv-modal-help--active": showHelp() }}
+                onClick={() => setShowHelp((v) => !v)}
+              >
                 ?
               </button>
             </div>
@@ -343,12 +407,44 @@ export const AdvancedSearchPanel = (props: Props) => {
 
           {/* Body */}
           <div class="adv-modal-body">
+            <Show when={showHelp()}>
+              <div class="adv-help-panel">
+                <div class="adv-help-grid">
+                  <div class="adv-help-item">
+                    <span class="adv-help-chip adv-help-chip--green">all</span>
+                    <span>AND — every word must be present</span>
+                  </div>
+                  <div class="adv-help-item">
+                    <span class="adv-help-chip adv-help-chip--amber">any</span>
+                    <span>OR — at least one word must appear</span>
+                  </div>
+                  <div class="adv-help-item">
+                    <span class="adv-help-chip adv-help-chip--red">not</span>
+                    <span>Excludes studies containing these words</span>
+                  </div>
+                  <div class="adv-help-item">
+                    <span class="adv-help-chip adv-help-chip--gray">year</span>
+                    <span>Drag handles to set publication range</span>
+                  </div>
+                  <div class="adv-help-item">
+                    <span class="adv-help-chip adv-help-chip--gray">outcome</span>
+                    <span>Filter by replication result</span>
+                  </div>
+                  <div class="adv-help-item">
+                    <span class="adv-help-chip adv-help-chip--gray">type</span>
+                    <span>Filter by original, replication, or reproduction</span>
+                  </div>
+                </div>
+                <p class="adv-help-hint">Press <kbd>Enter</kbd> or <kbd>,</kbd> to commit a keyword.</p>
+              </div>
+            </Show>
             {/* Keywords section */}
             <div class="adv-section-label">KEYWORDS</div>
             <div class="adv-buckets-row">
               <BucketInput
                 tags={props.state.mustAll}
                 onTagsChange={props.onMustAllChange}
+                onInputChange={setPendingAll}
                 placeholder="type a word…"
                 color="green"
                 label="Has all of these"
@@ -362,6 +458,7 @@ export const AdvancedSearchPanel = (props: Props) => {
               <BucketInput
                 tags={props.state.mustAny}
                 onTagsChange={props.onMustAnyChange}
+                onInputChange={setPendingAny}
                 placeholder="type a word…"
                 color="amber"
                 label="Has any of these"
@@ -371,6 +468,7 @@ export const AdvancedSearchPanel = (props: Props) => {
               <BucketInput
                 tags={props.state.mustNone}
                 onTagsChange={props.onMustNoneChange}
+                onInputChange={setPendingNone}
                 placeholder="type a word…"
                 color="red"
                 label="Excludes these"
@@ -383,22 +481,29 @@ export const AdvancedSearchPanel = (props: Props) => {
               />
             </div>
 
-            {/* Filters row */}
+            {/* Filters */}
+            <div class="adv-filter-year">
+              <div class="adv-section-label">PUBLICATION YEAR</div>
+              <YearSlider
+                from={props.state.yearFrom}
+                to={props.state.yearTo}
+                onFromChange={props.onYearFromChange}
+                onToChange={props.onYearToChange}
+              />
+            </div>
             <div class="adv-filters-row">
-              <div class="adv-filter-col">
-                <div class="adv-section-label">PUBLICATION YEAR</div>
-                <YearSlider
-                  from={props.state.yearFrom}
-                  to={props.state.yearTo}
-                  onFromChange={props.onYearFromChange}
-                  onToChange={props.onYearToChange}
-                />
-              </div>
               <div class="adv-filter-col">
                 <div class="adv-section-label">REPLICATION OUTCOME</div>
                 <OutcomePills
                   selected={props.state.outcomes}
                   onChange={props.onOutcomesChange}
+                />
+              </div>
+              <div class="adv-filter-col">
+                <div class="adv-section-label">STUDY TYPE</div>
+                <PaperTypePills
+                  selected={props.state.paperTypes}
+                  onChange={props.onPaperTypesChange}
                 />
               </div>
             </div>
@@ -413,6 +518,7 @@ export const AdvancedSearchPanel = (props: Props) => {
               yearFrom={props.state.yearFrom}
               yearTo={props.state.yearTo}
               outcomes={props.state.outcomes}
+              paperTypes={props.state.paperTypes}
             />
             <div class="adv-footer-actions">
               <button class="adv-clear-btn" type="button" onClick={props.onClear}>

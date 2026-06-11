@@ -26,7 +26,8 @@ import { DetailView } from "./components/layout/DetailView";
 import { NoDataState } from "./components/layout/NoDataState";
 import { Footer } from "./components/Footer";
 import { ReferenceImportModal } from "./components/layout/ReferenceImportModal";
-import { createToastState } from "./components/layout/Toast";
+import { createToastState, type Toast } from "./components/layout/Toast";
+import { BugReportModal } from "./components/layout/BugReportModal";
 import { HttpError } from "./utils/http";
 
 const isDoi = (s: string) => /^10\.\d{4,}\//.test(s.trim());
@@ -47,7 +48,7 @@ const debounce = <T extends unknown[]>(
   return call;
 };
 
-const toastDetails = (error: unknown): [string, string] => {
+const toastDetails = (error: unknown): [string, string, boolean?] => {
   if (error instanceof HttpError) {
     if (error.status === 408)
       return [
@@ -70,12 +71,14 @@ const toastDetails = (error: unknown): [string, string] => {
   return [
     "Something went wrong",
     "An unexpected error occurred. Please try again.",
+    true,
   ];
 };
 
 function App() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { show: showToast, ToastStack } = createToastState();
+  const [reportingError, setReportingError] = createSignal<Toast | null>(null);
+  const { show: showToast, ToastStack } = createToastState((toast) => setReportingError(toast));
 
   const [tags, setTags] = createSignal<string[]>([]);
   const [inputValue, setInputValue] = createSignal("");
@@ -99,6 +102,7 @@ function App() {
   const [advYearFrom, setAdvYearFrom] = createSignal(1950);
   const [advYearTo, setAdvYearTo] = createSignal(new Date().getFullYear());
   const [advOutcomes, setAdvOutcomes] = createSignal<string[]>([]);
+  const [advPaperTypes, setAdvPaperTypes] = createSignal<string[]>([]);
 
   const filteredResults = createMemo(() => {
     const filter = typeFilter();
@@ -307,7 +311,9 @@ function App() {
     }
 
     const keys = Object.keys(data);
-    if (keys.length > 0) setSelectedDoi(keys[0]);
+    if (keys.length > 0) {
+      setSelectedDoi(keys[0]);
+    }
     setIsLoading(false);
   };
 
@@ -352,8 +358,8 @@ function App() {
       .catch((error) => {
         setIsLoading(false);
         setResults({});
-        const [t, m] = toastDetails(error);
-        showToast(t, m);
+        const [t, m, r] = toastDetails(error);
+        showToast(t, m, "error", r);
       });
   };
 
@@ -371,8 +377,8 @@ function App() {
       .catch((error) => {
         setIsLoading(false);
         setResults({});
-        const [t, m] = toastDetails(error);
-        showToast(t, m);
+        const [t, m, r] = toastDetails(error);
+        showToast(t, m, "error", r);
       });
   };
 
@@ -380,7 +386,8 @@ function App() {
     const mustAll = advMustAll();
     const mustAny = advMustAny();
     const mustNone = advMustNone();
-    if (!mustAll.length && !mustAny.length && !mustNone.length) return;
+    const paperTypes = advPaperTypes();
+    if (!mustAll.length && !mustAny.length && !mustNone.length && !paperTypes.length) return;
 
     const yearFrom = advYearFrom();
     const yearTo = advYearTo();
@@ -401,6 +408,7 @@ function App() {
         yearTo:
           yearTo !== new Date().getFullYear() ? String(yearTo) : undefined,
         outcomes: outcomes.length ? outcomes.join("|") : undefined,
+        paperTypes: paperTypes.length ? paperTypes.join("|") : undefined,
       },
       { replace: true },
     );
@@ -417,13 +425,14 @@ function App() {
       yearFrom,
       yearTo,
       outcomes: outcomes.length ? outcomes : undefined,
+      paperTypes: paperTypes.length ? paperTypes : undefined,
     })
       .then(handleResults)
       .catch((error) => {
         setIsLoading(false);
         setResults({});
-        const [t, m] = toastDetails(error);
-        showToast(t, m);
+        const [t, m, r] = toastDetails(error);
+        showToast(t, m, "error", r);
       });
   };
 
@@ -434,6 +443,7 @@ function App() {
     setAdvYearFrom(1950);
     setAdvYearTo(new Date().getFullYear());
     setAdvOutcomes([]);
+    setAdvPaperTypes([]);
   };
 
   const debouncedFuzzySearch = debounce(
@@ -517,12 +527,16 @@ function App() {
         const outcomes = searchParams.outcomes
           ? String(searchParams.outcomes).split("|")
           : [];
+        const paperTypes = searchParams.paperTypes
+          ? String(searchParams.paperTypes).split("|")
+          : [];
         setAdvMustAll(mustAll);
         setAdvMustAny(mustAny);
         setAdvMustNone(mustNone);
         setAdvYearFrom(yearFrom);
         setAdvYearTo(yearTo);
         setAdvOutcomes(outcomes);
+        setAdvPaperTypes(paperTypes);
         setTags([]);
         setInputValue("");
         setSearchMode("advanced");
@@ -538,6 +552,7 @@ function App() {
           yearFrom,
           yearTo,
           outcomes: outcomes.length ? outcomes : undefined,
+          paperTypes: paperTypes.length ? paperTypes : undefined,
         })
           .then(handleResults)
           .catch((error) => {
@@ -580,12 +595,18 @@ function App() {
           yearFrom: advYearFrom(),
           yearTo: advYearTo(),
           outcomes: advOutcomes(),
+          paperTypes: advPaperTypes(),
         }}
         onInputRef={(el) => (topbarInputRef = el)}
         onInputChange={(v) => {
           setInputValue(v);
+          const q = v.trim();
+          if (isDoi(q)) {
+            debouncedFuzzySearch.cancel();
+            setSearchMode("doi");
+            return;
+          }
           if (searchMode() === "fuzzy") {
-            const q = v.trim();
             if (q === "") {
               debouncedFuzzySearch.cancel();
               if (tags().length === 0) {
@@ -606,18 +627,20 @@ function App() {
         onSearchSubmit={doSearch}
         onSearchModeChange={handleSearchModeChange}
         onNavigateSearch={(allTags) => {
-          if (searchMode() === "fuzzy") {
-            const query = allTags[0] || inputValue().trim();
+          const query = allTags[0] || inputValue().trim();
+          if (searchMode() === "doi" || isDoi(query)) {
+            if (allTags.length > 0) {
+              setTags(allTags);
+              setInputValue("");
+              syncUrl(allTags);
+              doDoiSearch(allTags);
+            }
+          } else if (searchMode() === "fuzzy") {
             if (query) {
               setTags([]);
               setInputValue(query);
               doFuzzySearch(query);
             }
-          } else if (allTags.length > 0) {
-            setTags(allTags);
-            setInputValue("");
-            syncUrl(allTags);
-            doDoiSearch(allTags);
           }
         }}
         onImportClick={() => setShowImportModal(true)}
@@ -767,32 +790,6 @@ function App() {
             }
           >
             <>
-              <Show
-                when={
-                  searchMode() === "advanced" &&
-                  advMustAll().length === 0 &&
-                  advMustAny().length === 0 &&
-                  advMustNone().length > 0
-                }
-              >
-                <div class="exclude-only-warning">
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    style="flex-shrink:0"
-                  >
-                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                    <line x1="12" y1="9" x2="12" y2="13" />
-                    <line x1="12" y1="17" x2="12.01" y2="17" />
-                  </svg>
-                  Exclude-only searches are cost heavy, please consider adding
-                  some inclusion criteria to narrow down results.
-                </div>
-              </Show>
               <Show when={aggregateOutcomes().total > 0}>
                 <SearchOutcomesBanner
                   outcomes={aggregateOutcomes()}
@@ -844,6 +841,7 @@ function App() {
           yearFrom: advYearFrom(),
           yearTo: advYearTo(),
           outcomes: advOutcomes(),
+          paperTypes: advPaperTypes(),
         }}
         onMustAllChange={setAdvMustAll}
         onMustAnyChange={setAdvMustAny}
@@ -851,6 +849,7 @@ function App() {
         onYearFromChange={setAdvYearFrom}
         onYearToChange={setAdvYearTo}
         onOutcomesChange={setAdvOutcomes}
+        onPaperTypesChange={setAdvPaperTypes}
         onSearch={doAdvancedSearch}
         onClear={clearAdvancedSearch}
         onClose={() => setShowAdvancedModal(false)}
@@ -858,6 +857,15 @@ function App() {
 
       <Footer />
       <ToastStack />
+      <Show when={reportingError()}>
+        {(toast) => (
+          <BugReportModal
+            errorTitle={toast().title}
+            errorMessage={toast().message}
+            onClose={() => setReportingError(null)}
+          />
+        )}
+      </Show>
     </>
   );
 }

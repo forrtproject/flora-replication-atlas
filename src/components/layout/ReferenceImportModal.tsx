@@ -28,6 +28,7 @@ export const ReferenceImportModal = (props: Props) => {
   const [tab, setTab] = createSignal<Tab>("paste");
   const [stage, setStage] = createSignal<Stage>("input");
   const [text, setText] = createSignal("");
+  const [fileContent, setFileContent] = createSignal("");
   const [fileName, setFileName] = createSignal<string | null>(null);
   const [fileType, setFileType] = createSignal<FileType | null>(null);
   const [osfUrl, setOsfUrl] = createSignal("");
@@ -45,6 +46,7 @@ export const ReferenceImportModal = (props: Props) => {
     setTab("paste");
     setStage("input");
     setText("");
+    setFileContent("");
     setFileName(null);
     setFileType(null);
     setOsfUrl("");
@@ -86,7 +88,7 @@ export const ReferenceImportModal = (props: Props) => {
     const ft: FileType = isPdf ? "pdf" : isRis ? "ris" : isBib ? "bib" : "txt";
     const reader = new FileReader();
     reader.onload = (e) => {
-      setText((e.target?.result as string) ?? "");
+      setFileContent((e.target?.result as string) ?? "");
       setFileName(file.name);
       setFileType(ft);
       setError(null);
@@ -136,7 +138,7 @@ export const ReferenceImportModal = (props: Props) => {
         return;
       }
     } else {
-      const raw = text().trim();
+      const raw = (tab() === "upload" ? fileContent() : text()).trim();
       if (!raw) { setError("Please enter or upload some text first."); return; }
       const ft = fileType();
       refs = ft === "ris" ? parseRisFile(raw)
@@ -152,6 +154,26 @@ export const ReferenceImportModal = (props: Props) => {
     const found = await lookupAll(refs, (done, total) => setProgress({ done, total }), signal);
     setResults(found);
     setStage("results");
+  };
+
+  const [editingIndex, setEditingIndex] = createSignal<number | null>(null);
+  const [editingValue, setEditingValue] = createSignal("");
+
+  const startEdit = (index: number, currentDoi: string) => {
+    setEditingIndex(index);
+    setEditingValue(currentDoi);
+  };
+
+  const commitEdit = (index: number) => {
+    const doi = editingValue().trim();
+    setResults((prev) =>
+      prev.map((r, i) => {
+        if (i !== index) return r;
+        if (!doi) return r;
+        return { ...r, doi, status: "found" as const, source: "direct" as const, selected: true };
+      }),
+    );
+    setEditingIndex(null);
   };
 
   const toggleResult = (index: number) => {
@@ -182,7 +204,9 @@ export const ReferenceImportModal = (props: Props) => {
   const switchTab = (t: Tab) => { setTab(t); setError(null); };
 
   const submitDisabled = () =>
-    tab() === "osf" ? !osfUrl().trim() : !text().trim();
+    tab() === "osf" ? !osfUrl().trim() :
+    tab() === "upload" ? !fileContent().trim() :
+    !text().trim();
 
   return (
     <Show when={props.open}>
@@ -301,9 +325,9 @@ export const ReferenceImportModal = (props: Props) => {
                 </div>
 
                 {/* Preview — skip for PDF (binary content) */}
-                <Show when={text() && fileName() && fileType() !== "pdf"}>
+                <Show when={fileContent() && fileName() && fileType() !== "pdf"}>
                   <p class="rim-file-preview-label">Preview</p>
-                  <div class="rim-file-preview">{text().substring(0, 600)}{text().length > 600 ? "…" : ""}</div>
+                  <div class="rim-file-preview">{fileContent().substring(0, 600)}{fileContent().length > 600 ? "…" : ""}</div>
                 </Show>
                 <Show when={fileType() === "pdf" && fileName()}>
                   <p class="rim-file-preview-label">Ready</p>
@@ -312,6 +336,18 @@ export const ReferenceImportModal = (props: Props) => {
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
                     PDF loaded — DOIs will be extracted on submit.
+                  </div>
+                </Show>
+                <Show when={!(fileType() === "pdf" && fileName())}>
+                  <div class="rim-upload-tip">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="8" x2="12" y2="12" />
+                      <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                    If the references in the PDF don't include DOIs, copy them and{" "}
+                    <button class="rim-tip-link" onClick={() => switchTab("paste")}>paste them instead</button>
+                    {" "}for better results.
                   </div>
                 </Show>
               </Show>
@@ -425,8 +461,41 @@ export const ReferenceImportModal = (props: Props) => {
                     <div class="rim-row-body">
                       <div class="rim-row-top">
                         <SourceBadge source={result.source} />
-                        <Show when={result.doi}>
-                          <code class="rim-row-doi">{result.doi}</code>
+                        <Show
+                          when={editingIndex() === i()}
+                          fallback={
+                            <div class="rim-doi-display">
+                              <Show when={result.doi}>
+                                <code class="rim-row-doi">{result.doi}</code>
+                              </Show>
+                              <button
+                                class="rim-doi-edit-btn"
+                                type="button"
+                                title="Edit DOI"
+                                onMouseDown={(e) => e.stopPropagation()}
+                                onClick={(e) => { e.stopPropagation(); startEdit(i(), result.doi ?? ""); }}
+                              >
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                </svg>
+                              </button>
+                            </div>
+                          }
+                        >
+                          <input
+                            class="rim-doi-input"
+                            type="text"
+                            value={editingValue()}
+                            onInput={(e) => setEditingValue(e.currentTarget.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") { e.preventDefault(); commitEdit(i()); }
+                              if (e.key === "Escape") setEditingIndex(null);
+                            }}
+                            onBlur={() => commitEdit(i())}
+                            onClick={(e) => e.stopPropagation()}
+                            ref={(el) => setTimeout(() => el?.focus(), 0)}
+                          />
                         </Show>
                       </div>
                       <Show when={result.foundTitle}>

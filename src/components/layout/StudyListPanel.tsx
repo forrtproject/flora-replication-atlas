@@ -75,8 +75,12 @@ export const StudyListPanel = (props: StudyListPanelProps) => {
         const rep = formatReplicationResponse(paper);
         const status = resolveOverallStatus(rep);
         const hasData = !!(rep.title && paper.record);
-        const isOriginal = (rep.replications?.length || 0) > 0 || (rep.reproductions?.length || 0) > 0;
-        const isReplication = (rep.originals?.length || 0) > 0 || (paper.types?.includes("reproduction") ?? false);
+        const isOriginal =
+          (rep.replications?.length || 0) > 0 ||
+          (rep.reproductions?.length || 0) > 0;
+        const isReplication =
+          (rep.originals?.length || 0) > 0 ||
+          (paper.types?.includes("reproduction") ?? false);
         return { doi, paper, rep, status, hasData, isOriginal, isReplication };
       })
       .sort((a, b) => {
@@ -102,7 +106,9 @@ export const StudyListPanel = (props: StudyListPanelProps) => {
     if (visible.length === 0) return;
 
     const filterLabel =
-      props.typeFilter === "original" ? "Original Studies" : "Replication Studies";
+      props.typeFilter === "original"
+        ? "Original Studies"
+        : "Replication Studies";
     const esc = (s: string) =>
       s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
@@ -131,7 +137,8 @@ export const StudyListPanel = (props: StudyListPanelProps) => {
     const cards = visible
       .map((entry) => {
         const tags = (entry.paper.types || []).map(
-          (type) => `<span class="tag ${type.toLowerCase()}">${esc(type.charAt(0).toUpperCase() + type.slice(1))}</span>`
+          (type) =>
+            `<span class="tag ${type.toLowerCase()}">${esc(type.charAt(0).toUpperCase() + type.slice(1))}</span>`,
         );
 
         const reps = entry.rep.replications || [];
@@ -277,29 +284,22 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
                 const sel = selectedDois();
                 handleExportPdf(entries().filter((e) => sel.has(e.doi)));
               }}
-              title="Export selected entries"
+              title="Export selected to PDF"
             >
               <PrintIcon /> Export
-            </button>
-            <button
-              class="lp-clear-select-btn"
-              onClick={clearSelection}
-              title="Clear selection"
-            >
-              &times;
             </button>
           </Show>
           <Show when={selectedDois().size === 0 && totalCount() > 0}>
-            <button
-              class="lp-export-btn"
-              onClick={() => handleExportPdf()}
-              title="Export all to PDF"
-            >
-              <PrintIcon /> Export
-            </button>
             <span class="lp-count">
               {totalCount()} {totalCount() === 1 ? "study" : "studies"}
             </span>
+            <button
+              class="lp-export-btn"
+              onClick={() => handleExportPdf()}
+              title={`Export ${props.typeFilter === "original" ? "originals" : "replications"} to PDF`}
+            >
+              <PrintIcon /> Export
+            </button>
           </Show>
         </div>
       </div>
@@ -332,9 +332,16 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
           <Show when={entries().length > 1}>
             <button
               class="sli-select-all-btn"
-              onClick={() => selectedDois().size === entries().length ? clearSelection() : selectAll()}
+              classList={{ "sli-select-all-btn--active": selectedDois().size > 0 }}
+              onClick={() =>
+                selectedDois().size > 0
+                  ? clearSelection()
+                  : selectAll()
+              }
             >
-              {selectedDois().size === entries().length ? "Deselect all" : "Select all"}
+              {selectedDois().size > 0
+                ? "Deselect all"
+                : "Select all"}
             </button>
           </Show>
         </div>
@@ -348,7 +355,9 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
           </div>
         </Show>
 
-        <Show when={!props.isLoading && props.hasSearched && totalCount() === 0}>
+        <Show
+          when={!props.isLoading && props.hasSearched && totalCount() === 0}
+        >
           <div class="sli-empty">No results found</div>
         </Show>
 
@@ -375,18 +384,13 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
                 onClick={() => props.onSelect(entry.doi)}
               >
                 <div
-                  class="sli-checkbox"
+                  class={`sli-dot-check ${entry.status}`}
+                  classList={{ "sli-dot-check--checked": selectedDois().has(entry.doi) }}
                   role="checkbox"
                   aria-checked={selectedDois().has(entry.doi)}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleSelect(entry.doi, e);
-                  }}
+                  onClick={(e) => { e.stopPropagation(); toggleSelect(entry.doi, e); }}
                   title="Select entry"
-                >
-                  <span class="sli-checkbox-box" />
-                </div>
-                <div class={`sli-dot ${entry.status}`} />
+                />
                 <div class="sli-body">
                   <div class="sli-title">{entry.rep.title || entry.doi}</div>
                   <div class="sli-meta">
@@ -396,7 +400,9 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
                   <div class="sli-pills">
                     <For each={entry.paper.types || []}>
                       {(type) => (
-                        <span class={`sli-pill sli-type-tag ${type.toLowerCase()}`}>
+                        <span
+                          class={`sli-pill sli-type-tag ${type.toLowerCase()}`}
+                        >
                           {type.charAt(0).toUpperCase() + type.slice(1)}
                         </span>
                       )}

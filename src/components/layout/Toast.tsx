@@ -7,11 +7,13 @@ export type Toast = {
   title: string;
   message: string;
   variant: ToastVariant;
+  reportable?: boolean;
 };
 
 type ToastItemProps = {
   toast: Toast;
   onDismiss: (id: number) => void;
+  onReport?: (toast: Toast) => void;
 };
 
 let nextId = 1;
@@ -66,6 +68,14 @@ const ToastItem = (props: ToastItemProps) => {
       <div class="toast-body">
         <div class="toast-title">{props.toast.title}</div>
         <div class="toast-message">{props.toast.message}</div>
+        {props.toast.reportable && props.onReport && (
+          <button
+            class="toast-report-btn"
+            onClick={() => { dismiss(); props.onReport!(props.toast); }}
+          >
+            Report this error
+          </button>
+        )}
       </div>
       <button class="toast-close" aria-label="Dismiss" onClick={dismiss}>
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
@@ -77,21 +87,21 @@ const ToastItem = (props: ToastItemProps) => {
   );
 };
 
-export const createToastState = () => {
+export const createToastState = (onReport?: (toast: Toast) => void) => {
   const [toasts, setToasts] = createSignal<Toast[]>([]);
 
   const dismiss = (id: number) =>
     setToasts((prev) => prev.filter((t) => t.id !== id));
 
-  const show = (title: string, message: string, variant: ToastVariant = "error") => {
+  const show = (title: string, message: string, variant: ToastVariant = "error", reportable?: boolean) => {
     const id = nextId++;
-    setToasts((prev) => [...prev, { id, title, message, variant }]);
+    setToasts((prev) => [...prev, { id, title, message, variant, reportable }]);
   };
 
   const ToastStack = () => (
     <div class="toast-stack" aria-live="assertive" aria-atomic="false">
       <For each={toasts()}>
-        {(toast) => <ToastItem toast={toast} onDismiss={dismiss} />}
+        {(toast) => <ToastItem toast={toast} onDismiss={dismiss} onReport={onReport} />}
       </For>
     </div>
   );

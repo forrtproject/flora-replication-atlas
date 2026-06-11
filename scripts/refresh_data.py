@@ -618,7 +618,10 @@ def write_to_dynamodb(studies: dict, aggregate: dict, meta: dict) -> None:
         except Exception:
             rec = {}
         rec["n_citations"] = s["n_citations"]
-        rec["citation_timeline"] = clean_for_json(s["timeline"])
+        rec["citation_timeline"] = {
+            "last_updated": meta["last_updated"],
+            "entries": clean_for_json(s["timeline"]),
+        }
         table.update_item(
             Key={"doi": doi},
             UpdateExpression="SET #rec = :r",

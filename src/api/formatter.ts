@@ -40,5 +40,5 @@ export const formatReplicationResponse = (data?: OriginalPaper): FormattedDOIRes
 };
 
 export const replicationResponseHasNoData = (res: DOIResults): boolean => {
-    return Object.values(res.results || {}).every(paper => paper.record == null );
+    return Object.values(res.results || {}).every(paper => paper == null || paper.record == null);
 }
