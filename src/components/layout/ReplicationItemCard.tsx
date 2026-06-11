@@ -62,7 +62,7 @@ export const ReplicationItemCard = (props: ReplicationItemCardProps) => {
     <div class="rep-item">
       <div class="rep-item-main">
         <div class="ri-badge-group">
-          <For each={badges()}>
+          <For each={badges().filter((b) => !(props.hideNa && !b.cls))}>
             {(b) => <span class={`ri-badge ${b.cls}`}>{b.label}</span>}
           </For>
         </div>

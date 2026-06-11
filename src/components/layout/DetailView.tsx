@@ -432,6 +432,7 @@ export const DetailView = (props: DetailViewProps) => {
                 {(item) => (
                   <ReplicationItemCard
                     item={item}
+                    hideNa={activeTab() === "originals"}
                     onCopyApa={(text) => copyToClipboard(text, "APA reference")}
                     onCopyBibtex={(text) =>
                       copyToClipboard(text, "BibTeX citation")
