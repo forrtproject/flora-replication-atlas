@@ -129,7 +129,7 @@ export const DetailView = (props: DetailViewProps) => {
     const hasRepOrRepro =
       (r.replications?.length || 0) > 0 || (r.reproductions?.length || 0) > 0;
     const hasOriginals = (r.originals?.length || 0) > 0;
-    if (!hasRepOrRepro && hasOriginals) {
+    if (hasOriginals) {
       setActiveTab("originals");
     } else if (hasRepOrRepro) {
       const hasReplications = (r.replications?.length || 0) > 0;
@@ -376,6 +376,15 @@ export const DetailView = (props: DetailViewProps) => {
           }
         >
           <div class="tabs-bar">
+            <Show when={(rep().originals?.length || 0) > 0}>
+              <button
+                class={`tab-btn ${activeTab() === "originals" ? "active" : ""}`}
+                onClick={() => setActiveTab("originals")}
+              >
+                Target Studies{" "}
+                <span class="tab-badge">{rep().originals?.length || 0}</span>
+              </button>
+            </Show>
             <Show
               when={
                 (rep().replications?.length || 0) > 0 ||
@@ -397,15 +406,6 @@ export const DetailView = (props: DetailViewProps) => {
                 <span class="tab-badge">
                   {rep().reproductions?.length || 0}
                 </span>
-              </button>
-            </Show>
-            <Show when={(rep().originals?.length || 0) > 0}>
-              <button
-                class={`tab-btn ${activeTab() === "originals" ? "active" : ""}`}
-                onClick={() => setActiveTab("originals")}
-              >
-                Target Studies{" "}
-                <span class="tab-badge">{rep().originals?.length || 0}</span>
               </button>
             </Show>
           </div>
