@@ -338,18 +338,16 @@ export const ReferenceImportModal = (props: Props) => {
                     PDF loaded — DOIs will be extracted on submit.
                   </div>
                 </Show>
-                <Show when={!(fileType() === "pdf" && fileName())}>
-                  <div class="rim-upload-tip">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <circle cx="12" cy="12" r="10" />
-                      <line x1="12" y1="8" x2="12" y2="12" />
-                      <line x1="12" y1="16" x2="12.01" y2="16" />
-                    </svg>
-                    If the references in the PDF don't include DOIs, copy them and{" "}
-                    <button class="rim-tip-link" onClick={() => switchTab("paste")}>paste them instead</button>
-                    {" "}for better results.
-                  </div>
-                </Show>
+                <div class="rim-upload-tip rim-upload-tip-warning">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                  Only need the references? Pasting the reference list into the{" "}
+                  <button class="rim-tip-link" onClick={() => switchTab("paste")}>text input</button>
+                  {" "}gives more accurate results.
+                </div>
               </Show>
 
               {false && (
