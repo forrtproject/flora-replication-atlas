@@ -1,7 +1,7 @@
 import { createEffect, createSignal, For, Show } from "solid-js";
 import type { OriginalPaper, FormattedDOIResult } from "../../@types";
 import { formatReplicationResponse } from "../../api/formatter";
-import { formatAuthors, renderAuthors, na } from "../../utils/formatter";
+import { renderAuthors, na } from "../../utils/formatter";
 
 type TypeFilter = "original" | "replication";
 
@@ -112,82 +112,55 @@ export const StudyListPanel = (props: StudyListPanelProps) => {
     const esc = (s: string) =>
       s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-    const outcomeLabel = (o: string | undefined) => {
-      if (!o) return "N/A";
-      return o.charAt(0).toUpperCase() + o.slice(1);
-    };
-
-    const renderSubItem = (r: any) => {
-      const journal = r.journal
-        ? `<span class="sep">&middot;</span><em>${esc(r.journal)}</em>`
-        : "";
-      const doi = r.doi
-        ? `<div class="si-doi"><a href="https://doi.org/${r.doi}">${esc(r.doi)}</a></div>`
-        : "";
-      return `<div class="si">
-        <span class="outcome ${r.outcome || ""}">${esc(outcomeLabel(r.outcome))}</span>
-        <div class="si-body">
-          <div class="si-title">${esc(r.title || "Untitled")}</div>
-          <div class="si-meta">${esc(formatAuthors(r.authors))} (${r.year || "N/A"}) ${journal}</div>
-          ${doi}
-        </div>
-      </div>`;
+    const outcomeClass = (o: string | undefined) => {
+      if (!o) return "";
+      if (o === "successful") return "successful";
+      if (o === "failed") return "failed";
+      return "mixed";
     };
 
     const cards = visible
       .map((entry) => {
-        const tags = (entry.paper.types || []).map(
-          (type) =>
-            `<span class="tag ${type.toLowerCase()}">${esc(type.charAt(0).toUpperCase() + type.slice(1))}</span>`,
-        );
-
+        const originalApa = entry.paper.apa_ref || entry.rep.title || entry.doi;
         const reps = entry.rep.replications || [];
         const origs = entry.rep.originals || [];
 
-        const repSection =
-          reps.length > 0
-            ? `
-        <div class="section">
-          <div class="section-head">Replications <span class="count">${reps.length}</span></div>
-          ${reps.map(renderSubItem).join("")}
-        </div>`
-            : "";
+        const repRows = reps
+          .map(
+            (r) =>
+              `<div class="rep-row rep-row--${outcomeClass(r.outcome)}">
+                <span class="rep-apa">${esc(r.apa_ref || r.title || r.doi || "")}</span>
+              </div>`,
+          )
+          .join("");
 
-        const origSection =
-          origs.length > 0
-            ? `
-        <div class="section">
-          <div class="section-head">Target Studies <span class="count">${origs.length}</span></div>
-          ${origs.map(renderSubItem).join("")}
-        </div>`
-            : "";
+        const origRows = origs
+          .map(
+            (r) =>
+              `<div class="rep-row">
+                <span class="rep-apa">${esc(r.apa_ref || r.title || r.doi || "")}</span>
+              </div>`,
+          )
+          .join("");
 
-        const journal = entry.rep.data?.journal;
-        const journalStr = journal
-          ? `${esc(journal)}${entry.rep.data!.volume ? ` ${entry.rep.data!.volume}` : ""}${entry.rep.data!.issue ? `(${entry.rep.data!.issue})` : ""}`
+        const repSection = reps.length > 0
+          ? `<div class="rep-section orig-section">${repRows}</div>`
+          : "";
+        const origSection = origs.length > 0
+          ? `<div class="rep-section orig-section">${origRows}</div>`
           : "";
 
         return `<div class="card">
-        <div class="card-head">
-          <div class="row">
-            <div class="tags">${tags.join("")}</div>
-          </div>
-          <div class="title">${esc(entry.rep.title || entry.doi)}</div>
-          <div class="authors">${esc(formatAuthors(entry.rep.authors))} (${entry.rep.year || "N/A"})</div>
-          ${journalStr ? `<div class="journal"><em>${journalStr}</em></div>` : ""}
-          <div class="doi-row"><a href="https://doi.org/${entry.doi}">${esc(entry.doi)}</a></div>
-        </div>
-        ${repSection}${origSection}
-      </div>`;
+          <div class="original-apa">${esc(originalApa)}</div>
+          ${repSection}${origSection}
+        </div>`;
       })
       .join("");
 
     const totOrig = visible.filter((e) => e.isOriginal).length;
     const totRepl = visible.filter((e) => e.isReplication).length;
     const summaryParts: string[] = [];
-    summaryParts.push(
-      `${visible.length} ${visible.length === 1 ? "study" : "studies"}`,
-    );
+    summaryParts.push(`${visible.length} ${visible.length === 1 ? "study" : "studies"}`);
     if (totOrig > 0) summaryParts.push(`${totOrig} original`);
     if (totRepl > 0) summaryParts.push(`${totRepl} replication`);
 
@@ -198,60 +171,42 @@ export const StudyListPanel = (props: StudyListPanelProps) => {
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
   font-family: Georgia, "Times New Roman", serif;
-  color: #222; line-height: 1.55; max-width: 780px; margin: 0 auto; padding: 2rem 1.5rem;
+  color: #222; line-height: 1.6; max-width: 780px; margin: 0 auto; padding: 2rem 1.5rem;
 }
 
-/* Header */
 header { margin-bottom: 1.8rem; }
 header h1 { font-size: 22px; font-weight: 700; color: #853953; letter-spacing: -0.3px; }
 header .sub { font-size: 12px; color: #777; margin-top: 0.2rem; font-family: -apple-system, "Segoe UI", sans-serif; }
 header .sub span { color: #999; }
 
-/* Card */
 .card { border-bottom: 1px solid #e5e7eb; padding: 1rem 0; page-break-inside: avoid; }
 .card:last-child { border-bottom: none; }
-.card-head { margin-bottom: 0.1rem; }
 
-.row { display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.35rem; flex-wrap: wrap; }
-.tags { display: flex; gap: 0.25rem; align-items: center; flex-wrap: wrap; }
-.tsep { width: 1px; height: 11px; background: #ccc; margin: 0 0.15rem; }
-.tag { font-family: -apple-system, "Segoe UI", sans-serif; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 0.1rem 0.45rem; border-radius: 3px; }
-.tag.original { background: #eff6ff; color: #2563eb; }
-.tag.replication { background: #f5f3ff; color: #7c3aed; }
-.pill { font-family: -apple-system, "Segoe UI", sans-serif; font-size: 9px; padding: 0.08rem 0.4rem; border-radius: 100px; font-weight: 600; }
-.pill.s { background: #ecfdf5; color: #16a34a; }
-.pill.m { background: #fef8e8; color: #b8860b; }
-.pill.f { background: #fef0ee; color: #b42318; }
+.original-apa { font-size: 13.5px; color: #111; line-height: 1.5; }
 
-.title { font-size: 15px; font-weight: 700; color: #111; line-height: 1.35; }
-.authors { font-size: 12.5px; color: #555; font-family: -apple-system, "Segoe UI", sans-serif; margin-top: 0.1rem; }
-.journal { font-size: 12px; color: #777; }
-.doi-row { margin-top: 0.15rem; }
-.doi-row a { font-family: -apple-system, "Segoe UI", sans-serif; font-size: 11px; color: #2563eb; text-decoration: none; }
+.rep-section { margin-top: 0.6rem; display: flex; flex-direction: column; gap: 0.35rem; }
+.orig-section { padding-left: 1rem; }
 
-/* Sub-items */
-.section { margin-top: 0.7rem; padding-top: 0.5rem; border-top: 1px solid #f0f0f0; }
-.section-head { font-family: -apple-system, "Segoe UI", sans-serif; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #aaa; margin-bottom: 0.45rem; }
-.count { font-weight: 400; }
+.rep-row { display: flex; align-items: baseline; gap: 0.6rem; font-size: 12.5px; color: #444; line-height: 1.5; padding-left: 0.6rem; border-left: 2px solid #e5e7eb; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+.rep-row--successful { border-left-color: #16a34a; }
+.rep-row--failed { border-left-color: #b42318; }
+.rep-row--mixed { border-left-color: #b8860b; }
 
-.si { display: flex; gap: 0.6rem; align-items: baseline; padding: 0.4rem 0; }
-.si + .si { border-top: 1px solid #f5f5f5; }
-.outcome { font-family: -apple-system, "Segoe UI", sans-serif; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; padding: 0.15rem 0.45rem; border-radius: 3px; white-space: nowrap; min-width: 58px; text-align: center; flex-shrink: 0; }
-.outcome.successful { background: #ecfdf5; color: #16a34a; }
-.outcome.failed { background: #fef0ee; color: #b42318; }
-.outcome.mixed, .outcome.partial { background: #fef8e8; color: #b8860b; }
-.si-body { flex: 1; min-width: 0; }
-.si-title { font-size: 13px; font-weight: 600; color: #222; line-height: 1.35; }
-.si-meta { font-size: 11.5px; color: #777; font-family: -apple-system, "Segoe UI", sans-serif; }
-.si-meta .sep { margin: 0 0.25rem; color: #ccc; }
-.si-doi a { font-family: -apple-system, "Segoe UI", sans-serif; font-size: 10.5px; color: #2563eb; text-decoration: none; }
+.rep-apa { flex: 1; }
 
-/* Footer */
+.legend { display: flex; align-items: center; gap: 1.2rem; margin-bottom: 1.5rem; padding: 0.6rem 0.8rem; background: #f9f9f9; border: 1px solid #e5e7eb; border-radius: 4px; font-family: -apple-system, "Segoe UI", sans-serif; font-size: 11px; color: #555; flex-wrap: wrap; }
+.legend-title { font-weight: 700; color: #333; margin-right: 0.2rem; }
+.legend-item { display: flex; align-items: center; gap: 0.4rem; }
+.legend-bar { display: inline-block; width: 3px; height: 14px; border-radius: 2px; flex-shrink: 0; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+.legend-bar--successful { background: #16a34a; }
+.legend-bar--failed { background: #b42318; }
+.legend-bar--mixed { background: #b8860b; }
+.legend-bar--none { background: #e5e7eb; }
+
 footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font-family: -apple-system, "Segoe UI", sans-serif; font-size: 10px; color: #bbb; text-align: center; }
 
 @media print {
   body { padding: 0; }
-  .doi-row a, .si-doi a { color: #2563eb; }
   footer { position: fixed; bottom: 0; left: 0; right: 0; }
 }
 </style></head>
@@ -260,6 +215,13 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
     <h1>FLoRA Replication Atlas &mdash; ${esc(filterLabel)}</h1>
     <div class="sub">${summaryParts.join(" <span>&middot;</span> ")} <span>&middot;</span> ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</div>
   </header>
+  <div class="legend">
+    <span class="legend-title">Replication outcome:</span>
+    <span class="legend-item"><span class="legend-bar legend-bar--successful"></span> Successful</span>
+    <span class="legend-item"><span class="legend-bar legend-bar--failed"></span> Failed</span>
+    <span class="legend-item"><span class="legend-bar legend-bar--mixed"></span> Mixed / Partial</span>
+    <span class="legend-item"><span class="legend-bar legend-bar--none"></span> Original / Target study</span>
+  </div>
   ${cards}
   <footer>FLoRA Library &middot; <a href="https://forrt.org/flora-replication-atlas/" style="color:#bbb;">forrt.org/flora-replication-atlas/</a></footer>
 </body></html>`;

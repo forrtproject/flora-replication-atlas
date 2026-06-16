@@ -1,5 +1,17 @@
-import { createSignal, createEffect, For, Show, onCleanup, onMount } from "solid-js";
-import { parseReferences, parseRisFile, parseBibFile, extractDoisDirect } from "../../utils/referenceParser";
+import {
+  createSignal,
+  createEffect,
+  For,
+  Show,
+  onCleanup,
+  onMount,
+} from "solid-js";
+import {
+  parseReferences,
+  parseRisFile,
+  parseBibFile,
+  extractDoisDirect,
+} from "../../utils/referenceParser";
 import { fetchOsfDois } from "../../utils/osfFetch";
 import { lookupAll, type LookupResult } from "../../utils/doiLookup";
 
@@ -15,10 +27,10 @@ type Props = {
 
 const SourceBadge = (props: { source: LookupResult["source"] }) => {
   const map: Record<string, { label: string; cls: string }> = {
-    direct:   { label: "DOI",       cls: "rim-badge-direct"   },
-    crossref: { label: "CrossRef",  cls: "rim-badge-crossref" },
-    openalex: { label: "OpenAlex",  cls: "rim-badge-openalex" },
-    none:     { label: "Not found", cls: "rim-badge-none"     },
+    direct: { label: "DOI", cls: "rim-badge-direct" },
+    crossref: { label: "CrossRef", cls: "rim-badge-crossref" },
+    openalex: { label: "OpenAlex", cls: "rim-badge-openalex" },
+    none: { label: "Not found", cls: "rim-badge-none" },
   };
   const info = () => map[props.source] ?? map.none;
   return <span class={`rim-badge ${info().cls}`}>{info().label}</span>;
@@ -119,7 +131,10 @@ export const ReferenceImportModal = (props: Props) => {
 
     if (tab() === "osf") {
       const url = osfUrl().trim();
-      if (!url) { setError("Please enter an OSF URL."); return; }
+      if (!url) {
+        setError("Please enter an OSF URL.");
+        return;
+      }
       setStage("processing");
       setProgressMsg("Fetching from OSF…");
       setProgress({ done: 0, total: 1 });
@@ -128,7 +143,9 @@ export const ReferenceImportModal = (props: Props) => {
       } catch (e) {
         if (!signal.aborted) {
           setStage("input");
-          setError(e instanceof Error ? e.message : "Failed to fetch OSF content.");
+          setError(
+            e instanceof Error ? e.message : "Failed to fetch OSF content.",
+          );
         }
         return;
       }
@@ -139,19 +156,33 @@ export const ReferenceImportModal = (props: Props) => {
       }
     } else {
       const raw = (tab() === "upload" ? fileContent() : text()).trim();
-      if (!raw) { setError("Please enter or upload some text first."); return; }
+      if (!raw) {
+        setError("Please enter or upload some text first.");
+        return;
+      }
       const ft = fileType();
-      refs = ft === "ris" ? parseRisFile(raw)
-           : ft === "bib" ? parseBibFile(raw)
-           : ft === "pdf" ? extractDoisDirect(raw)
-           : parseReferences(raw);
-      if (refs.length === 0) { setError("No references detected in the text."); return; }
+      refs =
+        ft === "ris"
+          ? parseRisFile(raw)
+          : ft === "bib"
+            ? parseBibFile(raw)
+            : ft === "pdf"
+              ? extractDoisDirect(raw)
+              : parseReferences(raw);
+      if (refs.length === 0) {
+        setError("No references detected in the text.");
+        return;
+      }
       setStage("processing");
     }
 
     setProgressMsg("Looking up DOIs…");
     setProgress({ done: 0, total: refs.length });
-    const found = await lookupAll(refs, (done, total) => setProgress({ done, total }), signal);
+    const found = await lookupAll(
+      refs,
+      (done, total) => setProgress({ done, total }),
+      signal,
+    );
     setResults(found);
     setStage("results");
   };
@@ -170,7 +201,13 @@ export const ReferenceImportModal = (props: Props) => {
       prev.map((r, i) => {
         if (i !== index) return r;
         if (!doi) return r;
-        return { ...r, doi, status: "found" as const, source: "direct" as const, selected: true };
+        return {
+          ...r,
+          doi,
+          status: "found" as const,
+          source: "direct" as const,
+          selected: true,
+        };
       }),
     );
     setEditingIndex(null);
@@ -198,15 +235,22 @@ export const ReferenceImportModal = (props: Props) => {
     handleClose();
   };
 
-  const foundCount = () => results().filter((r) => r.status !== "not_found").length;
-  const notFoundCount = () => results().filter((r) => r.status === "not_found").length;
+  const foundCount = () =>
+    results().filter((r) => r.status !== "not_found").length;
+  const notFoundCount = () =>
+    results().filter((r) => r.status === "not_found").length;
 
-  const switchTab = (t: Tab) => { setTab(t); setError(null); };
+  const switchTab = (t: Tab) => {
+    setTab(t);
+    setError(null);
+  };
 
   const submitDisabled = () =>
-    tab() === "osf" ? !osfUrl().trim() :
-    tab() === "upload" ? !fileContent().trim() :
-    !text().trim();
+    tab() === "osf"
+      ? !osfUrl().trim()
+      : tab() === "upload"
+        ? !fileContent().trim()
+        : !text().trim();
 
   return (
     <Show when={props.open}>
@@ -227,7 +271,14 @@ export const ReferenceImportModal = (props: Props) => {
               </p>
             </div>
             <button class="rim-close" onClick={handleClose} aria-label="Close">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
                 <line x1="18" y1="6" x2="6" y2="18" />
                 <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
@@ -242,8 +293,16 @@ export const ReferenceImportModal = (props: Props) => {
                 class={`rim-tab ${tab() === "paste" ? "active" : ""}`}
                 onClick={() => switchTab("paste")}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M9 2h6l2 2v2H7V4z" /><rect x="5" y="6" width="14" height="16" rx="1" />
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M9 2h6l2 2v2H7V4z" />
+                  <rect x="5" y="6" width="14" height="16" rx="1" />
                   <path d="M9 12h6M9 16h4" />
                 </svg>
                 Paste text
@@ -252,7 +311,14 @@ export const ReferenceImportModal = (props: Props) => {
                 class={`rim-tab ${tab() === "upload" ? "active" : ""}`}
                 onClick={() => switchTab("upload")}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
                   <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
                   <polyline points="17 8 12 3 7 8" />
                   <line x1="12" y1="3" x2="12" y2="15" />
@@ -260,16 +326,23 @@ export const ReferenceImportModal = (props: Props) => {
                 Upload file
               </button>
               {false && (
-              <button
-                class={`rim-tab ${tab() === "osf" ? "active" : ""}`}
-                onClick={() => switchTab("osf")}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20" />
-                </svg>
-                OSF link
-              </button>
+                <button
+                  class={`rim-tab ${tab() === "osf" ? "active" : ""}`}
+                  onClick={() => switchTab("osf")}
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20" />
+                  </svg>
+                  OSF link
+                </button>
               )}
             </div>
 
@@ -277,9 +350,14 @@ export const ReferenceImportModal = (props: Props) => {
               <Show when={tab() === "paste"}>
                 <textarea
                   class="rim-textarea"
-                  placeholder={"Paste your reference list here…\n\nExamples:\n  10.1037/a0012345\n  Smith, J. (2020). Title. Journal, 10(2). https://doi.org/10.1037/a0012345\n  [1] Jones A. Title here. J. 2019;5:1–10."}
+                  placeholder={
+                    "Paste your reference list here…\n\nExamples:\n  10.1037/a0012345\n  Smith, J. (2020). Title. Journal, 10(2). https://doi.org/10.1037/a0012345\n  [1] Jones A. Title here. J. 2019;5:1–10."
+                  }
                   value={text()}
-                  onInput={(e) => { setText(e.currentTarget.value); setError(null); }}
+                  onInput={(e) => {
+                    setText(e.currentTarget.value);
+                    setError(null);
+                  }}
                   spellcheck={false}
                 />
               </Show>
@@ -287,7 +365,10 @@ export const ReferenceImportModal = (props: Props) => {
               <Show when={tab() === "upload"}>
                 <div
                   class={`rim-dropzone ${dragOver() ? "drag-over" : ""} ${fileName() ? "has-file" : ""}`}
-                  onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragOver(true);
+                  }}
                   onDragLeave={() => setDragOver(false)}
                   onDrop={handleDrop}
                   onClick={() => fileInputRef?.click()}
@@ -303,19 +384,38 @@ export const ReferenceImportModal = (props: Props) => {
                     when={fileName()}
                     fallback={
                       <>
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="rim-drop-icon">
+                        <svg
+                          width="32"
+                          height="32"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.5"
+                          class="rim-drop-icon"
+                        >
                           <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
                           <polyline points="17 8 12 3 7 8" />
                           <line x1="12" y1="3" x2="12" y2="15" />
                         </svg>
                         <p class="rim-drop-label">
-                          Drop a file here or <span class="rim-drop-link">click to browse</span>
+                          Drop a file here or{" "}
+                          <span class="rim-drop-link">click to browse</span>
                         </p>
-                        <p class="rim-drop-formats">.txt · .ris · .bib · .pdf</p>
+                        <p class="rim-drop-formats">
+                          .txt · .ris · .bib · .pdf
+                        </p>
                       </>
                     }
                   >
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="rim-drop-icon-ok">
+                    <svg
+                      width="28"
+                      height="28"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      class="rim-drop-icon-ok"
+                    >
                       <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
                       <polyline points="14 2 14 8 20 8" />
                     </svg>
@@ -325,51 +425,85 @@ export const ReferenceImportModal = (props: Props) => {
                 </div>
 
                 {/* Preview — skip for PDF (binary content) */}
-                <Show when={fileContent() && fileName() && fileType() !== "pdf"}>
+                <Show
+                  when={fileContent() && fileName() && fileType() !== "pdf"}
+                >
                   <p class="rim-file-preview-label">Preview</p>
-                  <div class="rim-file-preview">{fileContent().substring(0, 600)}{fileContent().length > 600 ? "…" : ""}</div>
+                  <div class="rim-file-preview">
+                    {fileContent().substring(0, 600)}
+                    {fileContent().length > 600 ? "…" : ""}
+                  </div>
                 </Show>
                 <Show when={fileType() === "pdf" && fileName()}>
                   <p class="rim-file-preview-label">Ready</p>
                   <div class="rim-pdf-ready">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <svg
+                      width="13"
+                      height="13"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.5"
+                    >
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
                     PDF loaded — DOIs will be extracted on submit.
                   </div>
                 </Show>
-                <Show when={!(fileType() === "pdf" && fileName())}>
-                  <div class="rim-upload-tip">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <circle cx="12" cy="12" r="10" />
-                      <line x1="12" y1="8" x2="12" y2="12" />
-                      <line x1="12" y1="16" x2="12.01" y2="16" />
-                    </svg>
-                    If the references in the PDF don't include DOIs, copy them and{" "}
-                    <button class="rim-tip-link" onClick={() => switchTab("paste")}>paste them instead</button>
-                    {" "}for better results.
-                  </div>
+                <Show when={fileType() === "pdf" && fileName()}>
+                <div class="rim-upload-tip rim-upload-tip-warning">
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                  <span>
+                    Note: Only DOIs are extracted from uploaded files. If the
+                    references do not contain DOIs, copy-paste them directly
+                    into the{" "}
+                    <button
+                      class="rim-tip-link"
+                      onClick={() => switchTab("paste")}
+                    >
+                      text input
+                    </button>
+                    .
+                  </span>
+                </div>
                 </Show>
               </Show>
 
               {false && (
-              <Show when={tab() === "osf"}>
-                <div class="rim-osf-section">
-                  <label class="rim-osf-label" for="rim-osf-input">OSF project or file URL</label>
-                  <input
-                    id="rim-osf-input"
-                    class="rim-osf-input"
-                    type="url"
-                    placeholder="https://osf.io/abc12"
-                    value={osfUrl()}
-                    onInput={(e) => { setOsfUrl(e.currentTarget.value); setError(null); }}
-                    spellcheck={false}
-                  />
-                  <p class="rim-osf-hint">
-                    Paste a public OSF file or project link. DOIs are extracted directly from the document content.
-                  </p>
-                </div>
-              </Show>
+                <Show when={tab() === "osf"}>
+                  <div class="rim-osf-section">
+                    <label class="rim-osf-label" for="rim-osf-input">
+                      OSF project or file URL
+                    </label>
+                    <input
+                      id="rim-osf-input"
+                      class="rim-osf-input"
+                      type="url"
+                      placeholder="https://osf.io/abc12"
+                      value={osfUrl()}
+                      onInput={(e) => {
+                        setOsfUrl(e.currentTarget.value);
+                        setError(null);
+                      }}
+                      spellcheck={false}
+                    />
+                    <p class="rim-osf-hint">
+                      Paste a public OSF file or project link. DOIs are
+                      extracted directly from the document content.
+                    </p>
+                  </div>
+                </Show>
               )}
 
               <Show when={error()}>
@@ -378,14 +512,23 @@ export const ReferenceImportModal = (props: Props) => {
             </div>
 
             <div class="rim-footer">
-              <button class="rim-btn-ghost" onClick={handleClose}>Cancel</button>
+              <button class="rim-btn-ghost" onClick={handleClose}>
+                Cancel
+              </button>
               <button
                 class="rim-btn-primary"
                 onClick={runExtraction}
                 disabled={submitDisabled()}
               >
                 Extract &amp; look up DOIs
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                >
                   <polyline points="9 18 15 12 9 6" />
                 </svg>
               </button>
@@ -404,17 +547,26 @@ export const ReferenceImportModal = (props: Props) => {
                   <div
                     class="rim-progress-bar-fill"
                     style={{
-                      width: progress().total > 0
-                        ? `${(progress().done / progress().total) * 100}%`
-                        : "0%",
+                      width:
+                        progress().total > 0
+                          ? `${(progress().done / progress().total) * 100}%`
+                          : "0%",
                     }}
                   />
                 </div>
-                <p class="rim-progress-sub">Querying CrossRef and OpenAlex for unresolved references…</p>
+                <p class="rim-progress-sub">
+                  Querying CrossRef and OpenAlex for unresolved references…
+                </p>
               </div>
             </div>
             <div class="rim-footer">
-              <button class="rim-btn-ghost" onClick={() => { abortController?.abort(); setStage("input"); }}>
+              <button
+                class="rim-btn-ghost"
+                onClick={() => {
+                  abortController?.abort();
+                  setStage("input");
+                }}
+              >
                 Cancel
               </button>
             </div>
@@ -423,13 +575,19 @@ export const ReferenceImportModal = (props: Props) => {
           {/* Results stage */}
           <Show when={stage() === "results"}>
             <div class="rim-results-summary">
-              <span class="rim-sum-item rim-sum-found">{foundCount()} resolved</span>
+              <span class="rim-sum-item rim-sum-found">
+                {foundCount()} resolved
+              </span>
               <Show when={notFoundCount() > 0}>
                 <span class="rim-sum-sep">·</span>
-                <span class="rim-sum-item rim-sum-none">{notFoundCount()} not found</span>
+                <span class="rim-sum-item rim-sum-none">
+                  {notFoundCount()} not found
+                </span>
               </Show>
               <span class="rim-sum-sep">·</span>
-              <span class="rim-sum-hint">Uncheck any DOIs you want to exclude</span>
+              <span class="rim-sum-hint">
+                Uncheck any DOIs you want to exclude
+              </span>
             </div>
 
             <div class="rim-results-list">
@@ -443,14 +601,31 @@ export const ReferenceImportModal = (props: Props) => {
                       <Show
                         when={result.status !== "not_found"}
                         fallback={
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                          >
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
                           </svg>
                         }
                       >
-                        <div class={`rim-checkbox ${result.selected ? "checked" : ""}`}>
+                        <div
+                          class={`rim-checkbox ${result.selected ? "checked" : ""}`}
+                        >
                           <Show when={result.selected}>
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <svg
+                              width="10"
+                              height="10"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="3"
+                            >
                               <polyline points="20 6 9 17 4 12" />
                             </svg>
                           </Show>
@@ -473,9 +648,19 @@ export const ReferenceImportModal = (props: Props) => {
                                 type="button"
                                 title="Edit DOI"
                                 onMouseDown={(e) => e.stopPropagation()}
-                                onClick={(e) => { e.stopPropagation(); startEdit(i(), result.doi ?? ""); }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  startEdit(i(), result.doi ?? "");
+                                }}
                               >
-                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <svg
+                                  width="11"
+                                  height="11"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  stroke-width="2.5"
+                                >
                                   <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
                                   <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
                                 </svg>
@@ -487,9 +672,14 @@ export const ReferenceImportModal = (props: Props) => {
                             class="rim-doi-input"
                             type="text"
                             value={editingValue()}
-                            onInput={(e) => setEditingValue(e.currentTarget.value)}
+                            onInput={(e) =>
+                              setEditingValue(e.currentTarget.value)
+                            }
                             onKeyDown={(e) => {
-                              if (e.key === "Enter") { e.preventDefault(); commitEdit(i()); }
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                commitEdit(i());
+                              }
                               if (e.key === "Escape") setEditingIndex(null);
                             }}
                             onBlur={() => commitEdit(i())}
@@ -508,15 +698,35 @@ export const ReferenceImportModal = (props: Props) => {
                       </p>
                       <Show when={result.status === "not_found"}>
                         <p class="rim-row-unresolved">
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                          <svg
+                            width="11"
+                            height="11"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2.5"
+                          >
                             <circle cx="12" cy="12" r="10" />
                             <line x1="12" y1="8" x2="12" y2="12" />
                             <line x1="12" y1="16" x2="12.01" y2="16" />
                           </svg>
-                          Couldn't find a DOI for this reference. Please look it up manually (e.g. on{" "}
-                          <a href="https://search.crossref.org" target="_blank" rel="noopener">CrossRef</a>
-                          {" "}or{" "}
-                          <a href="https://openalex.org" target="_blank" rel="noopener">OpenAlex</a>
+                          Couldn't find a DOI for this reference. Please look it
+                          up manually (e.g. on{" "}
+                          <a
+                            href="https://search.crossref.org"
+                            target="_blank"
+                            rel="noopener"
+                          >
+                            CrossRef
+                          </a>{" "}
+                          or{" "}
+                          <a
+                            href="https://openalex.org"
+                            target="_blank"
+                            rel="noopener"
+                          >
+                            OpenAlex
+                          </a>
                           ) and add it to the search directly.
                         </p>
                       </Show>
@@ -535,9 +745,18 @@ export const ReferenceImportModal = (props: Props) => {
                 onClick={handleSearch}
                 disabled={selectedDois().length === 0}
               >
-                Search {selectedDois().length} paper{selectedDois().length !== 1 ? "s" : ""}
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.3-4.3" />
+                Search {selectedDois().length} paper
+                {selectedDois().length !== 1 ? "s" : ""}
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="M21 21l-4.3-4.3" />
                 </svg>
               </button>
             </div>
