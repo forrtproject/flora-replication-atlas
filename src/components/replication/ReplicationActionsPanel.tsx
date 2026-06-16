@@ -10,7 +10,6 @@ import { fetchPdfUrl } from "../../api/unpaywall";
 type ReplicationActionsPanelProps = {
   data: FormattedDOIResult;
 };
-import { formatAuthors } from "../../utils/formatter";
 import { CopyLinkIcon } from "../icons/link-copy";
 
 export const ReplicationActionsPanel = (
@@ -40,13 +39,21 @@ export const ReplicationActionsPanel = (
   });
 
   const handleTextCopy = async () => {
-    const text = [
-      "Fortt Replication Studies",
-      `Title: ${props.data.title || "Unknown"}`,
-      `DOI: ${props.data.doi || "Unknown"}`,
-      `Authors: ${formatAuthors(props.data.authors)}`,
-    ].join("\n");
-    handleCopy(text, setShowToast);
+    const lines: string[] = [];
+    if (props.data.apaRef) {
+      lines.push(props.data.apaRef);
+    }
+    const reps = props.data.replications ?? [];
+    if (reps.length > 0) {
+      lines.push("");
+      for (const rep of reps) {
+        const outcome = rep.outcome
+          ? rep.outcome.charAt(0).toUpperCase() + rep.outcome.slice(1)
+          : "Unknown";
+        lines.push(`${outcome} - ${rep.apa_ref}`);
+      }
+    }
+    handleCopy(lines.join("\n"), setShowToast);
   };
 
   const handleLinkCopy = async () => {
