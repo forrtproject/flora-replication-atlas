@@ -57,7 +57,8 @@ export const ReplicationActionsPanel = (
   };
 
   const handleLinkCopy = async () => {
-    const url = `${window.location.origin}${window.location.pathname}?doi=${props.data.doi}`;
+    const base = window.location.origin + window.location.pathname.replace(/\/$/, "");
+    const url = `${base}/doi/${props.data.doi}`;
     await handleCopy(url, setShowLinkCopyToast);
   };
 
