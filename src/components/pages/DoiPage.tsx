@@ -80,7 +80,7 @@ export const DoiPage = () => {
 
       const description =
         `"${paper.title}" by ${authors} (${paper.year}${paper.journal ? `, ${paper.journal}` : ""}). ` +
-        `${replicationSummary} Indexed in the FLoRA Replication Atlas (FORRT FReD database). DOI: ${paper.doi}`;
+        `${replicationSummary} Indexed in the FLoRA Replication Atlas (FORRT FLoRA database). DOI: ${paper.doi}`;
 
       // Keywords: author names + title terms + journal + outcomes + standard SEO terms
       const titleKeywords =
