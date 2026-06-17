@@ -1,6 +1,7 @@
 import { writeFile, readFile, mkdir } from "fs/promises";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { Resvg } from "@resvg/resvg-js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DIST_DIR = join(__dirname, "../dist");
@@ -170,11 +171,142 @@ function buildPageMeta(paper) {
         : undefined,
   });
 
-  return { title: `${title} — FLoRA Replication Atlas`, description, keywords, pageUrl, jsonLd, authors };
+  const ogImageUrl = `${SITE_URL}/doi/${doi}/og.png`;
+  return { title: `${title} — FLoRA Replication Atlas`, description, keywords, pageUrl, jsonLd, authors, ogImageUrl };
+}
+
+function escSvg(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function wrapText(text, maxChars) {
+  const words = text.split(" ");
+  const lines = [];
+  let current = "";
+  for (const word of words) {
+    const next = current ? `${current} ${word}` : word;
+    if (next.length <= maxChars) {
+      current = next;
+    } else {
+      if (current) lines.push(current);
+      current = word.length > maxChars ? word.slice(0, maxChars - 1) + "…" : word;
+    }
+  }
+  if (current) lines.push(current);
+  return lines;
+}
+
+function buildOgSvg(paper, forrtLogoBase64) {
+  const title = paper.title || paper.doi;
+  const authors = Array.isArray(paper.authors) ? paper.authors : [];
+  const authorStr = formatAuthors(authors);
+  const journal = paper.journal || "";
+  const year = paper.year || "";
+  const replications = paper.record?.replications || [];
+
+  const counts = { successful: 0, failed: 0, mixed: 0 };
+  for (const r of replications) {
+    if (r.outcome === "successful") counts.successful++;
+    else if (r.outcome === "failed") counts.failed++;
+    else counts.mixed++;
+  }
+  const totalReps = replications.length;
+
+  const outcomeItems = [];
+  if (counts.successful > 0) outcomeItems.push({ color: "#15803d", bg: "#dcfce7", border: "#86efac", text: `${counts.successful} Successful` });
+  if (counts.failed > 0)     outcomeItems.push({ color: "#991b1b", bg: "#fee2e2", border: "#fca5a5", text: `${counts.failed} Failed` });
+  if (counts.mixed > 0)      outcomeItems.push({ color: "#92400e", bg: "#fef3c7", border: "#fcd34d", text: `${counts.mixed} Mixed` });
+
+  const W = 1200, H = 630;
+  const padX = 80, padTop = 36;
+
+  const titleLines = wrapText(title, 46).slice(0, 3);
+  if (wrapText(title, 46).length > 3) titleLines[2] = titleLines[2].replace(/\.*$/, "") + "…";
+
+  const titleFontSize = 48;
+  const titleLineH = 64;
+  const titleY = 220;
+
+  const titleSvg = titleLines
+    .map((line, i) =>
+      `<text x="${padX}" y="${titleY + i * titleLineH}" font-family="Georgia,'Times New Roman',serif" font-size="${titleFontSize}" font-weight="bold" fill="#0f172a">${escSvg(line)}</text>`,
+    ).join("\n  ");
+
+  const metaY = titleY + titleLines.length * titleLineH + 24;
+  const metaStr = [authorStr, journal, String(year)].filter(Boolean).join("  ·  ");
+  const metaTrunc = metaStr.length > 85 ? metaStr.slice(0, 85) + "…" : metaStr;
+  const metaSvg = `<text x="${padX}" y="${metaY}" font-family="Georgia,'Times New Roman',serif" font-size="22" fill="#64748b">${escSvg(metaTrunc)}</text>`;
+
+  const countY = metaY + 52;
+  const repWord = totalReps === 1 ? "replication" : "replications";
+  const countSentence = totalReps > 0 ? `This study has ${totalReps} ${repWord}:` : "No replications recorded yet.";
+  const countSvg = `<text x="${padX}" y="${countY}" font-family="Georgia,'Times New Roman',serif" font-size="22" fill="#334155">${escSvg(countSentence)}</text>`;
+
+  const pillY = countY + 44;
+  const pillH = 36;
+  const pillPadX = 16;
+  const pillCharW = 10;
+  let pillX = padX;
+  const pillSvg = outcomeItems.map((item) => {
+    const approxW = item.text.length * pillCharW + pillPadX * 2;
+    const svg = `
+    <rect x="${pillX}" y="${pillY - 26}" width="${approxW}" height="${pillH}" rx="8" fill="${item.bg}" stroke="${item.border}" stroke-width="1.5"/>
+    <text x="${pillX + pillPadX}" y="${pillY - 2}" font-family="Georgia,'Times New Roman',serif" font-size="19" font-weight="bold" fill="${item.color}">${escSvg(item.text)}</text>`;
+    pillX += approxW + 14;
+    return svg;
+  }).join("");
+
+  const logoW = 140, logoH = 44;
+  const logoSvg = forrtLogoBase64
+    ? `<image href="data:image/png;base64,${forrtLogoBase64}" x="${padX}" y="${padTop}" width="${logoW}" height="${logoH}"/>`
+    : `<text x="${padX}" y="${padTop + 30}" font-family="Georgia,serif" font-size="22" font-weight="bold" fill="#853953">FORRT</text>`;
+
+  const brandLabel = `<text x="${W - padX}" y="${padTop + 30}" text-anchor="end" font-family="Georgia,'Times New Roman',serif" font-size="16" font-weight="bold" fill="#853953" letter-spacing="0.8">FLoRA REPLICATION ATLAS</text>`;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+  <rect width="${W}" height="${H}" fill="#ffffff"/>
+  <rect width="${W}" height="6" fill="#853953"/>
+  <rect y="${H - 68}" width="${W}" height="68" fill="#f8f5f6"/>
+  <line x1="0" y1="${H - 68}" x2="${W}" y2="${H - 68}" stroke="#e8dde0" stroke-width="1"/>
+
+  ${logoSvg}
+  ${brandLabel}
+  <line x1="${padX}" y1="${padTop + logoH + 12}" x2="${W - padX}" y2="${padTop + logoH + 12}" stroke="#f1e8eb" stroke-width="1.5"/>
+
+  ${titleSvg}
+  ${metaSvg}
+  ${countSvg}
+  ${outcomeItems.length > 0 ? pillSvg : ""}
+
+  <text x="${padX}" y="${H - 24}" font-family="Georgia,'Times New Roman',serif" font-size="16" fill="#475569">forrt.org/flora-replication-atlas</text>
+  <text x="${W - padX}" y="${H - 24}" text-anchor="end" font-family="Georgia,'Times New Roman',serif" font-size="16" fill="#475569">Has this study been replicated?</text>
+</svg>`;
+}
+
+let _forrtLogoBase64 = null;
+async function getForrtLogo() {
+  if (!_forrtLogoBase64) {
+    const buf = await readFile(join(__dirname, "../public/forrt_text.svg"));
+    const logoResvg = new Resvg(buf, { fitTo: { mode: "width", value: 280 } });
+    const png = logoResvg.render().asPng();
+    _forrtLogoBase64 = png.toString("base64");
+  }
+  return _forrtLogoBase64;
+}
+
+async function generateOgImage(paper) {
+  const logo = await getForrtLogo();
+  const svg = buildOgSvg(paper, logo);
+  const resvg = new Resvg(svg, { fitTo: { mode: "width", value: 1200 } });
+  return resvg.render().asPng();
 }
 
 function injectMeta(html, meta) {
-  const { title, description, keywords, pageUrl, jsonLd, authors } = meta;
+  const { title, description, keywords, pageUrl, jsonLd, authors, ogImageUrl } = meta;
 
   html = html.replace(/<title>[^<]*<\/title>/, `<title>${escHtml(title)}</title>`);
 
@@ -196,6 +328,10 @@ function injectMeta(html, meta) {
   html = html.replace(/(<meta property="og:description" content=")[^"]*(")/,  `$1${escHtml(description)}$2`);
   html = html.replace(/(<meta property="og:url" content=")[^"]*(")/,         `$1${escHtml(pageUrl)}$2`);
   html = html.replace(/(<meta property="og:type" content=")[^"]*(")/,        `$1article$2`);
+  if (ogImageUrl) {
+    html = html.replace(/(<meta property="og:image" content=")[^"]*(")/,      `$1${escHtml(ogImageUrl)}$2`);
+    html = html.replace(/(<meta name="twitter:image" content=")[^"]*(")/,     `$1${escHtml(ogImageUrl)}$2`);
+  }
 
   html = html.replace(/(<meta name="twitter:title" content=")[^"]*(")/,       `$1${escHtml(title)}$2`);
   html = html.replace(/(<meta name="twitter:description" content=")[^"]*(")/,  `$1${escHtml(description)}$2`);
@@ -233,19 +369,30 @@ async function main() {
 
   for (const doi of dois) {
     const paper = papers[doi];
-    const html = paper
-      ? (withMeta++, injectMeta(baseHtml, buildPageMeta(paper)))
-      : (withoutMeta++, baseHtml);
+    const outDir = join(DIST_DIR, "doi", doi);
+    await mkdir(outDir, { recursive: true });
 
-    const outPath = join(DIST_DIR, "doi", doi, "index.html");
-    await mkdir(dirname(outPath), { recursive: true });
-    await writeFile(outPath, html, "utf-8");
+    if (paper) {
+      withMeta++;
+      const meta = buildPageMeta(paper);
+      const html = injectMeta(baseHtml, meta);
+      await writeFile(join(outDir, "index.html"), html, "utf-8");
+      try {
+        const png = await generateOgImage(paper);
+        await writeFile(join(outDir, "og.png"), png);
+      } catch (e) {
+        console.warn(`  OG image failed for ${doi}: ${e.message}`);
+      }
+    } else {
+      withoutMeta++;
+      await writeFile(join(outDir, "index.html"), baseHtml, "utf-8");
+    }
 
     const written = withMeta + withoutMeta;
     if (written % 100 === 0) console.log(`  ${written}/${dois.length} pages written`);
   }
 
-  console.log(`Done. ${withMeta} pages with injected meta tags, ${withoutMeta} with fallback HTML.`);
+  console.log(`Done. ${withMeta} pages with meta + OG image, ${withoutMeta} with fallback HTML.`);
 }
 
 main().catch((err) => {
