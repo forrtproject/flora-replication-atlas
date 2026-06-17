@@ -2,6 +2,7 @@ import { createEffect, createSignal, For, Show } from "solid-js";
 import type { OriginalPaper, FormattedDOIResult } from "../../@types";
 import { formatReplicationResponse } from "../../api/formatter";
 import { renderAuthors, na } from "../../utils/formatter";
+import { smoothScrollIntoView } from "../../utils/smoothScroll";
 
 type TypeFilter = "original" | "replication";
 
@@ -52,6 +53,19 @@ const PrintIcon = () => (
 
 export const StudyListPanel = (props: StudyListPanelProps) => {
   const [selectedDois, setSelectedDois] = createSignal<Set<string>>(new Set());
+
+  let listRef: HTMLDivElement | undefined;
+  const itemRefs: Record<string, HTMLDivElement> = {};
+
+  // Keep the highlighted item visible whenever the selection changes (e.g. as
+  // the right panel is scrolled). A single panel-level effect avoids waking one
+  // effect per list item on every selection change.
+  createEffect(() => {
+    const doi = props.selectedDoi;
+    if (!doi || !listRef) return;
+    const el = itemRefs[doi];
+    if (el) smoothScrollIntoView(listRef, el, { block: "nearest", residualViewports: 2 });
+  });
 
   const toggleSelect = (doi: string, e: MouseEvent) => {
     e.stopPropagation();
@@ -309,7 +323,7 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
         </div>
       </Show>
 
-      <div class="study-list">
+      <div class="study-list" ref={listRef}>
         <Show when={props.isLoading}>
           <div class="loading-panel">
             <div class="loading-spinner" />
@@ -334,14 +348,7 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
                   "sli--selecting": selectedDois().size > 0,
                 }}
                 ref={(el) => {
-                  createEffect(() => {
-                    if (props.selectedDoi === entry.doi) {
-                      el.scrollIntoView({
-                        behavior: "smooth",
-                        block: "nearest",
-                      });
-                    }
-                  });
+                  itemRefs[entry.doi] = el;
                 }}
                 onClick={() => props.onSelect(entry.doi)}
               >
