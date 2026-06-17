@@ -269,13 +269,16 @@ function buildOgSvg(paper, forrtLogoBase64) {
   const padX = 80,
     padTop = 36;
 
-  const titleLines = wrapText(title, 46).slice(0, 3);
-  if (wrapText(title, 46).length > 3)
-    titleLines[2] = titleLines[2].replace(/\.*$/, "") + "…";
+  const tLen = title.length;
+  const titleFontSize  = tLen <= 25 ? 78 : tLen <= 55 ? 58 : tLen <= 90 ? 50 : 44;
+  const titleLineH     = tLen <= 25 ? 98 : tLen <= 55 ? 74 : tLen <= 90 ? 64 : 58;
+  const titleMaxChars  = tLen <= 25 ? 22 : tLen <= 55 ? 36 : tLen <= 90 ? 44 : 43;
+  const titleMaxLines  = tLen <= 25 ? 2  : 3;
+  const titleY         = tLen <= 25 ? 240 : 210;
 
-  const titleFontSize = 48;
-  const titleLineH = 64;
-  const titleY = 220;
+  const titleLines = wrapText(title, titleMaxChars).slice(0, titleMaxLines);
+  if (wrapText(title, titleMaxChars).length > titleMaxLines)
+    titleLines[titleMaxLines - 1] = titleLines[titleMaxLines - 1].replace(/\.*$/, "") + "…";
 
   const titleSvg = titleLines
     .map(
@@ -321,7 +324,7 @@ function buildOgSvg(paper, forrtLogoBase64) {
     ? `<image href="data:image/png;base64,${forrtLogoBase64}" x="${padX}" y="${padTop}" width="${logoW}" height="${logoH}"/>`
     : `<text x="${padX}" y="${padTop + 30}" font-family="Georgia,serif" font-size="22" font-weight="bold" fill="#853953">FORRT</text>`;
 
-  const brandLabel = `<text x="${W - padX}" y="${padTop + 30}" text-anchor="end" font-family="Georgia,'Times New Roman',serif" font-size="16" font-weight="bold" fill="#853953" letter-spacing="0.8">FLoRA REPLICATION ATLAS</text>`;
+  const brandLabel = `<text x="${W - padX}" y="${padTop + logoH - 8}" text-anchor="end" font-family="Georgia,'Times New Roman',serif" font-size="26" font-weight="bold" fill="#853953" letter-spacing="0.5">FLoRA REPLICATION ATLAS</text>`;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <rect width="${W}" height="${H}" fill="#ffffff"/>
