@@ -29,6 +29,7 @@ import { ReferenceImportModal } from "./components/layout/ReferenceImportModal";
 import { createToastState, type Toast } from "./components/layout/Toast";
 import { BugReportModal } from "./components/layout/BugReportModal";
 import { HttpError } from "./utils/http";
+import { smoothScrollIntoView } from "./utils/smoothScroll";
 
 const isDoi = (s: string) => /^10\.\d{4,}\//.test(s.trim());
 
@@ -229,7 +230,7 @@ function App() {
     }, 800);
     const el = paperRefs[doi];
     if (el && rightPanelRef) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      smoothScrollIntoView(rightPanelRef, el, { block: "start", residualViewports: 3.5 });
     }
   };
 
