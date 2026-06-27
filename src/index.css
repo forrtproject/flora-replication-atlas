@@ -3711,6 +3711,40 @@ body {
   line-height: 1.6;
 }
 
+.adv-help-wildcards {
+  margin-top: 0.75rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--border-light);
+}
+.adv-help-wildcards-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.4rem;
+}
+.adv-help-wildcards-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 0.75rem;
+  align-items: baseline;
+  font-size: 0.78rem;
+}
+.adv-help-wildcards-grid code {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 0.05rem 0.35rem;
+  color: #853953;
+  white-space: nowrap;
+}
+.adv-help-wildcards-grid span {
+  color: var(--text-muted);
+}
+
 .adv-modal-close {
   background: none;
   border: none;
