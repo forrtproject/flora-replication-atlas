@@ -435,6 +435,19 @@ export const AdvancedSearchPanel = (props: Props) => {
                     <span>Filter by original, replication, or reproduction</span>
                   </div>
                 </div>
+                <div class="adv-help-wildcards">
+                  <div class="adv-help-wildcards-title">Wildcard patterns</div>
+                  <div class="adv-help-wildcards-grid">
+                    <code>priming</code>
+                    <span>Exact whole word — matches "priming" only</span>
+                    <code>priming?</code>
+                    <span>Optional trailing character — matches "priming" and "primings"</span>
+                    <code>prim*</code>
+                    <span>Starts with — matches "priming", "primary", "primed"…</span>
+                    <code>*prim*</code>
+                    <span>Contains anywhere — matches "repriming", "social priming"…</span>
+                  </div>
+                </div>
                 <p class="adv-help-hint">Press <kbd>Enter</kbd> or <kbd>,</kbd> to commit a keyword.</p>
               </div>
             </Show>
