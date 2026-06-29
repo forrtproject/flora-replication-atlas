@@ -409,46 +409,52 @@ export const AdvancedSearchPanel = (props: Props) => {
           <div class="adv-modal-body">
             <Show when={showHelp()}>
               <div class="adv-help-panel">
-                <div class="adv-help-grid">
-                  <div class="adv-help-item">
-                    <span class="adv-help-chip adv-help-chip--green">all</span>
-                    <span>AND — every word must be present</span>
+                <div class="adv-help-cols">
+                  <div class="adv-help-col">
+                    <div class="adv-help-col-label">Keyword modes</div>
+                    <div class="adv-help-item">
+                      <span class="adv-help-chip adv-help-chip--green">all</span>
+                      <span>Every word must appear</span>
+                    </div>
+                    <div class="adv-help-item">
+                      <span class="adv-help-chip adv-help-chip--amber">any</span>
+                      <span>At least one must appear</span>
+                    </div>
+                    <div class="adv-help-item">
+                      <span class="adv-help-chip adv-help-chip--red">not</span>
+                      <span>Exclude matching studies</span>
+                    </div>
                   </div>
-                  <div class="adv-help-item">
-                    <span class="adv-help-chip adv-help-chip--amber">any</span>
-                    <span>OR — at least one word must appear</span>
-                  </div>
-                  <div class="adv-help-item">
-                    <span class="adv-help-chip adv-help-chip--red">not</span>
-                    <span>Excludes studies containing these words</span>
-                  </div>
-                  <div class="adv-help-item">
-                    <span class="adv-help-chip adv-help-chip--gray">year</span>
-                    <span>Drag handles to set publication range</span>
-                  </div>
-                  <div class="adv-help-item">
-                    <span class="adv-help-chip adv-help-chip--gray">outcome</span>
-                    <span>Filter by replication result</span>
-                  </div>
-                  <div class="adv-help-item">
-                    <span class="adv-help-chip adv-help-chip--gray">type</span>
-                    <span>Filter by original, replication, or reproduction</span>
+                  <div class="adv-help-col">
+                    <div class="adv-help-col-label">Filters</div>
+                    <div class="adv-help-item">
+                      <span class="adv-help-chip adv-help-chip--gray">year</span>
+                      <span>Publication year range</span>
+                    </div>
+                    <div class="adv-help-item">
+                      <span class="adv-help-chip adv-help-chip--gray">outcome</span>
+                      <span>Replication result</span>
+                    </div>
+                    <div class="adv-help-item">
+                      <span class="adv-help-chip adv-help-chip--gray">type</span>
+                      <span>Study type</span>
+                    </div>
                   </div>
                 </div>
                 <div class="adv-help-wildcards">
-                  <div class="adv-help-wildcards-title">Wildcard patterns</div>
+                  <div class="adv-help-wildcards-title">Pattern matching</div>
                   <div class="adv-help-wildcards-grid">
-                    <code>priming</code>
-                    <span>Exact whole word — matches "priming" only</span>
-                    <code>priming?</code>
-                    <span>Optional trailing character — matches "priming" and "primings"</span>
-                    <code>prim*</code>
-                    <span>Starts with — matches "priming", "primary", "primed"…</span>
-                    <code>*prim*</code>
-                    <span>Contains anywhere — matches "repriming", "social priming"…</span>
+                    <code>experiment</code>
+                    <span>Exact word — <em>experiment</em> only</span>
+                    <code>experiment?</code>
+                    <span>One extra letter — <em>experiment</em> or <em>experiments</em></span>
+                    <code>experiment*</code>
+                    <span>Starts with — <em>experimental</em>, <em>experimenting</em>…</span>
+                    <code>*experiment*</code>
+                    <span>Contains — <em>quasi-experimental</em>, <em>non-experimental</em>…</span>
                   </div>
                 </div>
-                <p class="adv-help-hint">Press <kbd>Enter</kbd> or <kbd>,</kbd> to commit a keyword.</p>
+                <p class="adv-help-hint">Press <kbd>Enter</kbd> or <kbd>,</kbd> to add a keyword.</p>
               </div>
             </Show>
             {/* Keywords section */}
