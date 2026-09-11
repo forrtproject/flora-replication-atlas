@@ -1,4 +1,4 @@
-import { ChevronRightIcon, NoResultsIcon } from "./components/icons";
+import { NoResultsIcon } from "./components/icons";
 import {
   createSignal,
   createEffect,
