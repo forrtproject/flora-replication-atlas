@@ -1,3 +1,4 @@
+import { NoResultsIcon } from "./components/icons";
 import {
   createSignal,
   createEffect,
@@ -167,6 +168,14 @@ function App() {
       .length;
   });
 
+  /* DOI mode knows how many records were asked for, so the placeholder stack can
+     match it and the layout does not jump when results land. Fuzzy and advanced
+     searches have no count until the response, so they get a short stack. */
+  const skeletonCount = () => {
+    const n = tags().length;
+    return searchMode() === "doi" && n > 0 ? Math.min(n, 4) : 3;
+  };
+
   const paperRefs: Record<string, HTMLDivElement> = {};
   let rightPanelRef: HTMLDivElement | undefined;
   let topbarInputRef: HTMLInputElement | undefined;
@@ -232,7 +241,7 @@ function App() {
 
     for (const [doi, el] of Object.entries(paperRefs)) {
       // Ref callbacks fire before <For> removes old nodes, so paperRefs can
-      // still hold detached elements — prune them and only observe live ones.
+      // still hold detached elements; prune them and only observe live ones.
       if (!el || !el.isConnected) {
         delete paperRefs[doi];
         continue;
@@ -267,7 +276,7 @@ function App() {
     scrollClickTimer = window.setTimeout(() => {
       isScrollingFromClick = false;
       // If the user hijacked the click-scroll (wheel/touch), the observer's
-      // visibilityMap moved on while pickActive() was suppressed — reconcile
+      // visibilityMap moved on while pickActive() was suppressed, so reconcile
       // the selection now. For an uninterrupted click-scroll we must NOT, or a
       // target clamped near the list end (never reaching the panel top) would
       // wrongly override the clicked selection.
@@ -348,6 +357,7 @@ function App() {
       setResults({});
       setSelectedDoi(null);
       setHasSearched(false);
+      ignoreNextReset = true;
     } else {
       debouncedDoiSearch(newTags);
     }
@@ -713,7 +723,7 @@ function App() {
           });
       }
     } else {
-      // URL has no search params — reset to welcome state
+      // URL has no search params, so reset to the welcome state
       if (ignoreNextReset) {
         ignoreNextReset = false;
       } else {
@@ -723,6 +733,10 @@ function App() {
         setResults({});
         setSelectedDoi(null);
         setHasSearched(false);
+        // Reached only by real navigation to a param-less URL (back button,
+        // brand logo). In-app clears set ignoreNextReset and keep the topbar
+        // search; this path should land on the full welcome screen instead.
+        setHasEverSearched(false);
       }
     }
   });
@@ -875,9 +889,16 @@ function App() {
                         }
                       >
                         <div class="no-results-pane">
+                          <div class="no-results-title">
+                            Search the atlas
+                          </div>
+                          <div class="no-results-sub">
+                            Enter a title, author, or DOI in the bar above.
+                          </div>
                           <ExampleSearchLinks
                             label="Example searches"
                             onExampleClick={handleExampleClick}
+                            centered
                           />
                         </div>
                       </Show>
@@ -885,18 +906,7 @@ function App() {
                   >
                     <div class="no-results-pane">
                       <div class="no-results-icon">
-                        <svg
-                          width="32"
-                          height="32"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="1.5"
-                        >
-                          <circle cx="11" cy="11" r="8" />
-                          <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                          <line x1="8" y1="11" x2="14" y2="11" />
-                        </svg>
+                        <NoResultsIcon size={32} />
                       </div>
                       <div class="no-results-title">No results found</div>
                       <div class="no-results-sub">
@@ -911,15 +921,68 @@ function App() {
                   </Show>
                 }
               >
-                <div class="loading-pane">
-                  <div class="loading-spinner loading-spinner--lg" />
-                  <span class="loading-pane-text">Searching…</span>
+                <div aria-busy="true" aria-label="Searching">
+                  <For each={Array.from({ length: skeletonCount() })}>
+                    {(_, card) => (
+                      <div class="dv-skel">
+                        <div class="dv-skel-rail">
+                          <div class="dv-skel-tag" />
+                          <div class="dv-skel-head" style={{ width: "88%" }} />
+                          <div
+                            class="dv-skel-head"
+                            style={{ width: `${52 + (card() % 3) * 12}%` }}
+                          />
+                          <div class="sli-skel-line" style={{ width: "72%" }} />
+                          <div class="sli-skel-line" style={{ width: "58%" }} />
+                          <div class="sli-skel-line" style={{ width: "64%" }} />
+                          <div class="dv-skel-btn" />
+                          <div class="dv-skel-utils">
+                            <For each={[0, 1, 2, 3]}>
+                              {(i) => (
+                                <div
+                                  class="dv-skel-pill"
+                                  style={{ width: `${2.6 + (i % 3) * 0.9}rem` }}
+                                />
+                              )}
+                            </For>
+                          </div>
+                        </div>
+                        <div class="dv-skel-main">
+                          <div
+                            class="dv-skel-verdict"
+                            style={{ width: `${44 + (card() % 3) * 9}%` }}
+                          />
+                          <div class="dv-skel-tabs">
+                            <div class="dv-skel-pill" style={{ width: "6rem" }} />
+                            <div class="dv-skel-pill" style={{ width: "7rem" }} />
+                          </div>
+                          <For each={[0, 1]}>
+                            {(row) => (
+                              <div class="dv-skel-item">
+                                <div class="dv-skel-pill" style={{ width: "3.6rem" }} />
+                                <div class="dv-skel-item-body">
+                                  <div
+                                    class="sli-skel-line"
+                                    style={{ width: `${86 - row * 14}%` }}
+                                  />
+                                  <div class="sli-skel-line" style={{ width: "62%" }} />
+                                  <div class="sli-skel-line" style={{ width: "40%" }} />
+                                </div>
+                              </div>
+                            )}
+                          </For>
+                        </div>
+                      </div>
+                    )}
+                  </For>
                 </div>
               </Show>
             }
           >
             <>
-              <Show when={aggregateOutcomes().total > 0}>
+              {/* With a single paper the card's own verdict line already says
+                  this, so the aggregate only earns its place across several. */}
+              <Show when={aggregateOutcomes().total > 0 && paperCount() > 1}>
                 <SearchOutcomesBanner
                   outcomes={aggregateOutcomes()}
                   paperCount={paperCount()}

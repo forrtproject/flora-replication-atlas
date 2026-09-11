@@ -9,6 +9,11 @@
     <meta name="description" content="Look up any study by DOI, title, or author and see every replication and reproduction attempt on record, with the outcome and the passage it was read from. __PAPER_COUNT__+ findings from FORRT." />
     <link rel="canonical" href="https://forrt.org/flora-replication-atlas/" />
 
+    <!-- Vite prepends the configured base to root-relative HTML asset paths.
+         (CSS url() is left alone, so src/fonts.css carries the base itself.) -->
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/domine-latin-normal.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/sourcesans3-latin-normal.woff2" crossorigin />
+
     <!-- Nothing paints until this cross-origin POST returns, so pay DNS and TLS up front. -->
     <link rel="preconnect" href="https://rep-api.forrt.org" crossorigin />
     <link rel="dns-prefetch" href="https://rep-api.forrt.org" />

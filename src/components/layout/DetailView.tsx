@@ -1,3 +1,11 @@
+import {
+  ChartIcon,
+  CopyIcon as Copy,
+  DownloadIcon as Download,
+  ExternalLinkIcon as ExternalLink,
+  FlagIcon as Flag,
+  LinkIcon as Link,
+} from "../icons";
 import { createSignal, createEffect, For, Show, onCleanup } from "solid-js";
 import type { OriginalPaper, ReplicationItem } from "../../@types";
 import { formatReplicationResponse } from "../../api/formatter";
@@ -13,75 +21,23 @@ type DetailViewProps = {
 type TabId = "replications" | "reproductions" | "originals";
 
 const ExternalLinkIcon = () => (
-  <svg
-    width="12"
-    height="12"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-  >
-    <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
-    <polyline points="15,3 21,3 21,9" />
-    <line x1="10" y1="14" x2="21" y2="3" />
-  </svg>
+  <ExternalLink size={12} />
 );
 
 const DownloadIcon = () => (
-  <svg
-    width="12"
-    height="12"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-  >
-    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-    <polyline points="7,10 12,15 17,10" />
-    <line x1="12" y1="15" x2="12" y2="3" />
-  </svg>
+  <Download size={12} />
 );
 
 const CopyIcon = () => (
-  <svg
-    width="12"
-    height="12"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-  >
-    <rect x="9" y="9" width="13" height="13" rx="2" />
-    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-  </svg>
+  <Copy size={12} />
 );
 
 const LinkIcon = () => (
-  <svg
-    width="12"
-    height="12"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-  >
-    <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
-    <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
-  </svg>
+  <Link size={12} />
 );
 
 const FlagIcon = () => (
-  <svg
-    width="12"
-    height="12"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-  >
-    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
-    <line x1="4" y1="22" x2="4" y2="15" />
-  </svg>
+  <Flag size={12} />
 );
 
 export const DetailView = (props: DetailViewProps) => {
@@ -91,6 +47,7 @@ export const DetailView = (props: DetailViewProps) => {
   const [showCitations, setShowCitations] = createSignal(false);
   let toastTimer: number | undefined;
   let wrapRef: HTMLDivElement | undefined;
+  let railRef: HTMLDivElement | undefined;
   let pdfFetched = false;
 
   const rep = () => formatReplicationResponse(props.paper);
@@ -122,6 +79,51 @@ export const DetailView = (props: DetailViewProps) => {
     );
     observer.observe(wrapRef);
     onCleanup(() => observer.disconnect());
+  });
+
+  // A rail taller than the scroll viewport would pin with its lower half off
+  // screen and no way to scroll to it. Offsetting the sticky top by the overflow
+  // lets it travel up with the list until its end is reached, then pin.
+  createEffect(() => {
+    const el = railRef;
+    if (!el) return;
+    // Sticky offsets are anchored inside the scroller's padding, so that padding
+    // is not usable height and has to come off the measurement.
+    const viewportHeight = () => {
+      for (let p = el.parentElement; p; p = p.parentElement) {
+        const cs = getComputedStyle(p);
+        if (/auto|scroll/.test(cs.overflowY)) {
+          return (
+            p.clientHeight -
+            parseFloat(cs.paddingTop) -
+            parseFloat(cs.paddingBottom)
+          );
+        }
+      }
+      return window.innerHeight;
+    };
+    // A results page mounts one of these per card, so skip writes that change
+    // nothing rather than dirtying layout for every rail that already fits.
+    let applied = "0px";
+    let available = viewportHeight();
+    const sync = () => {
+      const overflow = el.offsetHeight - available;
+      const next = overflow > 0 ? `${-overflow}px` : "0px";
+      if (next === applied) return;
+      applied = next;
+      el.style.setProperty("--rail-top", next);
+    };
+    const onResize = () => {
+      available = viewportHeight();
+      sync();
+    };
+    const observer = new ResizeObserver(sync);
+    observer.observe(el);
+    window.addEventListener("resize", onResize);
+    onCleanup(() => {
+      observer.disconnect();
+      window.removeEventListener("resize", onResize);
+    });
   });
 
   createEffect(() => {
@@ -207,75 +209,128 @@ export const DetailView = (props: DetailViewProps) => {
     categorizedTotal() > 0
       ? ((outcomes()?.failed || 0) / categorizedTotal()) * 100
       : 0;
-  const outcomeVariations = () => {
+  const segments = () => {
     const o = outcomes();
-    if (!o) return 0;
+    if (!o) return [];
     return [
-      (o.success || 0) > 0,
-      (o.mixed || 0) + (o.partial || 0) > 0,
-      (o.failed || 0) > 0,
-    ].filter(Boolean).length;
+      { key: "success", label: "successful", n: o.success || 0, pct: successPct() },
+      { key: "mixed", label: "mixed", n: (o.mixed || 0) + (o.partial || 0), pct: mixedPct() },
+      { key: "failed", label: "failed", n: o.failed || 0, pct: failedPct() },
+    ].filter((s) => s.n > 0);
   };
+  const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
+
+  const hasEntries = () =>
+    (rep().replications?.length || 0) > 0 ||
+    (rep().reproductions?.length || 0) > 0 ||
+    (rep().originals?.length || 0) > 0;
+
+  /* The bar summarises the replication list, so it belongs to that tab alone.
+     "replications" is also the default tab on records that never render it. */
+  const showSpine = () =>
+    activeTab() === "replications" &&
+    (rep().replications?.length || 0) > 0 &&
+    segments().length > 0;
+
+  /* The sentence is a fallback for records the bar cannot draw at all: no
+     replications, or replications whose outcome was never categorised. Against a
+     single attempt it just restates the badge below, so it stays hidden there. */
+  const showVerdictText = () => {
+    if (segments().length > 0) return false;
+    const attempts =
+      (outcomes()?.total || 0) +
+      (rep().reproductions?.length || 0) +
+      (rep().originals?.length || 0);
+    return attempts === 0 || attempts > 1;
+  };
+
+  /* Describes the record, never the paper: the atlas reports what was logged,
+     it does not rule on whether a finding holds. */
+  const verdict = (): { tone: string; text: string } => {
+    const o = outcomes();
+    const n = o?.total || 0;
+    const repro = rep().reproductions?.length || 0;
+    const orig = rep().originals?.length || 0;
+
+    if (n === 0) {
+      if (repro > 0)
+        return {
+          tone: "neutral",
+          text: `No replication on record. ${plural(repro, "reproduction")} logged.`,
+        };
+      if (orig > 0)
+        return {
+          tone: "neutral",
+          text: `This paper is itself a replication attempt, targeting ${plural(orig, "study")}.`,
+        };
+      return { tone: "none", text: "No replication attempt on record yet." };
+    }
+
+    const counts = [
+      { n: o?.failed || 0, label: "failed" },
+      { n: o?.success || 0, label: "successful" },
+      { n: o?.mixed || 0, label: "mixed" },
+      { n: o?.partial || 0, label: "partial" },
+    ].filter((c) => c.n > 0);
+    const uncategorized = n - categorizedTotal();
+
+    const dominant = counts.reduce(
+      (a, b) => (b.n > a.n ? b : a),
+      counts[0] ?? { n: 0, label: "" },
+    );
+    const tone =
+      counts.length > 1
+        ? "mixed"
+        : dominant.label === "successful"
+          ? "success"
+          : dominant.label === "failed"
+            ? "failed"
+            : "mixed";
+
+    const breakdown = counts.map((c) => `${c.n} ${c.label}`);
+    if (uncategorized > 0)
+      breakdown.push(`${uncategorized} with no outcome recorded`);
+
+    const head = plural(n, "replication");
+    const text =
+      counts.length === 1 && uncategorized === 0 && n === 1
+        ? `1 replication on record, recorded as ${dominant.label}.`
+        : `${head} on record: ${breakdown.join(", ")}.`;
+
+    return { tone, text: repro > 0 ? `${text} ${plural(repro, "reproduction")} logged.` : text };
+  };
+
 
   return (
     <div class="detail-wrap" ref={wrapRef}>
       <div class="detail-card">
-        {/* Header */}
-        <div class="dh">
-          {/* Mobile: tags + share above title */}
-          <div class="dh-top dh-top-mobile">
-            <div class="dh-tags">
-              <For each={props.paper.types || []}>
-                {(type) => (
-                  <span class={`dh-tag ${type.toLowerCase()}`}>
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </span>
-                )}
-              </For>
-            </div>
-            <button
-              class="dh-share-btn"
-              onClick={handleShareLink}
-              title="Copy share link"
-            >
-              <LinkIcon />
-            </button>
+       <div class="dc">
+        {/* Identity rail: what the paper is */}
+        <div class="dc-rail">
+         <div class="dc-rail-inner" ref={railRef}>
+          <div class="dc-tags">
+            <For each={props.paper.types || []}>
+              {(type) => (
+                <span class={`dh-tag ${type.toLowerCase()}`}>
+                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                </span>
+              )}
+            </For>
           </div>
-          {/* Desktop: title with tags + share inline */}
-          <div class="dh-title-row">
-            <h1 class="dh-title">{rep().title}</h1>
-            <div class="dh-title-actions">
-              <For each={props.paper.types || []}>
-                {(type) => (
-                  <span class={`dh-tag ${type.toLowerCase()}`}>
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </span>
-                )}
-              </For>
-              <button
-                class="dh-share-btn"
-                onClick={handleShareLink}
-                title="Copy share link"
-              >
-                <LinkIcon />
-              </button>
-            </div>
-          </div>
+          <h1 class="dc-title">{rep().title}</h1>
           <Show when={authorYearLine(rep().authors, rep().year)}>
-            <div class="dh-authors">
-              {authorYearLine(rep().authors, rep().year)}
-            </div>
+            <p class="dc-authors">{authorYearLine(rep().authors, rep().year)}</p>
           </Show>
           <Show when={rep().data?.journal}>
-            <div class="dh-journal">
+            <p class="dc-journal">
               {rep().data!.journal}
               {rep().data!.volume ? ` ${rep().data!.volume}` : ""}
               {rep().data!.issue ? `(${rep().data!.issue})` : ""}
-            </div>
+            </p>
           </Show>
           <Show when={rep().doi}>
             <a
-              class="dh-doi-link"
+              class="dc-doi"
               href={`https://doi.org/${rep().doi}`}
               target="_blank"
               rel="noreferrer"
@@ -283,24 +338,21 @@ export const DetailView = (props: DetailViewProps) => {
               {rep().doi}
             </a>
           </Show>
-        </div>
 
-        {/* Action bar */}
-        <div class="action-bar">
-          <div class="ab-group">
+          <div class="dc-actions">
             <Show when={rep().doi}>
               <a
-                class="ab-btn accent"
+                class="dc-primary"
                 href={`https://doi.org/${rep().doi}`}
                 target="_blank"
                 rel="noreferrer"
               >
-                <ExternalLinkIcon /> View Paper
+                <ExternalLinkIcon /> View paper
               </a>
             </Show>
             <Show when={pdfUrl()}>
               <a
-                class="ab-btn"
+                class="dc-secondary"
                 href={pdfUrl()!}
                 target="_blank"
                 rel="noreferrer"
@@ -309,87 +361,61 @@ export const DetailView = (props: DetailViewProps) => {
               </a>
             </Show>
           </div>
-          <div class="ab-sep" />
-          <div class="ab-group">
+
+          <div class="dc-utils">
             <Show when={rep().apaRef}>
-              <button
-                class="ab-btn"
-                onClick={handleCopyApa}
-                title="Copy APA reference"
-              >
-                <CopyIcon /> Copy APA
+              <button class="dc-util" onClick={handleCopyApa} title="Copy APA reference" aria-label="Copy APA reference">
+                <CopyIcon /> <span>APA</span>
               </button>
             </Show>
             <Show when={rep().bibtexRef}>
-              <button
-                class="ab-btn"
-                onClick={handleCopyBibtex}
-                title="Copy BibTeX citation"
-              >
-                <CopyIcon /> Copy BibTeX
+              <button class="dc-util" onClick={handleCopyBibtex} title="Copy BibTeX citation" aria-label="Copy BibTeX citation">
+                <CopyIcon /> <span>BibTeX</span>
               </button>
             </Show>
+            <button class="dc-util" onClick={handleShareLink} title="Copy share link" aria-label="Copy share link">
+              <LinkIcon /> <span>Share</span>
+            </button>
+            <button
+              class="dc-util"
+              onClick={() => setShowCitations(true)}
+              title="View citation timeline"
+              aria-label="View citation timeline"
+            >
+              <ChartIcon size={12} /> <span>Citations</span>
+            </button>
             <a
-              class="ab-btn"
+              class="dc-util"
               href={`https://pubpeer.com/search?q=${rep().doi}`}
               target="_blank"
               rel="noreferrer"
+              title="Open the PubPeer thread"
+              aria-label="Open the PubPeer thread"
             >
-              <ExternalLinkIcon /> PubPeer
-            </a>
-            <button
-              class="ab-btn"
-              onClick={() => setShowCitations(true)}
-              title="View citation timeline"
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="12" width="4" height="9" /><rect x="10" y="7" width="4" height="14" /><rect x="17" y="3" width="4" height="18" />
-              </svg>
-              Citations
-            </button>
-          </div>
-          <div class="ab-sep" />
-          <div class="ab-group">
-            <a
-              class="ab-btn"
-              href={`mailto:lukas.roeseler@uni-muenster.de?subject=[Replication Flag] ${rep().doi}&body=I would like to flag a potential issue in the replication record for:%0AOriginal DOI: ${rep().doi}%0AIssue details: [your comment here]`}
-              title="Flag an error in this record"
-            >
-              <FlagIcon /> Flag Error
+              <ExternalLinkIcon /> <span>PubPeer</span>
             </a>
           </div>
+
+          <a
+            class="dc-flag"
+            href={`mailto:lukas.roeseler@uni-muenster.de?subject=[Replication Flag] ${rep().doi}&body=I would like to flag a potential issue in the replication record for:%0AOriginal DOI: ${rep().doi}%0AIssue details: [your comment here]`}
+            title="Flag an error in this record"
+          >
+            <FlagIcon /> Flag an error in this record
+          </a>
+         </div>
         </div>
 
-        {/* Progress bar */}
-        <Show when={outcomeVariations() > 1}>
-          <div class="progress-section">
-            <div class="progress-row">
-              <div class="progress-track">
-                <div
-                  class="progress-seg success"
-                  style={{ width: `${successPct()}%` }}
-                />
-                <div
-                  class="progress-seg mixed"
-                  style={{ width: `${mixedPct()}%` }}
-                />
-                <div
-                  class="progress-seg failed"
-                  style={{ width: `${failedPct()}%` }}
-                />
-              </div>
+        {/* Evidence column: what the record says happened */}
+        <div class="dc-main">
+          <Show when={showVerdictText()}>
+            <div class={`dc-verdict dc-verdict--${verdict().tone}`}>
+              <p class="dc-verdict-text">{verdict().text}</p>
             </div>
-          </div>
-        </Show>
+          </Show>
 
         {/* Tabs */}
-        <Show
-          when={
-            (rep().replications?.length || 0) > 0 ||
-            (rep().reproductions?.length || 0) > 0 ||
-            (rep().originals?.length || 0) > 0
-          }
-        >
+        <Show when={hasEntries()}>
           <div class="tabs-bar">
             <Show when={(rep().originals?.length || 0) > 0}>
               <button
@@ -423,17 +449,39 @@ export const DetailView = (props: DetailViewProps) => {
                 </span>
               </button>
             </Show>
+            <Show when={showSpine()}>
+              <div class="dc-spine">
+                <div
+                  class="dc-spine-bar"
+                  role="img"
+                  aria-label={`Outcome split: ${verdict().text}`}
+                >
+                  <For each={segments()}>
+                    {(seg) => (
+                      <div
+                        class={`dc-spine-seg ${seg.key}`}
+                        style={{ width: `${seg.pct}%` }}
+                      />
+                    )}
+                  </For>
+                </div>
+                <p class="dc-spine-counts">
+                  <For each={segments()}>
+                    {(seg, i) => (
+                      <>
+                        {i() > 0 ? " \u00b7 " : ""}
+                        <b>{seg.n}</b> {seg.label}
+                      </>
+                    )}
+                  </For>
+                </p>
+              </div>
+            </Show>
           </div>
         </Show>
 
         {/* Items list */}
-        <Show
-          when={
-            (rep().replications?.length || 0) > 0 ||
-            (rep().reproductions?.length || 0) > 0 ||
-            (rep().originals?.length || 0) > 0
-          }
-        >
+        <Show when={hasEntries()}>
           <div class="rep-list">
             <Show
               when={currentItems().length > 0}
@@ -458,6 +506,8 @@ export const DetailView = (props: DetailViewProps) => {
             </Show>
           </div>
         </Show>
+        </div>
+       </div>
       </div>
 
       {/* Toast */}

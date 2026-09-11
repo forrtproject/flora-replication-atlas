@@ -1,3 +1,4 @@
+import { CopyIcon as Copy, ExternalLinkIcon as ExternalLink } from "../icons";
 import { createSignal, For } from "solid-js";
 import { A } from "@solidjs/router";
 import type { ReplicationItem } from "../../@types";
@@ -48,18 +49,11 @@ function parseOutcomeBadges(outcome: string): BadgeConfig[] {
 }
 
 const CopyIcon = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-    <rect x="9" y="9" width="13" height="13" rx="2" />
-    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-  </svg>
+  <Copy size={13} />
 );
 
 const ExternalLinkIcon = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-    <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
-    <polyline points="15,3 21,3 21,9" />
-    <line x1="10" y1="14" x2="21" y2="3" />
-  </svg>
+  <ExternalLink size={13} />
 );
 
 export const ReplicationItemCard = (props: ReplicationItemCardProps) => {
@@ -70,8 +64,14 @@ export const ReplicationItemCard = (props: ReplicationItemCardProps) => {
       .filter(Boolean)
       .join(" · ");
 
+  const outcomeClass = () => badges()[0]?.cls || "none";
+  /* The stored quote packs several extracts behind "||"; the first is the one
+     the outcome label was read from. */
+  const quote = () => (props.item.outcome_quote || "").split("||")[0]!.replace(/\s+/g, " ").trim();
+  const LONG_QUOTE = 240;
+
   return (
-    <div class="rep-item">
+    <div class={`rep-item rep-item--${outcomeClass()}`}>
       <div class="rep-item-main">
         <div class="ri-badge-group">
           <For each={badges().filter((b) => !(props.hideNa && !b.cls))}>
@@ -143,25 +143,27 @@ export const ReplicationItemCard = (props: ReplicationItemCardProps) => {
         </div>
       </div>
 
-      {props.item.outcome_quote && (
-        <div class="ri-expand">
-          <button
-            class={`ri-expand-toggle ${expanded() ? "expanded" : ""}`}
-            onClick={() => setExpanded(!expanded())}
-          >
-            <span class="arrow">&#9654;</span> Outcome quote
-          </button>
-          {expanded() && (
-            <div class="ri-quote">
-              <div class="ri-quote-text">"{props.item.outcome_quote}"</div>
-              {props.item.outcome_quote_source && (
-                <div class="ri-quote-source">
-                  Source: {props.item.outcome_quote_source}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+      {quote() && (
+        <figure class="ri-quote">
+          <blockquote class="ri-quote-text">
+            {expanded() || quote().length <= LONG_QUOTE
+              ? quote()
+              : `${quote().slice(0, LONG_QUOTE).trimEnd()}…`}
+          </blockquote>
+          <figcaption class="ri-quote-foot">
+            <span>
+              The passage this outcome was read from
+              {props.item.outcome_quote_source
+                ? `, in ${props.item.outcome_quote_source}`
+                : ""}
+            </span>
+            {quote().length > LONG_QUOTE && (
+              <button class="ri-quote-more" onClick={() => setExpanded(!expanded())}>
+                {expanded() ? "Show less" : "Show full passage"}
+              </button>
+            )}
+          </figcaption>
+        </figure>
       )}
     </div>
   );

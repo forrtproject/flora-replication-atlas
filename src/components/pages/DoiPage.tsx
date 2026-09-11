@@ -1,3 +1,4 @@
+import { SpinnerIcon } from "../icons";
 import { createSignal, Show, onMount, onCleanup } from "solid-js";
 import { useParams, useNavigate } from "@solidjs/router";
 import type { DOIResults, OriginalPaper, ReplicationItem } from "../../@types";
@@ -28,7 +29,7 @@ export const DoiPage = () => {
   // SEO: keep a soft navigation's head identical to what the prerenderer wrote.
   const updateMeta = (paper: OriginalPaper | null) => {
     if (!paper?.title) {
-      document.title = `${doi()} — ${appName}`;
+      document.title = `${doi()} | ${appName}`;
       return;
     }
 
@@ -194,7 +195,7 @@ export const DoiPage = () => {
         try {
           updateMeta(result);
         } catch {
-          document.title = `${doiValue} — ${appName}`;
+          document.title = `${doiValue} | ${appName}`;
         }
       })
       .catch(() => {
@@ -268,17 +269,7 @@ export const DoiPage = () => {
           fallback={
             <div class="welcome-state">
               <div class="welcome-icon">
-                <svg
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#853953"
-                  stroke-width="1.5"
-                  class="spin"
-                >
-                  <path d="M12 2a10 10 0 1 0 10 10" />
-                </svg>
+                <SpinnerIcon size={28} class="spin" color="#853953" />
               </div>
               <h2>Loading replication data...</h2>
               <p>{doi()}</p>
