@@ -1,5 +1,6 @@
 import type { DOIResults, OriginalPaper } from "../@types";
-import { createHttp } from "../utils/http";
+import { createHttp, HttpError } from "../utils/http";
+import { normalizePaperAuthors } from "../utils/authors.js";
 import { replicationResponseHasNoData } from "./formatter";
 
 type SearchResponse = {
@@ -10,22 +11,43 @@ type SearchResponse = {
   hasMore: boolean;
 };
 
+// Temporarily pointed at dev: /sets (the DOI-list shortener behind ?set= links)
+// is not on prod yet. Revert to https://rep-api.forrt.org/v1/ once it ships.
 const backend = createHttp({
   baseURL: import.meta.env.VITE_BACKEND_URL || "https://rep-api.forrt.org/v1/",
 });
 
+// `authors` arrives as an Author[] on most records but as a string on others —
+// an APA byline, an "A; B; C" list, or a JSON-encoded array — so every paper is
+// coerced at the boundary rather than guarded at each of its call sites.
+const normalizeResults = (data: DOIResults): DOIResults => {
+  for (const paper of Object.values(data.results ?? {})) {
+    normalizePaperAuthors(paper);
+  }
+  return data;
+};
+
 export const fetchDOIInfo = async (doi: string) => {
   const response = await backend.post<DOIResults>('/original-lookup', { dois: [doi] });
 
-  return response.data;
+  return normalizeResults(response.data);
 };
 
-const BATCH_SIZE = 100;
+// /original-lookup silently truncates its response at 200 results, so batches
+// stay below that with margin rather than sitting on the boundary.
+const BATCH_SIZE = 150;
+
+// Batch starts are staggered so a large set doesn't hit the API as one burst.
+const BATCH_STAGGER_MS = 200;
+
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const fetchMultipleDOIInfo = async (dois: string[]): Promise<DOIResults> => {
   if (dois.length <= BATCH_SIZE) {
     const response = await backend.post<DOIResults>('/original-lookup', { dois });
-    const data: DOIResults = response.data ?? { results: {}, isEmpty: true };
+    const data: DOIResults = normalizeResults(
+      response.data ?? { results: {}, isEmpty: true },
+    );
     data.isEmpty = replicationResponseHasNoData(data);
     return data;
   }
@@ -36,15 +58,54 @@ export const fetchMultipleDOIInfo = async (dois: string[]): Promise<DOIResults> 
   }
 
   const responses = await Promise.all(
-    batches.map((batch) => backend.post<DOIResults>('/original-lookup', { dois: batch }))
+    batches.map(async (batch, i) => {
+      if (i > 0) await delay(i * BATCH_STAGGER_MS);
+      return backend.post<DOIResults>('/original-lookup', { dois: batch });
+    })
   );
 
   const merged: DOIResults = { results: {}, isEmpty: true };
   for (const res of responses) {
     Object.assign(merged.results, (res.data ?? {}).results ?? {});
   }
+  normalizeResults(merged);
   merged.isEmpty = replicationResponseHasNoData(merged);
   return merged;
+};
+
+export type DoiSet = {
+  id: string;
+  dois: string[];
+  count: number;
+  created: string;
+  expires: string;
+};
+
+export class SetExpiredError extends Error {
+  constructor() {
+    super("This DOI set has expired");
+    this.name = "SetExpiredError";
+  }
+}
+
+export const fetchSet = async (id: string): Promise<DoiSet> => {
+  try {
+    const response = await backend.get<DoiSet>(`/sets/${encodeURIComponent(id)}`);
+    return response.data;
+  } catch (error) {
+    // Expiry is the documented end of a set's life, not a failure. The server's
+    // message is human-facing copy, so branch on the code instead.
+    const body = error instanceof HttpError ? error.response?.data : undefined;
+    if ((body as { code?: string } | undefined)?.code === "set_expired") {
+      throw new SetExpiredError();
+    }
+    throw error;
+  }
+};
+
+export const createSet = async (dois: string[]): Promise<DoiSet> => {
+  const response = await backend.post<DoiSet>("/sets", { dois });
+  return response.data;
 };
 
 const MAX_PAGES = 50;
@@ -64,7 +125,10 @@ export const fetchFuzzySearch = async (query: string): Promise<DOIResults> => {
     offset += 1000;
   }
 
-  return { results: allResults, isEmpty: Object.keys(allResults).length === 0 };
+  return normalizeResults({
+    results: allResults,
+    isEmpty: Object.keys(allResults).length === 0,
+  });
 };
 
 export type AdvancedSearchParams = {
@@ -99,5 +163,8 @@ export const fetchAdvancedSearch = async (params: AdvancedSearchParams): Promise
     offset += 1000;
   }
 
-  return { results: allResults, isEmpty: Object.keys(allResults).length === 0 };
+  return normalizeResults({
+    results: allResults,
+    isEmpty: Object.keys(allResults).length === 0,
+  });
 };

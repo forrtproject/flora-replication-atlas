@@ -83,6 +83,51 @@ const recordFacets = [
   },
 ];
 
+/** Real hrefs, not buttons: a DOI goes to its atlas page, a phrase to search. */
+export const ExampleSearchLinks = (props: {
+  label: string;
+  onExampleClick: (query: string) => void;
+  centered?: boolean;
+}) => {
+  const base = import.meta.env.BASE_URL || "/";
+  return (
+    <div
+      class="welcome-examples"
+      style={
+        props.centered
+          ? "margin-top: 1.5rem; justify-content: center"
+          : undefined
+      }
+    >
+      <div class="welcome-examples-label">{props.label}</div>
+      <For each={exampleSearches}>
+        {(ex) => {
+          const isDoi = ex.query.startsWith("10.");
+          const href = isDoi
+            ? `${base}doi/${ex.query}/`
+            : `${base}?q=${encodeURIComponent(ex.query)}`;
+          return (
+            <a
+              class="welcome-doi"
+              href={href}
+              onClick={(e) => {
+                // Modified and middle clicks fall through to the href.
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0)
+                  return;
+                e.preventDefault();
+                props.onExampleClick(ex.query);
+              }}
+            >
+              <span>{ex.label}</span>
+              <ChevronRightIcon size={13} aria-hidden="true" />
+            </a>
+          );
+        }}
+      </For>
+    </div>
+  );
+};
+
 export const WelcomeState = (props: WelcomeStateProps) => {
   let inputRef: HTMLInputElement | undefined;
   const [alertMessage, setAlertMessage] = createSignal<string | null>(null);
@@ -231,19 +276,10 @@ export const WelcomeState = (props: WelcomeStateProps) => {
             </button>
           </div>
 
-          <div class="welcome-examples">
-            <span class="welcome-examples-label">Try one of these</span>
-            {exampleSearches.map((ex) => (
-              <button
-                type="button"
-                class="welcome-doi"
-                onClick={() => props.onExampleClick(ex.query)}
-              >
-                <span>{ex.label}</span>
-                <ChevronRightIcon size={13} aria-hidden="true" />
-              </button>
-            ))}
-          </div>
+          <ExampleSearchLinks
+            label="Try one of these"
+            onExampleClick={props.onExampleClick}
+          />
         </div>
       </section>
 

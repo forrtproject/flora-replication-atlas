@@ -53,8 +53,7 @@ export default defineConfig({
     solidPlugin(),
     redirectRootToBase(),
     {
-      // `define` only reaches JS, so the crawlable copy in index.html needs its
-      // own pass for the same token.
+      // `define` only reaches JS; the static copy in index.html needs its own pass.
       name: 'paper-count-html',
       transformIndexHtml(html: string) {
         return html.replaceAll(

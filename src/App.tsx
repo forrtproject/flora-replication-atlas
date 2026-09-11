@@ -13,14 +13,19 @@ import {
   fetchMultipleDOIInfo,
   fetchFuzzySearch,
   fetchAdvancedSearch,
+  fetchSet,
+  SetExpiredError,
 } from "./api/backend";
 import { formatReplicationResponse } from "./api/formatter";
 import { SearchOutcomesBanner } from "./components/replication/SearchOutcomesBanner";
 import { TopBar, type SearchMode } from "./components/layout/TopBar";
-import { StudyListPanel } from "./components/layout/StudyListPanel";
+import {
+  StudyListPanel,
+  type PaperTypeFilter,
+} from "./components/layout/StudyListPanel";
 import {
   WelcomeState,
-  exampleSearches,
+  ExampleSearchLinks,
 } from "./components/layout/WelcomeState";
 import { AdvancedSearchPanel } from "./components/layout/AdvancedSearchPanel";
 import { DetailView } from "./components/layout/DetailView";
@@ -34,15 +39,27 @@ import { smoothScrollIntoView } from "./utils/smoothScroll";
 
 const isDoi = (s: string) => /^10\.\d{4,}\//.test(s.trim());
 
-// Shared original/replication classification, kept in sync with StudyListPanel.
+// Shared paper-type classification, kept in sync with StudyListPanel.
 const classifyPaper = (paper: OriginalPaper) => {
   const rep = formatReplicationResponse(paper);
+  const types = paper.types || [];
   const isOriginal =
-    (rep.replications?.length || 0) > 0 || (rep.reproductions?.length || 0) > 0;
+    types.includes("original") ||
+    (rep.replications?.length || 0) > 0 ||
+    (rep.reproductions?.length || 0) > 0;
+  const isReproduction = types.includes("reproduction");
+  // A record listing originals is a replication unless its type says otherwise.
   const isReplication =
-    (rep.originals?.length || 0) > 0 ||
-    (paper.types?.includes("reproduction") ?? false);
-  return { isOriginal, isReplication };
+    types.includes("replication") ||
+    (!isReproduction && (rep.originals?.length || 0) > 0);
+  return { isOriginal, isReplication, isReproduction };
+};
+
+const matchesFilter = (paper: OriginalPaper, filter: PaperTypeFilter) => {
+  const c = classifyPaper(paper);
+  if (filter === "original") return c.isOriginal;
+  if (filter === "reproduction") return c.isReproduction;
+  return c.isReplication;
 };
 
 const debounce = <T extends unknown[]>(
@@ -101,9 +118,7 @@ function App() {
   const [isLoading, setIsLoading] = createSignal(false);
   const [hasSearched, setHasSearched] = createSignal(false);
   const [hasEverSearched, setHasEverSearched] = createSignal(false);
-  const [typeFilter, setTypeFilter] = createSignal<"original" | "replication">(
-    "original",
-  );
+  const [typeFilter, setTypeFilter] = createSignal<PaperTypeFilter>("original");
   const [showImportModal, setShowImportModal] = createSignal(false);
 
   const [showAdvancedModal, setShowAdvancedModal] = createSignal(false);
@@ -119,11 +134,9 @@ function App() {
 
   const filteredResults = createMemo(() => {
     const filter = typeFilter();
-    return Object.entries(results()).filter(([, paper]) => {
-      const { isOriginal, isReplication } = classifyPaper(paper);
-      if (filter === "original") return isOriginal;
-      return isReplication;
-    });
+    return Object.entries(results()).filter(([, paper]) =>
+      matchesFilter(paper, filter),
+    );
   });
 
   const aggregateOutcomes = createMemo(() => {
@@ -132,9 +145,7 @@ function App() {
     const counts = Object.values(res).reduce(
       (acc, paper) => {
         const rep = formatReplicationResponse(paper);
-        const { isOriginal, isReplication } = classifyPaper(paper);
-        if (filter === "original" && !isOriginal) return acc;
-        if (filter === "replication" && !isReplication) return acc;
+        if (!matchesFilter(paper, filter)) return acc;
         acc.success += rep.outcomes?.success ?? 0;
         acc.failed += rep.outcomes?.failed ?? 0;
         acc.mixed += rep.outcomes?.mixed ?? 0;
@@ -153,10 +164,8 @@ function App() {
 
   const paperCount = createMemo(() => {
     const filter = typeFilter();
-    return Object.values(results()).filter((p) => {
-      const { isOriginal, isReplication } = classifyPaper(p);
-      return filter === "original" ? isOriginal : isReplication;
-    }).length;
+    return Object.values(results()).filter((p) => matchesFilter(p, filter))
+      .length;
   });
 
   /* DOI mode knows how many records were asked for, so the placeholder stack can
@@ -179,6 +188,7 @@ function App() {
   let skipFuzzyEffect = false;
   let skipDoiEffect = false;
   let skipAdvancedEffect = false;
+  let resolvedSetId = "";
   // Monotonic search id; a resolving response is ignored if a newer search started.
   let searchGeneration = 0;
 
@@ -309,6 +319,8 @@ function App() {
     skipDoiEffect = true;
     setSearchParams({
       doi: undefined,
+      // Editing the tags makes any resolved set id stale, so it has to go.
+      set: undefined,
       dois: newTags.length > 0 ? newTags.join(",") : undefined,
       q: undefined,
     });
@@ -359,16 +371,11 @@ function App() {
 
     // Auto-switch filter if the current one has no matches
     const papers = Object.values(data);
-    const hasOriginals = papers.some((p) => classifyPaper(p).isOriginal);
-    const hasReplications = papers.some((p) => classifyPaper(p).isReplication);
-    if (typeFilter() === "original" && !hasOriginals && hasReplications) {
-      setTypeFilter("replication");
-    } else if (
-      typeFilter() === "replication" &&
-      !hasReplications &&
-      hasOriginals
-    ) {
-      setTypeFilter("original");
+    if (!papers.some((p) => matchesFilter(p, typeFilter()))) {
+      const fallback = (
+        ["original", "replication", "reproduction"] as PaperTypeFilter[]
+      ).find((f) => papers.some((p) => matchesFilter(p, f)));
+      if (fallback) setTypeFilter(fallback);
     }
 
     const keys = Object.keys(data);
@@ -399,6 +406,7 @@ function App() {
     setSearchParams({
       q: undefined,
       dois: undefined,
+      set: undefined,
       mustAll: undefined,
       mustAny: undefined,
       mustNone: undefined,
@@ -407,6 +415,47 @@ function App() {
       outcomes: undefined,
       paperTypes: undefined,
     });
+  };
+
+  // A ?set= link carries only an id; the DOI list itself lives server-side and
+  // has to be fetched before any search can run.
+  const resolveSet = (id: string) => {
+    const gen = ++searchGeneration;
+    setSearchMode("doi");
+    setTags([]);
+    setInputValue("");
+    setIsLoading(true);
+    setHasSearched(true);
+    setHasEverSearched(true);
+    setResults({});
+    setSelectedDoi(null);
+    fetchSet(id)
+      .then((doiSet) => {
+        if (gen !== searchGeneration) return;
+        if (doiSet.dois.length === 0) {
+          setIsLoading(false);
+          setHasSearched(false);
+          showToast("Empty link", "This link doesn't contain any DOIs.");
+          return;
+        }
+        setTags(doiSet.dois);
+        doDoiSearch(doiSet.dois);
+      })
+      .catch((error) => {
+        if (gen !== searchGeneration) return;
+        setIsLoading(false);
+        setResults({});
+        setHasSearched(false);
+        if (error instanceof SetExpiredError) {
+          showToast(
+            "This link has expired",
+            "Shared DOI links last 30 days. Please generate a new one from wherever you opened this link.",
+          );
+          return;
+        }
+        const [t, m, r] = toastDetails(error);
+        showToast(t, m, "error", r);
+      });
   };
 
   const doDoiSearch = (dois: string[]) => {
@@ -568,6 +617,17 @@ function App() {
 
   // React to URL changes (e.g. browser back/forward)
   createEffect(() => {
+    const setId = String(searchParams.set || "");
+    if (setId) {
+      // Guarded so re-runs of this effect don't refetch the set we just resolved.
+      if (setId !== resolvedSetId) {
+        resolvedSetId = setId;
+        resolveSet(setId);
+      }
+      return;
+    }
+    resolvedSetId = "";
+
     const doi = String(searchParams.doi || searchParams.dois || "");
     const q = String(searchParams.q || "");
     const advMustAllParam = String(searchParams.mustAll || "");
@@ -727,7 +787,7 @@ function App() {
                 setSelectedDoi(null);
                 setHasSearched(false);
                 ignoreNextReset = true;
-                setSearchParams({ q: undefined, dois: undefined });
+                setSearchParams({ q: undefined, dois: undefined, set: undefined });
               }
             } else {
               debouncedFuzzySearch(q);
@@ -835,23 +895,11 @@ function App() {
                           <div class="no-results-sub">
                             Enter a title, author, or DOI in the bar above.
                           </div>
-                          <div
-                            class="welcome-examples"
-                            style="margin-top: 1.5rem; justify-content: center"
-                          >
-                            <div class="welcome-examples-label">
-                              Example searches
-                            </div>
-                            {exampleSearches.map((ex) => (
-                              <div
-                                class="welcome-doi"
-                                onClick={() => handleExampleClick(ex.query)}
-                              >
-                                <span>{ex.label}</span>
-                                <ChevronRightIcon size={14} />
-                              </div>
-                            ))}
-                          </div>
+                          <ExampleSearchLinks
+                            label="Example searches"
+                            onExampleClick={handleExampleClick}
+                            centered
+                          />
                         </div>
                       </Show>
                     }
@@ -864,18 +912,11 @@ function App() {
                       <div class="no-results-sub">
                         Try a different search term or DOI
                       </div>
-                      <div class="welcome-examples" style="margin-top: 1.5rem">
-                        <div class="welcome-examples-label">Try an example</div>
-                        {exampleSearches.map((ex) => (
-                          <div
-                            class="welcome-doi"
-                            onClick={() => handleExampleClick(ex.query)}
-                          >
-                            <span>{ex.label}</span>
-                            <ChevronRightIcon size={14} />
-                          </div>
-                        ))}
-                      </div>
+                      <ExampleSearchLinks
+                        label="Try an example"
+                        onExampleClick={handleExampleClick}
+                        centered
+                      />
                     </div>
                   </Show>
                 }
