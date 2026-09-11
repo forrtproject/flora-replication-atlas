@@ -13,39 +13,48 @@ type ReplicationItemCardProps = {
 
 type BadgeConfig = { label: string; cls: string };
 
-function parseOutcomeBadges(outcome: string): BadgeConfig[] {
-  const compMap: Record<string, BadgeConfig> = {
-    "computationally successful": { label: "Comp. Success", cls: "comp-success" },
-    "computational issues": { label: "Comp. Issues", cls: "comp-issues" },
-    "computation not checked": { label: "Comp. Not Checked", cls: "comp-unchecked" },
-  };
-  const robMap: Record<string, BadgeConfig> = {
-    "robust": { label: "Robust", cls: "robust" },
-    "robustness challenges": { label: "Rob. Challenges", cls: "rob-challenges" },
-    "robustness not checked": { label: "Not Checked", cls: "rob-unchecked" },
-  };
+// Reproductions record two judgements joined by a comma — how the computation went,
+// then how robust the result was — and each gets its own tag.
+const OUTCOME_PARTS: Record<string, BadgeConfig> = {
+  "computationally reproducible": { label: "Comp. Reproducible", cls: "comp-success" },
+  "computationally successful": { label: "Comp. Success", cls: "comp-success" },
+  "computational issues": { label: "Comp. Issues", cls: "comp-issues" },
+  "computation not checked": { label: "Comp. Not Checked", cls: "comp-unchecked" },
+  robust: { label: "Robust", cls: "robust" },
+  "robustness challenges": { label: "Rob. Challenges", cls: "rob-challenges" },
+  "robustness not checked": { label: "Rob. Not Checked", cls: "rob-unchecked" },
+  // Trailing half of "computational issues, not checked": robustness is what went unchecked.
+  "not checked": { label: "Rob. Not Checked", cls: "rob-unchecked" },
+};
 
+const SIMPLE_OUTCOMES: Record<string, BadgeConfig> = {
+  successful: { label: "Success", cls: "successful" },
+  failed: { label: "Failed", cls: "failed" },
+  mixed: { label: "Mixed", cls: "mixed" },
+  partial: { label: "Partial", cls: "partial" },
+};
+
+function parseOutcomeBadges(outcome: string): BadgeConfig[] {
   // Shared normalization keeps badge matching in lockstep with formatter.ts
   // bucketing, so a card's badge never contradicts the aggregate counts.
   const normalized = normalizeOutcome(outcome);
-  for (const [compKey, compBadge] of Object.entries(compMap)) {
-    for (const [robKey, robBadge] of Object.entries(robMap)) {
-      if (normalized === `${compKey}, ${robKey}`) return [compBadge, robBadge];
-    }
-  }
+  if (!normalized) return [{ label: "N/A", cls: "" }];
+  if (SIMPLE_OUTCOMES[normalized]) return [SIMPLE_OUTCOMES[normalized]!];
 
-  // Fallback for standard outcomes
-  const simple: Record<string, BadgeConfig> = {
-    successful: { label: "Success", cls: "successful" },
-    failed: { label: "Failed", cls: "failed" },
-    mixed: { label: "Mixed", cls: "mixed" },
-    partial: { label: "Partial", cls: "partial" },
-  };
-  if (simple[normalized]) return [simple[normalized]];
+  // Split the raw value, not the normalized one, so an unrecognized part keeps its
+  // own capitalization when it falls through to the label.
+  const parts = (outcome ?? "").split(",").map((p) => p.trim()).filter(Boolean);
+  if (parts.length > 1)
+    return parts.map((part) => {
+      const key = normalizeOutcome(part);
+      return (
+        OUTCOME_PARTS[key] ?? SIMPLE_OUTCOMES[key] ?? { label: part, cls: "other" }
+      );
+    });
+
   // A non-empty but unrecognized outcome gets the "other" class so it survives the
   // hideNa filter; only a truly-empty outcome stays as the class-less "N/A" badge.
-  const trimmed = (outcome ?? "").trim();
-  return [trimmed ? { label: trimmed, cls: "other" } : { label: "N/A", cls: "" }];
+  return [OUTCOME_PARTS[normalized] ?? { label: (outcome ?? "").trim(), cls: "other" }];
 }
 
 const CopyIcon = () => (
