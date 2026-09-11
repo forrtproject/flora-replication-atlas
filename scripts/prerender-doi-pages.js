@@ -10,6 +10,7 @@ import {
   cleanTitle,
   outcomeCounts,
 } from "../src/seo/pageMeta.js";
+import { normalizePaperAuthors } from "../src/utils/authors.js";
 import { generateBrowsePages } from "./browse-pages.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -43,7 +44,9 @@ async function fetchBatch(dois) {
   });
   if (!res.ok) throw new Error(`/original-lookup returned ${res.status}`);
   const data = await res.json();
-  return data.results || {};
+  const results = data.results || {};
+  for (const paper of Object.values(results)) normalizePaperAuthors(paper);
+  return results;
 }
 
 async function fetchAllPapers(dois) {

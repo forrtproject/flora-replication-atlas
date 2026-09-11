@@ -189,14 +189,19 @@ export const DoiPage = () => {
         const result = res.results?.[doiValue] || null;
         setPaper(result);
         setHasData(!!result?.record);
-        updateMeta(result);
-        setIsLoading(false);
+        // Head rewriting is cosmetic; a throw in it must not cost the reader
+        // the record we already fetched.
+        try {
+          updateMeta(result);
+        } catch {
+          document.title = `${doiValue} — ${appName}`;
+        }
       })
       .catch(() => {
         setPaper(null);
         setHasData(false);
-        setIsLoading(false);
-      });
+      })
+      .finally(() => setIsLoading(false));
   });
 
   const [searchMode, setSearchMode] = createSignal<SearchMode>("doi");
@@ -225,7 +230,6 @@ export const DoiPage = () => {
   };
 
   const removeTag = (index: number) => {
-    debugger;
     const newTags = tags().filter((_, i) => i !== index);
     if (newTags.length === 0) {
       navigate("/");
