@@ -1,5 +1,6 @@
 import type { DOIResults, OriginalPaper } from "../@types";
 import { createHttp, HttpError } from "../utils/http";
+import { normalizePaperAuthors } from "../utils/authors.js";
 import { replicationResponseHasNoData } from "./formatter";
 
 type SearchResponse = {
@@ -16,10 +17,20 @@ const backend = createHttp({
   baseURL: import.meta.env.VITE_BACKEND_URL || "https://rep-api.forrt.org/v1/",
 });
 
+// `authors` arrives as an Author[] on most records but as a string on others —
+// an APA byline, an "A; B; C" list, or a JSON-encoded array — so every paper is
+// coerced at the boundary rather than guarded at each of its call sites.
+const normalizeResults = (data: DOIResults): DOIResults => {
+  for (const paper of Object.values(data.results ?? {})) {
+    normalizePaperAuthors(paper);
+  }
+  return data;
+};
+
 export const fetchDOIInfo = async (doi: string) => {
   const response = await backend.post<DOIResults>('/original-lookup', { dois: [doi] });
 
-  return response.data;
+  return normalizeResults(response.data);
 };
 
 // /original-lookup silently truncates its response at 200 results, so batches
@@ -34,7 +45,9 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export const fetchMultipleDOIInfo = async (dois: string[]): Promise<DOIResults> => {
   if (dois.length <= BATCH_SIZE) {
     const response = await backend.post<DOIResults>('/original-lookup', { dois });
-    const data: DOIResults = response.data ?? { results: {}, isEmpty: true };
+    const data: DOIResults = normalizeResults(
+      response.data ?? { results: {}, isEmpty: true },
+    );
     data.isEmpty = replicationResponseHasNoData(data);
     return data;
   }
@@ -55,6 +68,7 @@ export const fetchMultipleDOIInfo = async (dois: string[]): Promise<DOIResults> 
   for (const res of responses) {
     Object.assign(merged.results, (res.data ?? {}).results ?? {});
   }
+  normalizeResults(merged);
   merged.isEmpty = replicationResponseHasNoData(merged);
   return merged;
 };
@@ -111,7 +125,10 @@ export const fetchFuzzySearch = async (query: string): Promise<DOIResults> => {
     offset += 1000;
   }
 
-  return { results: allResults, isEmpty: Object.keys(allResults).length === 0 };
+  return normalizeResults({
+    results: allResults,
+    isEmpty: Object.keys(allResults).length === 0,
+  });
 };
 
 export type AdvancedSearchParams = {
@@ -146,5 +163,8 @@ export const fetchAdvancedSearch = async (params: AdvancedSearchParams): Promise
     offset += 1000;
   }
 
-  return { results: allResults, isEmpty: Object.keys(allResults).length === 0 };
+  return normalizeResults({
+    results: allResults,
+    isEmpty: Object.keys(allResults).length === 0,
+  });
 };
