@@ -1822,13 +1822,26 @@ body {
   color: var(--text-muted);
   font-weight: 400;
 }
+/* Sits between the tab row and the list, matching their 1.75rem gutter; the
+   list's own top padding supplies the gap below. */
+/* Rides at the end of the tab row, annotating the Replications tab it belongs to. */
 .dc-spine {
   display: flex;
-  height: 6px;
+  align-items: center;
+  gap: 0.6rem;
+  margin-left: auto;
+  padding-left: 1rem;
+}
+.dc-spine-bar {
+  display: flex;
+  width: 6.5rem;
+  height: 0.5rem;
   border-radius: var(--radius-full);
   overflow: hidden;
-  margin-top: var(--space-3);
-  background: var(--surface-alt);
+}
+/* Inset rather than a gap: a real gap would push the widths past 100%. */
+.dc-spine-seg:not(:last-child) {
+  box-shadow: inset -2px 0 0 var(--white);
 }
 .dc-spine-seg.success {
   background: var(--success);
@@ -1838,6 +1851,17 @@ body {
 }
 .dc-spine-seg.failed {
   background: var(--error);
+}
+.dc-spine-counts {
+  margin: 0;
+  font-size: var(--fs-2);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.dc-spine-counts b {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--text);
 }
 /* With no verdict above it the tab row is the top of the column and would
    otherwise sit flush against the card edge. */
@@ -3251,6 +3275,7 @@ body {
   /* Tabs */
   .tabs-bar {
     padding: 0;
+    flex-wrap: wrap;
     overflow: hidden;
     gap: 0;
     background: var(--white);
@@ -3262,6 +3287,16 @@ body {
     padding: 0.65rem 0.5rem;
     font-size: var(--fs-4);
     min-height: 44px;
+  }
+  .dc-spine {
+    flex-basis: 100%;
+    margin-left: 0;
+    padding: 0.5rem 1rem;
+    border-top: 1px solid var(--border-light);
+  }
+  .dc-spine-bar {
+    flex: 1;
+    width: auto;
   }
   .rep-list {
     padding: 0.75rem 1rem 1.25rem;

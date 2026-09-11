@@ -209,22 +209,34 @@ export const DetailView = (props: DetailViewProps) => {
     categorizedTotal() > 0
       ? ((outcomes()?.failed || 0) / categorizedTotal()) * 100
       : 0;
-  const outcomeVariations = () => {
+  const segments = () => {
     const o = outcomes();
-    if (!o) return 0;
+    if (!o) return [];
     return [
-      (o.success || 0) > 0,
-      (o.mixed || 0) + (o.partial || 0) > 0,
-      (o.failed || 0) > 0,
-    ].filter(Boolean).length;
+      { key: "success", label: "successful", n: o.success || 0, pct: successPct() },
+      { key: "mixed", label: "mixed", n: (o.mixed || 0) + (o.partial || 0), pct: mixedPct() },
+      { key: "failed", label: "failed", n: o.failed || 0, pct: failedPct() },
+    ].filter((s) => s.n > 0);
   };
-
   const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
-  /* The line earns its place only when it summarises several attempts. Against a
-     single one it just restates the badge directly below it. The empty case
-     still shows, because nothing else in the column says "nothing on record". */
-  const showVerdict = () => {
+  const hasEntries = () =>
+    (rep().replications?.length || 0) > 0 ||
+    (rep().reproductions?.length || 0) > 0 ||
+    (rep().originals?.length || 0) > 0;
+
+  /* The bar summarises the replication list, so it belongs to that tab alone.
+     "replications" is also the default tab on records that never render it. */
+  const showSpine = () =>
+    activeTab() === "replications" &&
+    (rep().replications?.length || 0) > 0 &&
+    segments().length > 0;
+
+  /* The sentence is a fallback for records the bar cannot draw at all: no
+     replications, or replications whose outcome was never categorised. Against a
+     single attempt it just restates the badge below, so it stays hidden there. */
+  const showVerdictText = () => {
+    if (segments().length > 0) return false;
     const attempts =
       (outcomes()?.total || 0) +
       (rep().reproductions?.length || 0) +
@@ -287,6 +299,7 @@ export const DetailView = (props: DetailViewProps) => {
 
     return { tone, text: repro > 0 ? `${text} ${plural(repro, "reproduction")} logged.` : text };
   };
+
 
   return (
     <div class="detail-wrap" ref={wrapRef}>
@@ -395,31 +408,14 @@ export const DetailView = (props: DetailViewProps) => {
 
         {/* Evidence column: what the record says happened */}
         <div class="dc-main">
-          <Show when={showVerdict()}>
+          <Show when={showVerdictText()}>
             <div class={`dc-verdict dc-verdict--${verdict().tone}`}>
               <p class="dc-verdict-text">{verdict().text}</p>
-              <Show when={outcomeVariations() > 1}>
-                <div
-                  class="dc-spine"
-                  role="img"
-                  aria-label={`Outcome split: ${verdict().text}`}
-                >
-                  <div class="dc-spine-seg success" style={{ width: `${successPct()}%` }} />
-                  <div class="dc-spine-seg mixed" style={{ width: `${mixedPct()}%` }} />
-                  <div class="dc-spine-seg failed" style={{ width: `${failedPct()}%` }} />
-                </div>
-              </Show>
             </div>
           </Show>
 
         {/* Tabs */}
-        <Show
-          when={
-            (rep().replications?.length || 0) > 0 ||
-            (rep().reproductions?.length || 0) > 0 ||
-            (rep().originals?.length || 0) > 0
-          }
-        >
+        <Show when={hasEntries()}>
           <div class="tabs-bar">
             <Show when={(rep().originals?.length || 0) > 0}>
               <button
@@ -453,17 +449,39 @@ export const DetailView = (props: DetailViewProps) => {
                 </span>
               </button>
             </Show>
+            <Show when={showSpine()}>
+              <div class="dc-spine">
+                <div
+                  class="dc-spine-bar"
+                  role="img"
+                  aria-label={`Outcome split: ${verdict().text}`}
+                >
+                  <For each={segments()}>
+                    {(seg) => (
+                      <div
+                        class={`dc-spine-seg ${seg.key}`}
+                        style={{ width: `${seg.pct}%` }}
+                      />
+                    )}
+                  </For>
+                </div>
+                <p class="dc-spine-counts">
+                  <For each={segments()}>
+                    {(seg, i) => (
+                      <>
+                        {i() > 0 ? " \u00b7 " : ""}
+                        <b>{seg.n}</b> {seg.label}
+                      </>
+                    )}
+                  </For>
+                </p>
+              </div>
+            </Show>
           </div>
         </Show>
 
         {/* Items list */}
-        <Show
-          when={
-            (rep().replications?.length || 0) > 0 ||
-            (rep().reproductions?.length || 0) > 0 ||
-            (rep().originals?.length || 0) > 0
-          }
-        >
+        <Show when={hasEntries()}>
           <div class="rep-list">
             <Show
               when={currentItems().length > 0}
