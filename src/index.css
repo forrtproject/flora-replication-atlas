@@ -2011,7 +2011,6 @@ body {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  margin-top: 0.15rem;
   white-space: nowrap;
   min-width: 56px;
   text-align: center;
@@ -2038,33 +2037,21 @@ body {
 }
 .ri-badge-group {
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: stretch;
   gap: 0.3rem;
+  margin-top: 0.15rem;
 }
-.ri-badge.comp-success {
-  background: var(--success-bg);
-  color: var(--success);
-}
-.ri-badge.comp-issues {
-  background: var(--error-bg);
-  color: var(--error);
-}
-.ri-badge.comp-unchecked {
-  background: #f3f4f6;
-  color: #6b7280;
-}
-.ri-badge.robust {
-  background: #f0fdf4;
-  color: #15803d;
-}
-.ri-badge.rob-challenges {
-  background: var(--warning-bg);
-  color: var(--warning);
-}
+/* Reproduction judgements stay neutral: the tags name what was checked, they do
+   not grade it the way a replication outcome does. */
+.ri-badge.comp-success,
+.ri-badge.comp-issues,
+.ri-badge.comp-unchecked,
+.ri-badge.robust,
+.ri-badge.rob-challenges,
 .ri-badge.rob-unchecked {
-  background: #f4f4f4;
-  color: #888;
+  background: var(--surface);
+  color: var(--text-muted);
 }
 .ri-body {
   min-width: 0;
@@ -3328,7 +3315,7 @@ body {
   .rep-item-main {
     display: contents;
   }
-  .ri-badge {
+  .ri-badge-group {
     order: 1;
     align-self: flex-start;
     margin: 0.75rem 0 0 0.85rem;
