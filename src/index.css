@@ -2042,13 +2042,19 @@ body {
   gap: 0.3rem;
   margin-top: 0.15rem;
 }
-/* Reproduction judgements stay neutral: the tags name what was checked, they do
-   not grade it the way a replication outcome does. */
+/* Three states per axis: the check passed, it turned up problems, or it was
+   never assessed. Text tones are the AA-safe variants, not the badge fills. */
 .ri-badge.comp-success,
+.ri-badge.robust {
+  background: var(--success-bg);
+  color: var(--success-light);
+}
 .ri-badge.comp-issues,
+.ri-badge.rob-challenges {
+  background: var(--warning-bg);
+  color: var(--warning-text);
+}
 .ri-badge.comp-unchecked,
-.ri-badge.robust,
-.ri-badge.rob-challenges,
 .ri-badge.rob-unchecked {
   background: var(--surface);
   color: var(--text-muted);
