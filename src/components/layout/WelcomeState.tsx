@@ -27,7 +27,8 @@ export const REPLICATION_HUB_URL = "https://forrt.org/replication-hub/";
 export const CONTRIBUTE_URL =
   "https://docs.google.com/forms/d/e/1FAIpQLSeMCwdtP0TPgL55stniuyyTxnNwyC34mO4VUuLcQwYrLI89sQ/viewform";
 
-export const paperCount = __PAPER_COUNT__;
+/* Study pairs, not papers: an original and its replication are one pair. */
+export const pairCount = __PAIR_COUNT__;
 
 export const exampleSearches = [
   { label: "power posing", query: "power posing" },
@@ -287,11 +288,11 @@ export const WelcomeState = (props: WelcomeStateProps) => {
         <h2 class="landing-h2">Other ways in</h2>
         <div class="landing-bento">
           <a class="lb-cell lb-cell--feature" href={FLORA_EXPLORER_URL}>
-            <span class="lb-figure">{paperCount.toLocaleString()}+</span>
-            <span class="lb-title">Browse the whole database</span>
+            <span class="lb-figure">{pairCount.toLocaleString()}</span>
+            <span class="lb-title">Study pairs on record</span>
             <span class="lb-sub">
-              Original findings paired with replication outcomes, filterable in
-              the FLoRA Explorer.
+              Each an original finding paired with a replication attempt,
+              filterable in the FLoRA Explorer.
             </span>
             <span class="lb-go">
               Open FLoRA Explorer
@@ -393,8 +394,8 @@ export const WelcomeState = (props: WelcomeStateProps) => {
             The Replication Atlas is a search layer over FLoRA, FORRT's Library
             of Reproduction and Replication Attempts, which grows out of the
             FORRT Replication Database (FReD). It currently covers{" "}
-            {paperCount.toLocaleString()}+ original findings paired with
-            replication and reproduction attempts across research disciplines.
+            {pairCount.toLocaleString()} pairings of an original finding with a
+            replication or reproduction attempt, across research disciplines.
           </p>
           <p>
             Coverage is not complete, and it is not meant to be read as a

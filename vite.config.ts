@@ -6,18 +6,20 @@ import pkg from './package.json' with { type: 'json' };
 
 const base = new URL(pkg.homepage).pathname + '/';
 
-const FALLBACK_PAPER_COUNT = 4000;
+const FALLBACK_PAIR_COUNT = 2866;
 
-// Count is baked in at build time from the sitemap CI already regenerates, so
-// the landing page pays no runtime fetch for it.
-function readPaperCount() {
+// Pairs, not DOIs: /dois lists an original and the paper replicating it as two
+// entries, which is why this no longer counts sitemap pages. `count-pairs` runs
+// immediately before the build, so the figure is exact as of this build and the
+// landing page pays no runtime fetch for it.
+function readPairCount() {
   try {
-    const sitemap = readFileSync(new URL('./public/sitemap.xml', import.meta.url), 'utf-8');
-    const doiPages = (sitemap.match(/<loc>[^<]*\/doi\//g) || []).length;
-    if (doiPages === 0) return FALLBACK_PAPER_COUNT;
-    return Math.floor(doiPages / 100) * 100;
+    const raw = readFileSync(new URL('./public/counts.json', import.meta.url), 'utf-8');
+    const { pairs } = JSON.parse(raw);
+    if (!Number.isFinite(pairs) || pairs <= 0) return FALLBACK_PAIR_COUNT;
+    return pairs;
   } catch {
-    return FALLBACK_PAPER_COUNT;
+    return FALLBACK_PAIR_COUNT;
   }
 }
 
@@ -54,11 +56,11 @@ export default defineConfig({
     redirectRootToBase(),
     {
       // `define` only reaches JS; the static copy in index.html needs its own pass.
-      name: 'paper-count-html',
+      name: 'pair-count-html',
       transformIndexHtml(html: string) {
         return html.replaceAll(
-          '__PAPER_COUNT__',
-          readPaperCount().toLocaleString('en-US'),
+          '__PAIR_COUNT__',
+          readPairCount().toLocaleString('en-US'),
         );
       },
     },
@@ -77,7 +79,7 @@ export default defineConfig({
     target: 'esnext',
   },
   define: {
-    __PAPER_COUNT__: JSON.stringify(readPaperCount()),
+    __PAIR_COUNT__: JSON.stringify(readPairCount()),
   },
   base,
 });
