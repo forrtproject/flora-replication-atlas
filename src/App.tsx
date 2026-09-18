@@ -15,6 +15,7 @@ import {
   fetchAdvancedSearch,
   fetchSet,
   SetExpiredError,
+  SetLinkIncompleteError,
 } from "./api/backend";
 import { formatReplicationResponse } from "./api/formatter";
 import { SearchOutcomesBanner } from "./components/replication/SearchOutcomesBanner";
@@ -417,8 +418,8 @@ function App() {
     });
   };
 
-  // A ?set= link carries only an id; the DOI list itself lives server-side and
-  // has to be fetched before any search can run.
+  // A ?set= link carries an id and the key its DOI list was encrypted under; the list
+  // itself lives server-side and has to be fetched and decrypted before any search runs.
   const resolveSet = (id: string) => {
     const gen = ++searchGeneration;
     setSearchMode("doi");
@@ -446,6 +447,13 @@ function App() {
         setIsLoading(false);
         setResults({});
         setHasSearched(false);
+        if (error instanceof SetLinkIncompleteError) {
+          showToast(
+            "This link is incomplete",
+            "Part of the link is missing, so the DOIs behind it can't be read. Copy the whole link and try again.",
+          );
+          return;
+        }
         if (error instanceof SetExpiredError) {
           showToast(
             "This link has expired",

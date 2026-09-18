@@ -88,7 +88,23 @@ export class SetExpiredError extends Error {
   }
 }
 
+export class SetLinkIncompleteError extends Error {
+  constructor() {
+    super("This DOI set link is incomplete");
+    this.name = "SetLinkIncompleteError";
+  }
+}
+
+// `<row id>.<key>`. The server encrypts each set under a key it does not keep, so the
+// second half of the token is the only thing that can read the list back.
+const SET_TOKEN = /^[0-9a-f]{8}\.[A-Za-z0-9_-]{43}$/;
+
 export const fetchSet = async (id: string): Promise<DoiSet> => {
+  // A token that arrives cut short — wrapped by a mail client, clipped by a linkifier —
+  // would 404 like an expired one, and telling the reader to wait out an expiry they
+  // cannot wait out is worse than telling them the link itself came through broken.
+  if (!SET_TOKEN.test(id)) throw new SetLinkIncompleteError();
+
   try {
     const response = await backend.get<DoiSet>(`/sets/${encodeURIComponent(id)}`);
     return response.data;
