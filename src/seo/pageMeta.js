@@ -71,6 +71,12 @@ function attempts(paper) {
   ];
 }
 
+/** The studies this paper replicated, i.e. the link pointing the other way. */
+export function targets(paper) {
+  const t = paper?.record?.originals;
+  return Array.isArray(t) ? t : [];
+}
+
 /** Counts per bucket, highest first, for the pages' one distinguishing fact. */
 export function outcomeCounts(paper) {
   const counts = new Map();
@@ -108,7 +114,14 @@ export function shortAuthors(authors) {
 function titleOutcomePhrase(paper) {
   const counts = outcomeCounts(paper);
   const total = counts.reduce((n, [, c]) => n + c, 0);
-  if (total === 0) return "no replications recorded";
+  if (total === 0) {
+    // A paper with no attempts of its own may still be one: say so rather than
+    // titling it "no replications recorded", which reads as an empty page.
+    const n = targets(paper).length;
+    if (n === 1) return "a replication attempt";
+    if (n > 1) return `replicates ${n} studies`;
+    return "no replications recorded";
+  }
 
   const named = counts.filter(([b]) => b !== "unrecorded");
   const word = named.length === 1 ? named[0][0] : "mixed results";
@@ -133,8 +146,19 @@ export function buildTitle(paper) {
 function descriptionOutcomeSentence(paper) {
   const counts = outcomeCounts(paper);
   const total = counts.reduce((n, [, c]) => n + c, 0);
-  if (total === 0)
+  if (total === 0) {
+    const t = targets(paper);
+    if (t.length > 0) {
+      // The reverse link carries bibliography only, never an outcome, so the
+      // sentence must not promise one. One lead name only: two would push the
+      // description past its budget on long author lists.
+      const lead = shortAuthors(t[0]?.authors);
+      return t.length === 1
+        ? `A replication attempt${lead ? ` of ${lead}` : ""}, indexed in the FLoRA Replication Atlas.`
+        : `A replication attempt targeting ${t.length} studies, indexed in the FLoRA Replication Atlas.`;
+    }
     return "No replication or reproduction attempt is recorded in the FLoRA Replication Atlas.";
+  }
 
   const parts = counts.map(([bucket, n]) =>
     bucket === "unrecorded" ? `${n} without a recorded outcome` : `${n} ${bucket}`,
@@ -162,6 +186,10 @@ export function buildDescription(paper) {
   const room = DESCRIPTION_BUDGET - tail.length - 3;
   if (clean && room >= MIN_TITLE_STUB)
     return `${truncateWords(clean, room)} — ${tail}`;
+  // A long byline can push the tail past the budget on its own. The byline is
+  // the droppable half; the sentence is the page's distinguishing fact.
+  if (tail.length > DESCRIPTION_BUDGET)
+    return truncateWords(sentence, DESCRIPTION_BUDGET);
   return tail;
 }
 
