@@ -6,12 +6,12 @@ import pkg from './package.json' with { type: 'json' };
 
 const base = new URL(pkg.homepage).pathname + '/';
 
-const FALLBACK_PAIR_COUNT = 2866;
+const FALLBACK_PAIR_COUNT = 2982;
 
-// Pairs, not DOIs: /dois lists an original and the paper replicating it as two
-// entries, which is why this no longer counts sitemap pages. `count-pairs` runs
-// immediately before the build, so the figure is exact as of this build and the
-// landing page pays no runtime fetch for it.
+// One row of FLoRA is one original-plus-replication pairing, which is what
+// `count-pairs` counts and what the FLoRA Explorer shows. It runs immediately
+// before the build, so the figure is exact as of this build and the landing
+// page pays no runtime fetch for it.
 function readPairCount() {
   try {
     const raw = readFileSync(new URL('./public/counts.json', import.meta.url), 'utf-8');
