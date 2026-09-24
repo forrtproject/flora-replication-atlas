@@ -9,6 +9,8 @@ import {
   cleanAuthorName,
   cleanTitle,
   outcomeCounts,
+  targets,
+  truncateWords,
 } from "../src/seo/pageMeta.js";
 import { normalizePaperAuthors } from "../src/utils/authors.js";
 import { generateBrowsePages } from "./browse-pages.js";
@@ -205,36 +207,99 @@ function buildPageMeta(paper, atlasDois) {
   };
 }
 
+const QUOTE_LIMIT = 480;
+
 function attemptLine(entry, atlasDois) {
   const href = atlasHref(entry.doi, atlasDois);
   const name = escHtml(cleanTitle(entry.title) || entry.doi || "Untitled attempt");
   const label = href ? `<a href="${href}">${name}</a>` : name;
   const by = escHtml(formatAuthors(entry.authors));
   const year = entry.year ? ` (${escHtml(entry.year)})` : "";
+  const venue = entry.journal ? ` ${escHtml(cleanTitle(entry.journal))}.` : "";
   const outcome = entry.outcome
     ? ` Outcome recorded: ${escHtml(entry.outcome)}.`
     : " No outcome recorded.";
   const quote = entry.outcome_quote
-    ? ` <q>${escHtml(String(entry.outcome_quote).split("||")[0].trim().slice(0, 300))}</q>`
+    ? ` <q>${escHtml(truncateWords(String(entry.outcome_quote).split("||")[0].trim(), QUOTE_LIMIT))}</q>`
+    : "";
+  // Naming where the passage was read from is what separates this record from a
+  // bare citation, and it is the one line no other page on the site repeats.
+  const source = entry.outcome_quote && entry.outcome_quote_source
+    ? ` Read from ${escHtml(entry.outcome_quote_source)}.`
     : "";
   const paper = entry.doi
     ? ` <a href="https://doi.org/${escHtml(entry.doi)}">View paper</a>`
     : "";
-  return `<li><strong>${label}</strong>, ${by}${year}.${outcome}${quote}${paper}</li>`;
+  return `<li><strong>${label}</strong>, ${by}${year}.${venue}${outcome}${quote}${source}${paper}</li>`;
 }
 
-// Links each page on to the next few, so they form a crawlable ring.
+/* The study this paper replicated. Without it a replication's page renders as
+   "nothing on record", which is both wrong and the thinnest page on the site. */
+function targetLine(entry, atlasDois) {
+  const href = atlasHref(entry.doi, atlasDois);
+  const name = escHtml(cleanTitle(entry.title) || entry.doi || "Untitled study");
+  const label = href ? `<a href="${href}">${name}</a>` : name;
+  const by = escHtml(formatAuthors(entry.authors));
+  const year = entry.year ? ` (${escHtml(entry.year)})` : "";
+  const venue = entry.journal ? ` ${escHtml(cleanTitle(entry.journal))}.` : "";
+  const paper = entry.doi
+    ? ` <a href="https://doi.org/${escHtml(entry.doi)}">View paper</a>`
+    : "";
+  return `<li><strong>${label}</strong>, ${by}${year}.${venue}${paper}</li>`;
+}
+
 const RELATED_COUNT = 6;
-function relatedLinks(dois, index, papers) {
-  const out = [];
-  for (let k = 1; k <= RELATED_COUNT && k < dois.length; k++) {
-    const other = dois[(index + k) % dois.length];
-    const label = cleanTitle(papers[other]?.title) || other;
-    out.push(
-      `<li><a href="${SITE_URL}/doi/${escHtml(other)}/">${escHtml(label.length > 90 ? label.slice(0, 89) + "\u2026" : label)}</a></li>`,
-    );
+
+function surnames(paper) {
+  return new Set(
+    (Array.isArray(paper?.authors) ? paper.authors : [])
+      .map((a) => String(a?.family || "").toLowerCase())
+      .filter(Boolean),
+  );
+}
+
+/* Related by journal or shared authorship first, then by list order so every
+   page still links onward. The old ring linked the next six DOIs whatever they
+   were, which put the same arbitrary block on all 4,800 pages. */
+function relatedLinks(dois, index, papers, paper) {
+  const self = paper?.doi;
+  const journal = String(paper?.journal || "").toLowerCase();
+  const mine = surnames(paper);
+
+  const scored = [];
+  for (const other of dois) {
+    if (other === self) continue;
+    const p = papers[other];
+    if (!p?.title) continue;
+    let score = 0;
+    if (journal && String(p.journal || "").toLowerCase() === journal) score += 2;
+    for (const n of surnames(p)) if (mine.has(n)) { score += 3; break; }
+    if (score > 0) scored.push([score, other]);
+    if (scored.length > 200) break;
   }
-  return out.join("\n        ");
+  scored.sort((a, b) => b[0] - a[0]);
+
+  const picked = [];
+  const seen = new Set();
+  for (const [, other] of scored) {
+    if (picked.length >= RELATED_COUNT) break;
+    if (seen.has(other)) continue;
+    seen.add(other);
+    picked.push(other);
+  }
+  for (let k = 1; picked.length < RELATED_COUNT && k < dois.length; k++) {
+    const other = dois[(index + k) % dois.length];
+    if (other === self || seen.has(other)) continue;
+    seen.add(other);
+    picked.push(other);
+  }
+
+  return picked
+    .map((other) => {
+      const label = cleanTitle(papers[other]?.title) || other;
+      return `<li><a href="${SITE_URL}/doi/${escHtml(other)}/">${escHtml(truncateWords(label, 90))}</a></li>`;
+    })
+    .join("\n        ");
 }
 
 /** The crawlable copy of the record, for crawlers that never run the app. */
@@ -248,6 +313,7 @@ function renderBody(paper, dois, index, papers, atlasDois) {
     .join(", ");
   const replications = paper.record?.replications || [];
   const reproductions = paper.record?.reproductions || [];
+  const targetStudies = targets(paper);
 
   const venue = [paper.journal, paper.year]
     .filter(Boolean)
@@ -271,10 +337,19 @@ function renderBody(paper, dois, index, papers, atlasDois) {
           .map(([b, n]) => `${n} ${b === "unrecorded" ? "with no outcome recorded" : b}`)
           .join(", ")}.`
       : "";
+  const targetSummary =
+    targetStudies.length === 1
+      ? "This paper is itself a replication attempt. The study it set out to replicate is listed below."
+      : `This paper is itself a replication attempt, targeting ${targetStudies.length} studies, listed below.`;
+  const firstYear = paper.first_replication_year
+    ? ` The earliest on record is from ${escHtml(paper.first_replication_year)}.`
+    : "";
   const summary =
     parts.length > 0
-      ? `The atlas records ${parts.join(" and ")} of this study.${outcomeSentence}`
-      : "The atlas has no replication or reproduction of this study on record yet.";
+      ? `The atlas records ${parts.join(" and ")} of this study.${outcomeSentence}${firstYear}`
+      : targetStudies.length > 0
+        ? targetSummary
+        : "The atlas has no replication or reproduction of this study on record yet.";
 
   const section = (heading, items) =>
     items.length > 0
@@ -285,7 +360,7 @@ function renderBody(paper, dois, index, papers, atlasDois) {
       : "";
 
   const noneNote =
-    parts.length === 0
+    parts.length === 0 && targetStudies.length === 0
       ? `<p>An absent record is not evidence that the finding failed to replicate. It means no attempt has been indexed here yet. <a href="${SITE_URL}/">Search the atlas</a> for related work, or send in a replication we have missed.</p>`
       : "";
 
@@ -299,11 +374,26 @@ function renderBody(paper, dois, index, papers, atlasDois) {
         <p>${summary}</p>
         ${section("Replications", replications)}
         ${section("Reproductions", reproductions)}
+        ${
+          targetStudies.length > 0
+            ? `<h3>${targetStudies.length === 1 ? "Study replicated" : "Studies replicated"}</h3>
+        <ul>
+        ${targetStudies.map((t) => targetLine(t, atlasDois)).join("\n        ")}
+        </ul>`
+            : ""
+        }
         ${noneNote}
+
+        ${
+          paper.apa_ref
+            ? `<h2>Cite this record</h2>
+        <p class="ssg-cite">${escHtml(cleanTitle(paper.apa_ref))}</p>`
+            : ""
+        }
 
         <h2>Other studies in the atlas</h2>
         <ul class="ssg-related">
-        ${relatedLinks(dois, index, papers)}
+        ${relatedLinks(dois, index, papers, paper)}
         </ul>
         <p><a href="${SITE_URL}/browse/outcome/failed/">Failed replications</a> &middot;
         <a href="${SITE_URL}/browse/outcome/successful/">Successful replications</a> &middot;
