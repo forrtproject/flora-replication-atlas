@@ -13,6 +13,7 @@ import {
   truncateWords,
 } from "../src/seo/pageMeta.js";
 import { normalizePaperAuthors } from "../src/utils/authors.js";
+import { quoteSourcePhrase } from "../src/utils/quoteSource.js";
 import { generateBrowsePages } from "./browse-pages.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -224,9 +225,10 @@ function attemptLine(entry, atlasDois) {
     : "";
   // Naming where the passage was read from is what separates this record from a
   // bare citation, and it is the one line no other page on the site repeats.
-  const source = entry.outcome_quote && entry.outcome_quote_source
-    ? ` Read from ${escHtml(entry.outcome_quote_source)}.`
+  const sourcePhrase = entry.outcome_quote
+    ? quoteSourcePhrase(entry.outcome_quote_source)
     : "";
+  const source = sourcePhrase ? ` Outcome read from ${escHtml(sourcePhrase)}.` : "";
   const paper = entry.doi
     ? ` <a href="https://doi.org/${escHtml(entry.doi)}">View paper</a>`
     : "";

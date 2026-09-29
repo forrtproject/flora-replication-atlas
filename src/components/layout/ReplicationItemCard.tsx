@@ -3,6 +3,7 @@ import { createSignal, For } from "solid-js";
 import { A } from "@solidjs/router";
 import type { ReplicationItem } from "../../@types";
 import { authorYearLine, normalizeOutcome } from "../../utils/formatter";
+import { quoteSourcePhrase } from "../../utils/quoteSource.js";
 
 type ReplicationItemCardProps = {
   item: ReplicationItem;
@@ -77,6 +78,7 @@ export const ReplicationItemCard = (props: ReplicationItemCardProps) => {
   /* The stored quote packs several extracts behind "||"; the first is the one
      the outcome label was read from. */
   const quote = () => (props.item.outcome_quote || "").split("||")[0]!.replace(/\s+/g, " ").trim();
+  const sourcePhrase = () => quoteSourcePhrase(props.item.outcome_quote_source);
   const LONG_QUOTE = 240;
 
   return (
@@ -161,10 +163,9 @@ export const ReplicationItemCard = (props: ReplicationItemCardProps) => {
           </blockquote>
           <figcaption class="ri-quote-foot">
             <span>
-              The passage this outcome was read from
-              {props.item.outcome_quote_source
-                ? `, in ${props.item.outcome_quote_source}`
-                : ""}
+              {sourcePhrase()
+                ? `Outcome read from ${sourcePhrase()}`
+                : "Outcome read from this passage"}
             </span>
             {quote().length > LONG_QUOTE && (
               <button class="ri-quote-more" onClick={() => setExpanded(!expanded())}>
