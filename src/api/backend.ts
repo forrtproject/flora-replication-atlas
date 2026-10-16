@@ -95,19 +95,45 @@ export class SetLinkIncompleteError extends Error {
   }
 }
 
-// `<row id>.<key>`. The server encrypts each set under a key it does not keep, so the
-// second half of the token is the only thing that can read the list back.
-const SET_TOKEN = /^[0-9a-f]{8}\.[A-Za-z0-9_-]{43}$/;
+// A ?set= link is `?set=<row id>#k=<key>`. The extension encrypted the DOI list in the
+// browser and put the key in the fragment, which browsers never send to a server, so the
+// API holds only ciphertext and the list is decrypted here. Keep these parameters in step
+// with the extension's set-crypto.ts.
+const SET_ID = /^[0-9a-f]{8}$/;
+const SET_KEY = /^[A-Za-z0-9_-]{43}$/;
+const SET_AAD = new TextEncoder().encode("flora-doi-set:v2");
 
-export const fetchSet = async (id: string): Promise<DoiSet> => {
-  // A token that arrives cut short — wrapped by a mail client, clipped by a linkifier —
-  // would 404 like an expired one, and telling the reader to wait out an expiry they
-  // cannot wait out is worse than telling them the link itself came through broken.
-  if (!SET_TOKEN.test(id)) throw new SetLinkIncompleteError();
+// The pre-fragment `<row id>.<key>` shape. Those sets are gone, so say so rather than
+// calling a link that arrived whole "incomplete".
+const RETIRED_SET_TOKEN = /^[0-9a-f]{8}\.[A-Za-z0-9_-]{43}$/;
 
+type SealedSet = { id: string; data: string; iv: string; expires: string };
+
+const fromBase64url = (s: string) =>
+  Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));
+
+const openSet = async (sealed: SealedSet, key: string) => {
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw", fromBase64url(key), "AES-GCM", false, ["decrypt"],
+  );
+  const plaintext = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: fromBase64url(sealed.iv), additionalData: SET_AAD },
+    cryptoKey,
+    fromBase64url(sealed.data),
+  );
+  return JSON.parse(new TextDecoder().decode(plaintext)) as { dois?: unknown; created?: unknown };
+};
+
+export const fetchSet = async (id: string, key: string): Promise<DoiSet> => {
+  if (RETIRED_SET_TOKEN.test(id)) throw new SetExpiredError();
+  // A link that arrives cut short — wrapped by a mail client, clipped by a linkifier, the
+  // fragment dropped — would 404 like an expired one, and telling the reader to wait out an
+  // expiry they cannot wait out is worse than telling them the link came through broken.
+  if (!SET_ID.test(id) || !SET_KEY.test(key)) throw new SetLinkIncompleteError();
+
+  let sealed: SealedSet;
   try {
-    const response = await backend.get<DoiSet>(`/sets/${encodeURIComponent(id)}`);
-    return response.data;
+    sealed = (await backend.get<SealedSet>(`/sets/${id}`)).data;
   } catch (error) {
     // Expiry is the documented end of a set's life, not a failure. The server's
     // message is human-facing copy, so branch on the code instead.
@@ -117,11 +143,26 @@ export const fetchSet = async (id: string): Promise<DoiSet> => {
     }
     throw error;
   }
-};
 
-export const createSet = async (dois: string[]): Promise<DoiSet> => {
-  const response = await backend.post<DoiSet>("/sets", { dois });
-  return response.data;
+  // GCM authenticates, so a key that is wrong or damaged fails here instead of
+  // producing a list of garbage DOIs.
+  let payload: Awaited<ReturnType<typeof openSet>>;
+  try {
+    payload = await openSet(sealed, key);
+  } catch {
+    throw new SetLinkIncompleteError();
+  }
+
+  const dois = Array.isArray(payload.dois)
+    ? payload.dois.filter((d): d is string => typeof d === "string")
+    : [];
+  return {
+    id,
+    dois,
+    count: dois.length,
+    created: typeof payload.created === "string" ? payload.created : "",
+    expires: sealed.expires,
+  };
 };
 
 const MAX_PAGES = 50;

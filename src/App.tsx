@@ -7,7 +7,7 @@ import {
   For,
   onCleanup,
 } from "solid-js";
-import { useSearchParams } from "@solidjs/router";
+import { useLocation, useNavigate, useSearchParams } from "@solidjs/router";
 import type { DOIResults, OriginalPaper } from "./@types";
 import {
   fetchMultipleDOIInfo,
@@ -108,6 +108,10 @@ const toastDetails = (error: unknown): [string, string, boolean?] => {
 
 function App() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  // A set link's decryption key rides in the fragment as `#k=`, out of every server's reach.
+  const setKey = () => new URLSearchParams(location.hash.replace(/^#/, "")).get("k") ?? "";
   const [reportingError, setReportingError] = createSignal<Toast | null>(null);
   const { show: showToast, ToastStack } = createToastState((toast) => setReportingError(toast));
 
@@ -418,8 +422,8 @@ function App() {
     });
   };
 
-  // A ?set= link carries an id and the key its DOI list was encrypted under; the list
-  // itself lives server-side and has to be fetched and decrypted before any search runs.
+  // A ?set= link carries an id, and its #fragment the key the DOI list was encrypted under;
+  // the ciphertext lives server-side and has to be fetched and decrypted before any search runs.
   const resolveSet = (id: string) => {
     const gen = ++searchGeneration;
     setSearchMode("doi");
@@ -430,7 +434,7 @@ function App() {
     setHasEverSearched(true);
     setResults({});
     setSelectedDoi(null);
-    fetchSet(id)
+    fetchSet(id, setKey())
       .then((doiSet) => {
         if (gen !== searchGeneration) return;
         if (doiSet.dois.length === 0) {
@@ -635,6 +639,9 @@ function App() {
       return;
     }
     resolvedSetId = "";
+    // setSearchParams carries the fragment over, so leaving a set would otherwise leave its
+    // key in the address bar. A query-only navigation keeps the path and drops the hash.
+    if (setKey()) navigate(location.search, { replace: true, scroll: false });
 
     const doi = String(searchParams.doi || searchParams.dois || "");
     const q = String(searchParams.q || "");
