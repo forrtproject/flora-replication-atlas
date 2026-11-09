@@ -259,7 +259,7 @@ footer { margin-top: 2rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font
     <span class="legend-item"><span class="legend-bar legend-bar--none"></span> Original / Target study</span>
   </div>
   ${cards}
-  <footer>FLoRA Library &middot; <a href="https://forrt.org/flora-replication-atlas/" style="color:#bbb;">forrt.org/flora-replication-atlas/</a></footer>
+  <footer>FLoRA Database &middot; <a href="https://forrt.org/flora-replication-atlas/" style="color:#bbb;">forrt.org/flora-replication-atlas/</a></footer>
 </body></html>`;
 
     const printWin = window.open("", "_blank");
