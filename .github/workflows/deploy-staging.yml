@@ -1,0 +1,34 @@
+name: Deploy to staging
+
+# Publishes this repository's site to https://staging.forrt.org/flora-replication-atlas/ through the
+# shared FORRT workflow (forrtproject/.github), which documents the details.
+#   - Push to `staging` or `staging/<name>`, or push a tag starting with `staging`.
+#   - Or Actions -> "Deploy to staging" -> Run workflow, entering any branch, tag or commit.
+on:
+  push:
+    branches: ['staging', 'staging/**']
+    tags: ['staging**']
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch, tag or commit to deploy (empty = the branch selected above)'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    uses: forrtproject/.github/.github/workflows/deploy-staging.yml@main
+    with:
+      ref: ${{ inputs.ref }}
+      site-dir: dist
+      node-version: '20'  # same as deploy.yml, so staging builds like production
+      build: |
+        npm ci
+        OUTPUT_PATH=public/sitemap.xml node scripts/generate-sitemap.js
+        npm run build:gh-pages
+    secrets:
+      STAGING_GITHUB_TOKEN: ${{ secrets.STAGING_GITHUB_TOKEN }}
